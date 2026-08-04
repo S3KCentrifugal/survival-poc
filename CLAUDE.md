@@ -154,6 +154,14 @@ then left alone.
   Read the names off the imported `AnimationPlayer`, never off the source file.
   A clip name that does not exist is not an error: the character simply stands
   still while sliding along the ground, which reads as a physics bug.
+- **A `Callable` does not keep its object alive, but a bound argument does.**
+  Two failures from one asymmetry. `Callable` stores an object *id*, so a
+  `RefCounted` whose methods you registered somewhere is freed the moment your
+  last reference goes out of scope — and every callable into it silently turns
+  invalid rather than erroring. Meanwhile `bind()` stores its arguments as
+  Variants, which *are* strong references, so binding an object into a callable
+  it is reachable from makes a cycle GDScript never collects. Hold the owner in
+  a member; do not bind a collection into the things it collects.
 - **`StringName` comparison sorts by interned pointer, not by text.** `<`, `>`
   and therefore `Array.sort()` return allocation order, which is stable within a
   run and changes the moment an unrelated system interns a new name — so a test

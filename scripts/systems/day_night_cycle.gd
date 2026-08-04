@@ -78,6 +78,33 @@ func hours() -> float:
 	return time_of_day * 24.0
 
 
+## Reads a clock back into a fraction of the day: [code]"12:30"[/code] or a bare
+## number of hours. Returns -1 if it is not a time, which no valid time is.
+##
+## The inverse of [method time_string], and the reason it exists is that typing
+## `time 0.53125` into a console is not a thing anyone can do.
+static func time_from_clock(text: String) -> float:
+	var trimmed := text.strip_edges()
+	if trimmed.is_empty():
+		return -1.0
+
+	var hours_part := trimmed
+	var minutes := 0.0
+	if trimmed.contains(":"):
+		var halves := trimmed.split(":", false)
+		if halves.size() != 2 or not halves[1].is_valid_float():
+			return -1.0
+		hours_part = halves[0]
+		minutes = halves[1].to_float()
+
+	if not hours_part.is_valid_float():
+		return -1.0
+	var total := hours_part.to_float() + minutes / 60.0
+	if total < 0.0 or total > 24.0:
+		return -1.0
+	return fposmod(total / 24.0, 1.0)
+
+
 ## A basis that aims a light along [param direction].
 ##
 ## Built with [method Basis.looking_at] rather than written out: a hand-authored

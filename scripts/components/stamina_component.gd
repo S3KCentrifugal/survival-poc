@@ -90,6 +90,19 @@ func is_exhausted() -> bool:
 	return _stamina.is_exhausted()
 
 
+## Sets the bar directly, for a debug console or a scripted scene. Announces the
+## change like any other, so a bar redraws.
+func set_current(value: float) -> void:
+	_ensure_stamina()
+	var was_exhausted := _stamina.is_exhausted()
+	_stamina.set_current(value)
+	changed.emit(_stamina.pool.current, _stamina.pool.maximum)
+	if _stamina.is_exhausted() and not was_exhausted:
+		exhausted.emit()
+	elif was_exhausted and not _stamina.is_exhausted():
+		recovered.emit()
+
+
 ## Builds the stamina on first use rather than only in [method _ready], so a
 ## test or a tool can drive it without mounting the actor in a scene tree.
 func _ensure_stamina() -> void:

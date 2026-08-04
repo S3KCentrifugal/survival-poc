@@ -49,6 +49,19 @@ func is_exhausted() -> bool:
 	return _exhausted
 
 
+## Sets the bar directly, for a debug console or a scripted scene.
+##
+## Refilling past the recovery threshold lifts the lockout with it: an actor
+## handed a full bar that still refuses to sprint looks broken. Setting it to
+## empty exhausts, for the same reason in reverse.
+func set_current(value: float) -> void:
+	pool.set_current(value)
+	if pool.is_empty():
+		_exhausted = true
+	elif pool.fraction() >= _config.exhausted_recovery_fraction:
+		_exhausted = false
+
+
 func _spend(delta: float) -> void:
 	pool.drain(_config.drain_per_second * delta)
 	_recovery_wait = _config.recovery_delay

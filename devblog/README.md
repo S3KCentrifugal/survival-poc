@@ -27,6 +27,7 @@ rather than an edit to the old one.
 | 012 | [A character with legs](012-player-character.md) | Sourcing a CC0 rig, and three things that went wrong |
 | 013 | [Facing the way you run](013-facing-mode.md) | A design reversal, and Godot's resource cache |
 | 014 | [A base to walk out of](014-prototype-level.md) | Levelling ground, subtracting doorways, a 5 cm floor |
+| 015 | [A console, and two ways to lose an object](015-dev-console.md) | Callables, bound arguments, and a leak with no failing test |
 
 Numbers follow the **feature** order, not the order posts get written — 012 is
 the twelfth feature, and 002–011 below are still owed.

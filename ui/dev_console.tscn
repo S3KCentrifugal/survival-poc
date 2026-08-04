@@ -1,0 +1,48 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/dev_console_ui.gd" id="1_console"]
+
+; Same reasoning as the debug overlay: a console is read in columns, and the
+; default theme font is proportional.
+[sub_resource type="SystemFont" id="SystemFont_mono"]
+font_names = PackedStringArray("monospace", "Monospace", "Courier New")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+; Nearly opaque, not translucent: the debug overlay sits on the layer below and
+; its text bleeds through anything thinner, so console output ends up printed
+; over the readout.
+bg_color = Color(0.05, 0.06, 0.07, 0.98)
+border_width_bottom = 2
+border_color = Color(0.35, 0.4, 0.45, 1)
+
+[node name="DevConsole" type="CanvasLayer" node_paths=PackedStringArray("output", "entry")]
+layer = 2
+script = ExtResource("1_console")
+output = NodePath("Panel/Rows/Output")
+entry = NodePath("Panel/Rows/Entry")
+
+[node name="Panel" type="PanelContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 0.45
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Rows" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/separation = 6
+
+[node name="Output" type="RichTextLabel" parent="Panel/Rows"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = false
+scroll_following = true
+theme_override_fonts/normal_font = SubResource("SystemFont_mono")
+theme_override_font_sizes/normal_font_size = 14
+
+[node name="Entry" type="LineEdit" parent="Panel/Rows"]
+layout_mode = 2
+placeholder_text = "type a command, `help` for the list"
+caret_blink = true
+theme_override_fonts/font = SubResource("SystemFont_mono")
+theme_override_font_sizes/font_size = 15

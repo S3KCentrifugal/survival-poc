@@ -105,8 +105,9 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 12 | Player character (placeholder rig) | done | `460bb9a` |
 | 13 | Facing mode: face your travel, not the cursor | done | `6367ad9` |
 | 14 | Prototype level: a base to walk out of | done | `e7ddd7d` |
+| 15 | Dev console | done | |
 
-**The planned slice is complete.** 301 tests passing across 25 suites.
+**The planned slice is complete.** 345 tests passing across 27 suites.
 `./run_tests.sh` exits non-zero on failure.
 
 Playable now: `./run.sh`. You start in a room inside a two-room base. Walk with
@@ -418,6 +419,38 @@ the character through, not by reasoning about it.
 openings and pads all have tested logic behind them, but *where the walls go* is
 still code. A level format is its own job, and inventing one to describe a
 single prototype building would be guessing at what the second building needs.
+
+### 15. Dev console
+
+Backtick opens it. `DevConsole` is the registry, parser and history and knows
+nothing about survival games; `GameCommands` holds what the commands do;
+`DevConsoleUI` owns the panel and the keys. Every command can therefore be run
+in a test rather than by typing it and watching — which is the workflow a dev
+console exists to replace.
+
+Commands: `help`, `clear`, `where`, `tp`, `time`, `heal`, `hurt`, `kill`,
+`stamina`, `speed`, `quit`.
+
+**It pauses the world while open.** Without that the player keeps walking as you
+type, because `PlayerInputSource` reads the `Input` singleton and a focused text
+box does nothing to that. The toggle is handled in `_input` rather than
+`_unhandled_key_input` for the same family of reason: the text box has focus and
+would otherwise type the key meant to close it.
+
+Two bugs came out of this, both now traps in `CLAUDE.md`, both from one
+asymmetry in `Callable`:
+
+- It stores an object **id**, so the `GameCommands` built as a local was freed
+  the moment `install()` returned and every command silently became invalid —
+  the console answered everything with "registered but does nothing".
+- `bind()` stores arguments as **strong references**, so `_help.bind(console)`
+  made `console → command → callable → console`, a cycle GDScript never
+  collects. Every mounted world leaked one. `help` is a built-in of `DevConsole`
+  now, which is where it belonged anyway.
+
+The second was found by the test suite's exit warning, not by a failing
+assertion. `./run_tests.sh` is now clean of leak warnings, which makes it worth
+watching as a signal.
 
 ## What is not built
 
