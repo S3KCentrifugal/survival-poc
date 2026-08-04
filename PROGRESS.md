@@ -101,7 +101,7 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 8 | Animation controller | done | `c83b4e3` |
 | 9 | Day/night placeholder | done | `f60aee6` |
 | 10 | Debug overlay | done | `f35cc35` |
-| 11 | Save identifiers | done | |
+| 11 | Save identifiers | done | `bdb7a1d` |
 
 **The planned slice is complete.** 270 tests passing across 23 suites.
 `./run_tests.sh` exits non-zero on failure.
