@@ -1,7 +1,10 @@
 # survival-poc
 
-A 3D survival game in Godot 4, with a fixed isometric camera. Survival-focused
-rather than loot-focused.
+A 3D survival game in Godot 4, with a fixed isometric camera in the style of
+V Rising or Diablo. Survival-focused rather than loot-focused.
+
+**[PROGRESS.md](PROGRESS.md) is the status document** — project goals, what is
+built, the decisions behind each system, and what comes next. Start there.
 
 ```bash
 ./run.sh        # play it
