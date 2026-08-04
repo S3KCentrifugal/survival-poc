@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sgp6g"]
+
+[sub_resource type="Sky" id="Sky_o5qli"]
+sky_material = SubResource("ProceduralSkyMaterial_sgp6g")
+
+[sub_resource type="Environment" id="Environment_0wfyh"]
+background_mode = 2
+sky = SubResource("Sky_o5qli")
+ambient_light_source = 3
+tonemap_mode = 2
+
+[node name="Main" type="Node3D" unique_id=159748148]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=159123357]
+environment = SubResource("Environment_0wfyh")
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=1393550790]
+transform = Transform3D(0.59999996, -0.7155418, 0.3577709, 0, 0.4472136, 0.8944272, -0.8, -0.53665626, 0.26832816, 0, 10, 0)
+shadow_enabled = true
+
+[node name="PlaceholderCamera" type="Camera3D" parent="." unique_id=97148530]
+transform = Transform3D(0.7071068, -0.45749572, 0.5391638, 0, 0.76249284, 0.6469966, -0.7071068, -0.45749572, 0.5391638, 10, 12, 10)
