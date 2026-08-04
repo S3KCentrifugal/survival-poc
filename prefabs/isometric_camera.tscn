@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/components/camera_controller.gd" id="1_controller"]
+[ext_resource type="Resource" path="res://resources/camera/default_camera.tres" id="2_config"]
+
+[node name="IsometricCamera" type="Camera3D"]
+script = ExtResource("1_controller")
+config = ExtResource("2_config")

@@ -133,6 +133,11 @@ func _process(_delta: float) -> bool:
 
 Delete the throwaway script afterwards; it is a tool, not part of the project.
 
+When checking camera framing or anything scale-dependent, add temporary 1.8 m
+boxes **in the harness only** — an empty landscape gives the eye nothing to
+judge against, and a frame of featureless green looks identical whether the
+framing is right or badly wrong.
+
 ## Scope discipline
 
 The vertical slice is deliberately narrow: no crafting, no inventory, no

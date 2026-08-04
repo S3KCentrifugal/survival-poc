@@ -101,7 +101,7 @@ Vertical slice in progress. Built so far:
 
 - [x] Project bootstrap: folder hierarchy, test harness, empty 3D world
 - [x] Terrain: noise heightfield, mesh and matching collision
-- [ ] Fixed isometric camera controller
+- [x] Fixed isometric camera controller
 - [ ] Input abstraction
 - [ ] Movement (WASD, mouse rotation)
 - [ ] Health and stamina components
@@ -111,5 +111,5 @@ Vertical slice in progress. Built so far:
 - [ ] Debug overlay
 - [ ] Save identifiers
 
-`PlaceholderCamera` in `main.tscn` is exactly that — the camera controller
-replaces it.
+The camera currently frames the world origin. It follows a target as soon as
+one exists — `CameraController.set_target()` is the seam the player plugs into.
