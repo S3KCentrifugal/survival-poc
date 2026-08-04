@@ -104,7 +104,7 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 11 | Save identifiers | done | `bdb7a1d` |
 | 12 | Player character (placeholder rig) | done | `460bb9a` |
 | 13 | Facing mode: face your travel, not the cursor | done | `6367ad9` |
-| 14 | Prototype level: a base to walk out of | done | |
+| 14 | Prototype level: a base to walk out of | done | `e7ddd7d` |
 
 **The planned slice is complete.** 301 tests passing across 25 suites.
 `./run_tests.sh` exits non-zero on failure.

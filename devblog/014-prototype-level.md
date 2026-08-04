@@ -1,6 +1,6 @@
 # 014 — A base to walk out of
 
-*2026-08-04 · commit pending*
+*2026-08-04 · commit `e7ddd7d`*
 
 Until now the world was a hillside with a robot on it. This post is about giving
 it a building: two rooms, a door between them, a door out, and a tower to walk
