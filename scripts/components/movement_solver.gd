@@ -28,6 +28,11 @@ static func horizontal_velocity(
 	return current.move_toward(target, rate * delta)
 
 
+## Target speed for a tick, given whether the actor is sprinting.
+static func speed_for(walk_speed: float, sprint_multiplier: float, sprinting: bool) -> float:
+	return walk_speed * maxf(sprint_multiplier, 1.0) if sprinting else walk_speed
+
+
 ## Advances vertical velocity.
 ##
 ## Standing on the ground zeroes it rather than letting it accumulate: an

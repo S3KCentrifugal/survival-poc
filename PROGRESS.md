@@ -92,8 +92,8 @@ abstraction. Five of those exist so far.
 | 4 | Input abstraction | done | `2e83539` |
 | 5 | Movement: WASD, cursor facing, collision | done | `d8dae5f` |
 | 6 | Health and stamina components | done | |
-| 7 | Sprint (movement × stamina) | **next** | |
-| 8 | Animation controller | | |
+| 7 | Sprint (movement × stamina) | done | |
+| 8 | Animation controller | **next** | |
 | 9 | Day/night placeholder | | |
 | 10 | Debug overlay | | |
 | 11 | Save identifiers | | |
@@ -191,6 +191,25 @@ request — there is no "stop" to forget. Sprint reads that in feature 7.
 Both components are attached to the player and tuned by `.tres`, and nothing
 consumes either yet. That is expected: they are the reusable pieces, and
 gameplay wiring is its own feature.
+
+### 7. Sprint
+
+The seam between movement and stamina. `MovementConfig.sprint_multiplier` is a
+multiplier rather than a second speed, so retuning the walk keeps the
+relationship between the two — the gap is what the player feels.
+
+`MovementComponent.stamina` is an explicit `@export`, wired in `player.tscn` and
+**optional**: an actor without one sprints as long as it likes, which is what a
+deer should do and what an enemy does until it is given a bar.
+
+Two rules earn their tests. Sprinting on the spot is not sprinting — without the
+movement check, holding the key while standing still drains the bar for nothing.
+And the stamina node sits *after* movement in the player scene, so the cost
+lands the same frame it is incurred; the latch means that if it ever did not,
+the cost would land the next frame instead of being lost.
+
+Measured in the real scene: 4.5 m/s walking, 7.65 m/s sprinting, dropping back
+to a walk mid-run as the bar empties and resuming once the lockout lifts.
 
 ## Open items
 

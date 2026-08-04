@@ -15,6 +15,13 @@ extends Resource
 ## keys feels responsive without making starts feel twitchy.
 @export_range(1.0, 200.0, 1.0) var deceleration: float = 45.0
 
+## What sprinting multiplies walk speed by.
+##
+## A multiplier rather than a second speed, so retuning the walk keeps the
+## relationship between the two -- the gap is what the player feels, not the
+## absolute number.
+@export_range(1.0, 4.0, 0.05) var sprint_multiplier: float = 1.7
+
 ## Turn rate in degrees per second. Top-down games turn fast; anything slower
 ## than a few hundred feels like steering a boat.
 @export_range(45.0, 2000.0, 5.0) var turn_speed_degrees: float = 720.0
