@@ -78,7 +78,33 @@ Direct invocation, when a wrapper will not do:
 ## Before you finish
 
 Run `./run_tests.sh`. It must exit 0. If a change is visual, **actually look at
-it** — render a frame and inspect the image rather than assuming.
+it** — render a frame and inspect the image rather than assuming. If you added a
+feature or component, write its dev blog post in the same commit.
+
+## Dev blog
+
+`devblog/` is the narrative record: why a thing was built the way it was, what
+went wrong, and what the next person needs to know. Every major feature or
+component gets a post, written **in the same commit as the feature**, while the
+reasoning is still in your head — not reconstructed from a diff later.
+
+- **Markdown only.** No HTML, no other formats.
+- **`NNN-slug.md`** — zero-padded three-digit sequence, kebab-case slug. Numbers
+  are never reused and never renumbered, so a link to post 007 means post 007
+  forever.
+- Every post opens with a metadata line: the date, and the commits it covers.
+- `devblog/README.md` is the index. Add the post to its table, and link the next
+  post from the end of the previous one.
+- Write what a reader **cannot get from the diff**: the alternative that was
+  rejected, the trap that cost an afternoon, the number that turned out to be
+  wrong when it was finally rendered. A post that only restates what the code
+  does is not worth the file.
+- **Posts are a record of a moment and are not rewritten.** When something in an
+  old post turns out to be wrong, correct it in a new post; do not edit history.
+
+Do not duplicate `PROGRESS.md`. That file is the *current* state — kept accurate
+and rewritten as things change. The dev blog is the *history* — appended to and
+then left alone.
 
 ## Traps specific to this project
 
