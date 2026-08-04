@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="AnimationConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/components/animation_config.gd" id="1_config"]
+
+[resource]
+script = ExtResource("1_config")
+move_enter_speed = 0.4
+move_exit_speed = 0.15
+transition_time = 0.15
+idle_animation = &"idle"
+walk_animation = &"walk"
+run_animation = &"run"
+fall_animation = &"fall"

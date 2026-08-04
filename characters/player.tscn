@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/components/movement_component.gd" id="1_movement"]
 [ext_resource type="Resource" path="res://resources/movement/player_movement.tres" id="2_config"]
@@ -8,6 +8,8 @@
 [ext_resource type="Resource" path="res://resources/health/player_health.tres" id="6_health_config"]
 [ext_resource type="Script" path="res://scripts/components/stamina_component.gd" id="7_stamina"]
 [ext_resource type="Resource" path="res://resources/stamina/player_stamina.tres" id="8_stamina_config"]
+[ext_resource type="Script" path="res://scripts/components/animation_component.gd" id="9_animation"]
+[ext_resource type="Resource" path="res://resources/animation/player_animation.tres" id="10_animation_config"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -50,3 +52,9 @@ config = ExtResource("6_health_config")
 [node name="Stamina" type="Node" parent="."]
 script = ExtResource("7_stamina")
 config = ExtResource("8_stamina_config")
+
+[node name="Animation" type="Node" parent="." node_paths=PackedStringArray("body", "movement")]
+script = ExtResource("9_animation")
+body = NodePath("..")
+movement = NodePath("../Movement")
+config = ExtResource("10_animation_config")

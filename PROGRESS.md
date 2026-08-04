@@ -93,8 +93,8 @@ abstraction. Five of those exist so far.
 | 5 | Movement: WASD, cursor facing, collision | done | `d8dae5f` |
 | 6 | Health and stamina components | done | |
 | 7 | Sprint (movement × stamina) | done | |
-| 8 | Animation controller | **next** | |
-| 9 | Day/night placeholder | | |
+| 8 | Animation controller | done | |
+| 9 | Day/night placeholder | **next** | |
 | 10 | Debug overlay | | |
 | 11 | Save identifiers | | |
 
@@ -210,6 +210,31 @@ the cost would land the next frame instead of being lost.
 
 Measured in the real scene: 4.5 m/s walking, 7.65 m/s sprinting, dropping back
 to a walk mid-run as the bar empties and resuming once the lockout lifts.
+
+### 8. Animation controller
+
+`AnimationConfig` → `AnimationStateMachine` → `AnimationComponent`. Four states:
+idle, walk, run, fall.
+
+The state machine knows nothing about rigs, clips or blending — it turns motion
+into a state, and the component turns that state into whatever the actor happens
+to be drawn with. That is what lets it be tested with numbers rather than with a
+character model that does not exist yet.
+
+**The thresholds are a hysteresis band, not one number used twice.** It takes
+0.4 m/s to start moving and 0.15 m/s to stop. With a single threshold, an actor
+drifting at exactly that speed flips state every frame and restarts the clip
+over and over. A `.tres` with the two the wrong way round is capped rather than
+trusted, because inverted hysteresis flickers worse than none.
+
+Speed is horizontal only: an actor falling straight down is not walking.
+`animation_player` is an optional export and is **unassigned** — the player is
+still a capsule. The state machine runs anyway, which is the point: the rig
+arrives later without this component changing. A clip a rig does not have is
+skipped silently rather than logged sixty times a second.
+
+Observed in the real scene: idle → walk at 0.50 m/s → run → walk on releasing
+sprint → idle → fall when stepping off the tile.
 
 ## Open items
 
