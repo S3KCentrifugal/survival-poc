@@ -1,0 +1,34 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/debug_overlay.gd" id="1_overlay"]
+
+; Columns only line up in a fixed-width font. Padding the labels in code is
+; meaningless against the proportional default, and a ragged readout is
+; noticeably harder to scan while something else is going wrong. A system font
+; rather than a bundled one: this is a debug tool, not a shipped look, and it
+; falls back to the default face if the platform has no monospace alias.
+[sub_resource type="SystemFont" id="SystemFont_mono"]
+font_names = PackedStringArray("monospace", "Monospace", "Courier New")
+
+[node name="DebugOverlay" type="CanvasLayer" node_paths=PackedStringArray("label")]
+script = ExtResource("1_overlay")
+label = NodePath("Panel/Padding/Readout")
+
+[node name="Panel" type="PanelContainer" parent="."]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 8.0
+offset_bottom = 8.0
+
+[node name="Padding" type="MarginContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 6
+
+[node name="Readout" type="Label" parent="Panel/Padding"]
+layout_mode = 2
+theme_override_fonts/font = SubResource("SystemFont_mono")
+theme_override_font_sizes/font_size = 14
+text = "debug"

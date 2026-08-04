@@ -95,8 +95,8 @@ abstraction. Five of those exist so far.
 | 7 | Sprint (movement × stamina) | done | |
 | 8 | Animation controller | done | |
 | 9 | Day/night placeholder | done | |
-| 10 | Debug overlay | **next** | |
-| 11 | Save identifiers | | |
+| 10 | Debug overlay | done | |
+| 11 | Save identifiers | **next** | |
 
 **153 tests passing** across 14 suites. `./run_tests.sh` exits non-zero on
 failure.
@@ -263,6 +263,36 @@ crossing — the hooks a survival loop wants — and jumping the clock with
 Rendered and inspected at four times: dawn warm with long raking shadows, noon
 bright and neutral with short ones, dusk the mirror of dawn, night dark and blue
 but still readable.
+
+### 10. Debug overlay
+
+The project's only UI. `DebugReadout` (in `scripts/ui/`) formats the lines and
+knows nothing about where the numbers came from, so what the panel *says* is
+tested without a viewport, a font or a frame. `DebugOverlay` gathers values and
+decides when to redraw.
+
+Every watched reference is optional and a missing one prints `--`, so the panel
+can be dropped into a half-built scene and still be useful. The lines are fixed:
+one that disappears makes the panel jump, and you cannot tell "no stamina
+component" from "I forgot to add the line". `main.tscn` wires the overlay to
+what it watches, the same way every other collaborator in this project is
+introduced.
+
+**F3 toggles it**, read from the key event queue rather than the `Input`
+singleton. That rule exists so gameplay intent always arrives through an
+`InputSource` and can come from an AI or a network peer instead — a debug panel
+is neither, and has no business in an actor's intent.
+
+Two things learned by looking at it rather than by reasoning about it: the
+readout needs a **monospace font** (`SystemFont`, falling back to the default
+face), because padding labels in code is meaningless against a proportional
+font and a ragged panel is much harder to scan; and bars are ASCII `[####----]`
+rather than block characters, because a debug tool that renders as tofu on
+someone else's machine has failed at its one job. A NaN fraction reads as empty,
+since the overlay is most useful in exactly the situation that produced it.
+
+It refreshes ten times a second, not sixty: rebuilding that string every frame
+is pointless garbage for something the eye reads a few times a second.
 
 ## Open items
 

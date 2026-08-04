@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://characters/player.tscn" id="4_player"]
 [ext_resource type="Script" path="res://scripts/systems/day_night_component.gd" id="5_day_night"]
 [ext_resource type="Resource" path="res://resources/day_night/default_day_night.tres" id="6_day_night_config"]
+[ext_resource type="PackedScene" path="res://ui/debug_overlay.tscn" id="7_overlay"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sgp6g"]
 
@@ -42,3 +43,11 @@ sun = NodePath("../Sun")
 [node name="Player" parent="." instance=ExtResource("4_player")]
 
 [node name="IsometricCamera" parent="." instance=ExtResource("2_camera")]
+
+[node name="DebugOverlay" parent="." instance=ExtResource("7_overlay") node_paths=PackedStringArray("body", "movement", "health", "stamina", "animation", "day_night")]
+body = NodePath("../Player")
+movement = NodePath("../Player/Movement")
+health = NodePath("../Player/Health")
+stamina = NodePath("../Player/Stamina")
+animation = NodePath("../Player/Animation")
+day_night = NodePath("../DayNight")
