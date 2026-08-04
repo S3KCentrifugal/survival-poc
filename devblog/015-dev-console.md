@@ -1,6 +1,6 @@
 # 015 — A console, and two ways to lose an object
 
-*2026-08-04 · commit pending*
+*2026-08-04 · commit `41647fc`*
 
 A dev console on the backtick key: `tp`, `time`, `heal`, `hurt`, `stamina`,
 `speed`, `where`, `kill`, `help`, `clear`, `quit`. Useful on its own, but the
