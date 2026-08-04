@@ -68,6 +68,10 @@ Direct invocation, when a wrapper will not do:
 - **Signals outward, never reach upward.** A component must not call
   `get_parent()` to find collaborators.
 - **Data in `Resource` files**, not constants scattered through scripts.
+- **Never read the `Input` singleton outside `PlayerInputSource`.** Gameplay
+  takes an [InputSource] and asks it for intent. That is what lets an enemy run
+  the player's movement code, a test drive a character with no keyboard, and a
+  server eventually receive intent from a client.
 - **One responsibility per script**, under ~300 lines where practical.
 - **Every feature testable in isolation.** New system, new suite in `tests/`.
 

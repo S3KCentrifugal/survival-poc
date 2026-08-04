@@ -102,7 +102,7 @@ Vertical slice in progress. Built so far:
 - [x] Project bootstrap: folder hierarchy, test harness, empty 3D world
 - [x] Terrain: noise heightfield, mesh and matching collision
 - [x] Fixed isometric camera controller
-- [ ] Input abstraction
+- [x] Input abstraction
 - [ ] Movement (WASD, mouse rotation)
 - [ ] Health and stamina components
 - [ ] Sprint
