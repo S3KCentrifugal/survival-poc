@@ -3,7 +3,7 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 5 — Movement** (`d8dae5f`).
+Last updated after **Feature 6 — Health and stamina**.
 
 ## What this is
 
@@ -80,7 +80,7 @@ builds the input source from the camera, and tells the camera what to follow.
 
 The reusable-component set the brief calls for: health, stamina, movement,
 interaction, save identifiers, animation controller, camera controller, input
-abstraction. Three of those exist so far.
+abstraction. Five of those exist so far.
 
 ## Progress
 
@@ -91,14 +91,14 @@ abstraction. Three of those exist so far.
 | 3 | Fixed isometric camera controller | done | `80a4076` |
 | 4 | Input abstraction | done | `2e83539` |
 | 5 | Movement: WASD, cursor facing, collision | done | `d8dae5f` |
-| 6 | Health and stamina components | **next** | |
-| 7 | Sprint (movement × stamina) | | |
+| 6 | Health and stamina components | done | |
+| 7 | Sprint (movement × stamina) | **next** | |
 | 8 | Animation controller | | |
 | 9 | Day/night placeholder | | |
 | 10 | Debug overlay | | |
 | 11 | Save identifiers | | |
 
-**106 tests passing** across 10 suites. `./run_tests.sh` exits non-zero on
+**153 tests passing** across 14 suites. `./run_tests.sh` exits non-zero on
 failure.
 
 The slice is playable now: `./run.sh`, walk with WASD, the character faces the
@@ -164,6 +164,33 @@ feel deliberate. Facing prefers the cursor over the walk direction.
 `InputState.sprint` is populated but **deliberately unconsumed** — sprint lands
 in feature 7 where stamina can gate it. Wiring a speed multiplier now would
 mean building it twice.
+
+### 6. Health and stamina
+
+Both vitals are the same shape — a current value, a ceiling, and the rule that
+neither end overshoots — so `VitalPool` owns that maths once and both components
+compose one. Hunger, thirst and temperature will want the same thing.
+
+`HealthConfig` → `VitalPool` → `HealthComponent`. Thin on purpose: no armour, no
+damage types, no respawn. It refuses the impossible transitions — the dead take
+no further damage, healing does not resurrect — so `died` can only fire once and
+listeners need no guards of their own.
+
+`StaminaConfig` → `Stamina` → `StaminaComponent` is where the real state lives:
+a **recovery delay** and an **exhaustion lockout**. Without the delay, tapping
+the sprint key is free, because the bar refills in the gaps between taps.
+Without the lockout, an exhausted actor sprints one frame in every two. Intent
+that cannot be granted still ticks recovery, or an actor holding the key with an
+empty bar never gets going again.
+
+The component takes intent as a **latch**: a consumer calls `request_drain()` on
+every frame it wants effort and reads the answer back from `can_spend()`. The
+latch is cleared as it is consumed, so letting go is simply the absence of a
+request — there is no "stop" to forget. Sprint reads that in feature 7.
+
+Both components are attached to the player and tuned by `.tres`, and nothing
+consumes either yet. That is expected: they are the reusable pieces, and
+gameplay wiring is its own feature.
 
 ## Open items
 

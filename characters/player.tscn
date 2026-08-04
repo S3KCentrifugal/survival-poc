@@ -1,9 +1,13 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/components/movement_component.gd" id="1_movement"]
 [ext_resource type="Resource" path="res://resources/movement/player_movement.tres" id="2_config"]
 [ext_resource type="Material" path="res://materials/player_body.tres" id="3_body_material"]
 [ext_resource type="Material" path="res://materials/player_facing.tres" id="4_facing_material"]
+[ext_resource type="Script" path="res://scripts/components/health_component.gd" id="5_health"]
+[ext_resource type="Resource" path="res://resources/health/player_health.tres" id="6_health_config"]
+[ext_resource type="Script" path="res://scripts/components/stamina_component.gd" id="7_stamina"]
+[ext_resource type="Resource" path="res://resources/stamina/player_stamina.tres" id="8_stamina_config"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -37,3 +41,11 @@ material_override = ExtResource("4_facing_material")
 script = ExtResource("1_movement")
 body = NodePath("..")
 config = ExtResource("2_config")
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("5_health")
+config = ExtResource("6_health_config")
+
+[node name="Stamina" type="Node" parent="."]
+script = ExtResource("7_stamina")
+config = ExtResource("8_stamina_config")
