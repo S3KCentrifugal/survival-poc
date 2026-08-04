@@ -1,6 +1,6 @@
 # 012 — A character with legs
 
-*2026-08-04 · commits pending*
+*2026-08-04 · commit `460bb9a`*
 
 The player has been a red capsule with a small box stuck to the front of it since
 movement landed. This post is about replacing it, and about the three things

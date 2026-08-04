@@ -102,7 +102,7 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 9 | Day/night placeholder | done | `f60aee6` |
 | 10 | Debug overlay | done | `f35cc35` |
 | 11 | Save identifiers | done | `bdb7a1d` |
-| 12 | Player character (placeholder rig) | done | |
+| 12 | Player character (placeholder rig) | done | `460bb9a` |
 
 **The planned slice is complete.** 271 tests passing across 23 suites.
 `./run_tests.sh` exits non-zero on failure.
