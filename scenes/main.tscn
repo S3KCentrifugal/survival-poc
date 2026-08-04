@@ -4,6 +4,8 @@
 [ext_resource type="PackedScene" path="res://prefabs/isometric_camera.tscn" id="2_camera"]
 [ext_resource type="Script" path="res://scripts/world/world_root.gd" id="3_root"]
 [ext_resource type="PackedScene" path="res://characters/player.tscn" id="4_player"]
+[ext_resource type="Script" path="res://scripts/systems/day_night_component.gd" id="5_day_night"]
+[ext_resource type="Resource" path="res://resources/day_night/default_day_night.tres" id="6_day_night_config"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sgp6g"]
 
@@ -29,6 +31,11 @@ environment = SubResource("Environment_0wfyh")
 [node name="Sun" type="DirectionalLight3D" parent="." unique_id=1393550790]
 transform = Transform3D(0.59999996, -0.7155418, 0.3577709, 0, 0.4472136, 0.8944272, -0.8, -0.53665626, 0.26832816, 0, 10, 0)
 shadow_enabled = true
+
+[node name="DayNight" type="Node" parent="." node_paths=PackedStringArray("sun")]
+script = ExtResource("5_day_night")
+config = ExtResource("6_day_night_config")
+sun = NodePath("../Sun")
 
 [node name="Terrain" parent="." instance=ExtResource("1_terrain")]
 

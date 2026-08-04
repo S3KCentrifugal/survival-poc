@@ -94,8 +94,8 @@ abstraction. Five of those exist so far.
 | 6 | Health and stamina components | done | |
 | 7 | Sprint (movement × stamina) | done | |
 | 8 | Animation controller | done | |
-| 9 | Day/night placeholder | **next** | |
-| 10 | Debug overlay | | |
+| 9 | Day/night placeholder | done | |
+| 10 | Debug overlay | **next** | |
 | 11 | Save identifiers | | |
 
 **153 tests passing** across 14 suites. `./run_tests.sh` exits non-zero on
@@ -235,6 +235,34 @@ skipped silently rather than logged sixty times a second.
 
 Observed in the real scene: idle → walk at 0.50 m/s → run → walk on releasing
 sprint → idle → fall when stepping off the tile.
+
+### 9. Day/night placeholder
+
+`DayNightConfig` → `DayNightCycle` → `DayNightComponent`, in `scripts/systems/`
+rather than `scripts/components/`: it belongs to the world, not to an actor.
+
+**The sun is the only thing it touches.** The scene's procedural sky already
+takes its gradient from the brightest directional light, so moving that one
+light moves the sky and the ambient light with it — one rotation, a whole
+atmosphere, and nothing else to keep in sync.
+
+The arc runs from due east through a *tilted* overhead axis. Passing exactly
+through the zenith would leave the basis that aims the light degenerate, and
+stamps midday shadows underfoot where they read as no shadow at all. A zero
+day length freezes the clock rather than dividing by zero, because a frozen sun
+is a far easier bug to read than a NaN one.
+
+The basis comes from `Basis.looking_at`, never from hand-written axes — see the
+`Transform3D` trap in `CLAUDE.md`. Night keeps a little cool light: pitch black
+is not atmosphere, it is a bug report.
+
+A day is 600 real seconds. `day_began` / `night_began` fire on the horizon
+crossing — the hooks a survival loop wants — and jumping the clock with
+`set_time_of_day` deliberately does *not* fire them.
+
+Rendered and inspected at four times: dawn warm with long raking shadows, noon
+bright and neutral with short ones, dusk the mirror of dawn, night dark and blue
+but still readable.
 
 ## Open items
 
