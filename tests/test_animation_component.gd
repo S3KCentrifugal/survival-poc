@@ -72,13 +72,31 @@ func test_the_player_carries_an_animation_component() -> void:
 	assert_not_null(animation.config, "config is not wired in the scene")
 
 
-## No character model exists yet. The state machine still runs, which is the
-## point -- a rig can be assigned later without touching this component.
-func test_the_player_has_no_rig_yet_and_that_is_fine() -> void:
+func test_the_player_scene_wires_the_rig() -> void:
 	var player := _mount_player()
 	var animation: AnimationComponent = player.get_node("Animation")
-	assert_null(animation.animation_player)
-	animation.step()  # must not fail for want of something to play
+	assert_not_null(animation.animation_player, "the model's AnimationPlayer is not wired")
+
+
+## The clip names live in a .tres and the clips live in a .glb, and nothing
+## connects the two but a string. Renaming either silently stops the character
+## animating -- it just stands there, which reads as a physics bug.
+func test_every_clip_the_config_names_exists_in_the_rig() -> void:
+	var player := _mount_player()
+	var animation: AnimationComponent = player.get_node("Animation")
+	var rig: AnimationPlayer = animation.animation_player
+	var config: AnimationConfig = animation.config
+
+	for clip: StringName in [
+		config.idle_animation,
+		config.walk_animation,
+		config.run_animation,
+		config.fall_animation
+	]:
+		assert_true(
+			rig.has_animation(clip),
+			'the rig has no clip named "%s" -- it has %s' % [clip, rig.get_animation_list()]
+		)
 
 
 func test_a_still_actor_is_idle() -> void:

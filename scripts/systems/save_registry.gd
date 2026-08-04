@@ -62,9 +62,18 @@ func has(id: StringName) -> bool:
 	return _by_id.has(id)
 
 
+## Every indexed id, in alphabetical order.
+##
+## Sorted through [String] deliberately. [StringName]'s comparison operators
+## compare the interned pointer rather than the text -- fast, and the whole
+## point of the type -- so a plain sort returns whatever order the names
+## happened to be allocated in. That is stable within a run and changes the
+## moment an unrelated system interns a new name, which makes for a test that
+## passes until someone edits something else entirely.
 func ids() -> Array[StringName]:
-	var keys: Array[StringName] = _by_id.keys()
-	keys.sort()
+	var keys: Array[StringName] = []
+	keys.assign(_by_id.keys())
+	keys.sort_custom(func(a: StringName, b: StringName) -> bool: return String(a) < String(b))
 	return keys
 
 

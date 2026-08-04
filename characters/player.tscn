@@ -1,9 +1,8 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/components/movement_component.gd" id="1_movement"]
 [ext_resource type="Resource" path="res://resources/movement/player_movement.tres" id="2_config"]
-[ext_resource type="Material" path="res://materials/player_body.tres" id="3_body_material"]
-[ext_resource type="Material" path="res://materials/player_facing.tres" id="4_facing_material"]
+[ext_resource type="PackedScene" path="res://assets/characters/godot_robot/3DGodotRobot.glb" id="3_model"]
 [ext_resource type="Script" path="res://scripts/components/health_component.gd" id="5_health"]
 [ext_resource type="Resource" path="res://resources/health/player_health.tres" id="6_health_config"]
 [ext_resource type="Script" path="res://scripts/components/stamina_component.gd" id="7_stamina"]
@@ -16,13 +15,6 @@
 radius = 0.4
 height = 1.8
 
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
-radius = 0.4
-height = 1.8
-
-[sub_resource type="BoxMesh" id="BoxMesh_facing"]
-size = Vector3(0.22, 0.22, 0.5)
-
 [node name="Player" type="CharacterBody3D"]
 floor_snap_length = 0.5
 
@@ -30,15 +22,7 @@ floor_snap_length = 0.5
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 shape = SubResource("CapsuleShape3D_body")
 
-[node name="Body" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
-mesh = SubResource("CapsuleMesh_body")
-material_override = ExtResource("3_body_material")
-
-[node name="Facing" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, -0.42)
-mesh = SubResource("BoxMesh_facing")
-material_override = ExtResource("4_facing_material")
+[node name="Model" parent="." instance=ExtResource("3_model")]
 
 [node name="Movement" type="Node" parent="." node_paths=PackedStringArray("body", "stamina")]
 script = ExtResource("1_movement")
@@ -54,10 +38,11 @@ config = ExtResource("6_health_config")
 script = ExtResource("7_stamina")
 config = ExtResource("8_stamina_config")
 
-[node name="Animation" type="Node" parent="." node_paths=PackedStringArray("body", "movement")]
+[node name="Animation" type="Node" parent="." node_paths=PackedStringArray("body", "movement", "animation_player")]
 script = ExtResource("9_animation")
 body = NodePath("..")
 movement = NodePath("../Movement")
+animation_player = NodePath("../Model/AnimationPlayer")
 config = ExtResource("10_animation_config")
 
 [node name="SaveId" type="Node" parent="."]

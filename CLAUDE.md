@@ -148,6 +148,18 @@ then left alone.
 - **A launched game dies when its spawning shell exits.** Use
   `setsid ./run.sh &` from a shell that will close. Godot reports this as a
   clean exit 0, not an error, so it looks like the app simply quit.
+- **The glTF importer eats a `-loop` suffix on animation names.** A clip
+  authored as `Idle-loop` arrives in the engine as `Idle`, with its loop mode
+  set — the suffix is an instruction to the importer, not part of the name.
+  Read the names off the imported `AnimationPlayer`, never off the source file.
+  A clip name that does not exist is not an error: the character simply stands
+  still while sliding along the ground, which reads as a physics bug.
+- **`StringName` comparison sorts by interned pointer, not by text.** `<`, `>`
+  and therefore `Array.sort()` return allocation order, which is stable within a
+  run and changes the moment an unrelated system interns a new name — so a test
+  asserting sorted output passes by luck until someone edits a different file.
+  Sort with `sort_custom` through `String` when the order is meant to be
+  alphabetical.
 
 ### Rendering a frame to inspect
 

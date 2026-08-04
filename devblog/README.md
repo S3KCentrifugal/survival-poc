@@ -24,6 +24,10 @@ rather than an edit to the old one.
 | # | Post | Covers |
 |---|---|---|
 | 001 | [Foundations](001-foundations.md) | Scaffold, engine pin, test harness, empty 3D world |
+| 012 | [A character with legs](012-player-character.md) | Sourcing a CC0 rig, and three things that went wrong |
+
+Numbers follow the **feature** order, not the order posts get written — 012 is
+the twelfth feature, and 002–011 below are still owed.
 
 ### Planned
 

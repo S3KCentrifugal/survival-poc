@@ -102,8 +102,9 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 9 | Day/night placeholder | done | `f60aee6` |
 | 10 | Debug overlay | done | `f35cc35` |
 | 11 | Save identifiers | done | `bdb7a1d` |
+| 12 | Player character (placeholder rig) | done | |
 
-**The planned slice is complete.** 270 tests passing across 23 suites.
+**The planned slice is complete.** 271 tests passing across 23 suites.
 `./run_tests.sh` exits non-zero on failure.
 
 Playable now: `./run.sh`. Walk with WASD, face the cursor, hold shift to sprint
@@ -325,6 +326,33 @@ is not a crash, it is a save where one quietly overwrites the other, discovered
 by a player a week later when their chest is empty. A test walks the assembled
 world and asserts there are none.
 
+### 12. Player character
+
+The capsule is gone. The player is now a CC0 rigged robot
+(`assets/characters/godot_robot/`, provenance in the README beside it), 1.74 m
+tall, which is close enough to the 1.8 m collision capsule that nothing needed
+scaling.
+
+**No script changed.** The whole swap was one scene edit and four strings in
+`resources/animation/player_animation.tres`. That is the return on feature 8
+keeping the state machine ignorant of rigs — the rig came from a platformer, so
+its base locomotion clip is called `Run` and its fast one `Sprint`, and our walk
+and run point at those without anyone renaming anything.
+
+A new test asserts every clip the config names actually exists in the rig.
+Nothing but a string connects the `.tres` to the `.glb`, and a typo there does
+not error — the character just stands still while sliding along the ground,
+which reads as a physics bug and is not one.
+
+Two things this turned up, both now in `CLAUDE.md`: Godot's glTF importer
+**consumes a `-loop` suffix** from clip names, so `Idle-loop` in the file is
+`Idle` in the engine; and `StringName` comparison sorts by interned pointer
+rather than by text, which had left a save-registry test passing on luck since
+feature 11.
+
+The character also settles the camera argument. At 18 m it is a smudge — see the
+open item below, which is no longer a matter of taste.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -335,7 +363,8 @@ needs and this repo does not have:
 - **A save system.** Objects can be addressed; nothing serialises them.
 - **Terrain streaming.** One 64 m tile. Chunking means many `Heightfield`s
   rather than a rewrite, which was the point of keeping it node-free.
-- **A rig.** The animation state machine drives nothing, by design.
+- **A character of our own.** The player is a CC0 robot standing in for one. It
+  animates and it is the right height; it is not the art direction.
 - Crafting, inventory, combat, enemies, and real UI — all deliberately out of
   scope for the slice.
 
@@ -352,7 +381,9 @@ Nothing here is blocking; all are judgement calls left to the owner.
   backup path**. Harmless while both are empty; wire it before the first real
   `.blend` lands.
 - **Camera distance** (18m in `resources/camera/default_camera.tres`) frames the
-  character small. ~12–14m reads better. Art call, left alone.
+  character small. ~12–14m reads better. Now the strongest candidate for the
+  next change: with a capsule there was nothing to look at, but there is a
+  character down there and at 18 m you cannot tell which way it is facing.
 - **Terrain noise frequency** (0.015) gives ~66m features on a 64m tile, so it
   reads nearly flat at gameplay distance. Raise toward 0.04 for local relief.
 

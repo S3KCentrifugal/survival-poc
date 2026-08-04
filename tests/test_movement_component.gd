@@ -38,7 +38,7 @@ func test_the_player_scene_is_assembled() -> void:
 	var player := _mount_player()
 	assert_true(player is CharacterBody3D, "the player must collide")
 	assert_not_null(player.get_node_or_null("CollisionShape3D"), "no collision shape")
-	assert_not_null(player.get_node_or_null("Body"), "no visible body")
+	assert_not_null(player.get_node_or_null("Model"), "no visible body")
 	assert_not_null(player.get_node_or_null("Movement"), "no movement component")
 
 
