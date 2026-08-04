@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_config")
+facing_mode = 0
 walk_speed = 4.5
 acceleration = 30.0
 deceleration = 45.0

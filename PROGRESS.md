@@ -103,8 +103,9 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 10 | Debug overlay | done | `f35cc35` |
 | 11 | Save identifiers | done | `bdb7a1d` |
 | 12 | Player character (placeholder rig) | done | `460bb9a` |
+| 13 | Facing mode: face your travel, not the cursor | done | |
 
-**The planned slice is complete.** 271 tests passing across 23 suites.
+**The planned slice is complete.** 273 tests passing across 23 suites.
 `./run_tests.sh` exits non-zero on failure.
 
 Playable now: `./run.sh`. Walk with WASD, face the cursor, hold shift to sprint
@@ -165,7 +166,8 @@ WASD is bound by **physical** keycode, so it survives AZERTY and Dvorak.
 Turning uses `angle_difference` so it always takes the short way round.
 Acceleration is linear and therefore exactly frame-rate independent.
 Deceleration is higher than acceleration, which is most of what makes movement
-feel deliberate. Facing prefers the cursor over the walk direction.
+feel deliberate. Facing originally preferred the cursor over the walk direction;
+feature 13 made that a config choice and flipped the player to face their travel.
 
 `InputState.sprint` is populated but **deliberately unconsumed** — sprint lands
 in feature 7 where stamina can gate it. Wiring a speed multiplier now would
@@ -352,6 +354,33 @@ feature 11.
 
 The character also settles the camera argument. At 18 m it is a smudge — see the
 open item below, which is no longer a matter of taste.
+
+### 13. Facing mode
+
+The character now faces the way it is running. It used to face the cursor, and
+feature 5 defended that in a comment — facing the cursor while strafing is what
+a top-down ARPG does *in combat*. There is no combat, so what it actually did
+was drag the character's head around while you ran.
+
+`MovementConfig.facing_mode` is a `FacingMode` enum, `MOVEMENT` or `CURSOR`,
+rather than a deletion. Both behaviours are legitimate for this genre and both
+stay tested; combat may well want `CURSOR` on some actors later without every
+actor changing with it.
+
+`InputState.has_aim` / `aim_point` are now **populated but unconsumed** — the
+same status `sprint` had between features 4 and 7. Interaction targeting and any
+future combat will want them, and resolving the cursor against a plane costs
+nothing.
+
+One trap came out of it: `load()` hands every caller **the same cached
+`Resource` instance**, so a test that flipped `facing_mode` on the player's
+`.tres` changed it for every other test in the run. Tests `duplicate()` the
+config first, and a test now asserts that switching one actor does not move
+anyone else.
+
+Verified by running all four compass directions with the cursor pinned to the
+north the whole time: facing matched travel to 0.0° every time, where the old
+behaviour would have faced north four times out of four.
 
 ## What is not built
 

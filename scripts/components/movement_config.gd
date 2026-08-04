@@ -5,6 +5,23 @@ extends Resource
 ## Shared by anything that walks -- the player now, enemies later -- with a
 ## different .tres per actor.
 
+## What an actor turns to face.
+enum FacingMode {
+	## Face the way you are travelling. Reads as a character who looks where
+	## they are going.
+	MOVEMENT,
+	## Face the cursor regardless of travel, so the actor can strafe and back
+	## away while still pointing at something. What an ARPG does while fighting.
+	CURSOR,
+}
+
+## Which candidate wins when both are available.
+##
+## A design decision rather than a detail, which is why it is a config value and
+## not a rule buried in the component. Combat may well want [constant
+## FacingMode.CURSOR] later without every actor changing with it.
+@export var facing_mode: FacingMode = FacingMode.MOVEMENT
+
 ## Ground speed in metres per second.
 @export_range(0.5, 20.0, 0.1) var walk_speed: float = 4.5
 

@@ -27,6 +27,16 @@ func _movement_of(player: CharacterBody3D) -> MovementComponent:
 	return player.get_node("Movement")
 
 
+## Switches an actor to cursor facing without touching the shared .tres.
+##
+## `load()` hands every caller the same cached Resource instance, so mutating a
+## component's config in place would leak the change into every other test that
+## loads the player scene.
+func _face_the_cursor(movement: MovementComponent) -> void:
+	movement.config = movement.config.duplicate()
+	movement.config.facing_mode = MovementConfig.FacingMode.CURSOR
+
+
 func test_the_config_resource_loads() -> void:
 	var config: MovementConfig = load(CONFIG_RESOURCE)
 	assert_not_null(config, "%s missing or not a MovementConfig" % CONFIG_RESOURCE)
@@ -81,12 +91,34 @@ func test_an_airborne_actor_is_pulled_down() -> void:
 	assert_true(velocity.y < 0.0, "gravity was not applied off the ground")
 
 
-## Facing the cursor while walking a different way is the whole point of a
-## top-down control scheme.
-func test_aim_beats_movement_for_facing() -> void:
+## The player's setting: a character looks where they are going, and the cursor
+## does not drag their head around while they run.
+func test_by_default_movement_beats_aim_for_facing() -> void:
 	var player := _mount_player()
 	player.global_position = Vector3.ZERO
 	var movement := _movement_of(player)
+	var source := ScriptedInputSource.new()
+	movement.input_source = source
+
+	assert_eq(movement.config.facing_mode, MovementConfig.FacingMode.MOVEMENT)
+	source.move_towards_direction(Vector2(1.0, 0.0))  # running +x
+	source.aim_at(Vector3(0.0, 0.0, -10.0))           # cursor off to -z
+
+	var target: Variant = movement.facing_target(source.poll())
+	assert_not_null(target)
+	assert_true(
+		is_zero_approx(angle_difference(target, MovementSolver.yaw_towards(Vector2(1.0, 0.0)))),
+		"should face the way it runs, not the cursor"
+	)
+
+
+## The other mode still works, for whatever wants to strafe while pointing at
+## something later.
+func test_in_cursor_mode_aim_beats_movement() -> void:
+	var player := _mount_player()
+	player.global_position = Vector3.ZERO
+	var movement := _movement_of(player)
+	_face_the_cursor(movement)
 	var source := ScriptedInputSource.new()
 	movement.input_source = source
 
@@ -98,6 +130,18 @@ func test_aim_beats_movement_for_facing() -> void:
 	assert_true(
 		is_zero_approx(angle_difference(target, MovementSolver.yaw_towards(Vector2(0.0, -1.0)))),
 		"should face the aim point, not the walk direction"
+	)
+
+
+## Nothing else in the project may quietly pick up cursor facing.
+func test_switching_one_actor_does_not_change_the_shared_config() -> void:
+	var first := _movement_of(_mount_player())
+	_face_the_cursor(first)
+	var second := _movement_of(_mount_player())
+	assert_eq(
+		second.config.facing_mode,
+		MovementConfig.FacingMode.MOVEMENT,
+		"one actor's facing mode leaked into every other actor"
 	)
 
 
@@ -129,6 +173,7 @@ func test_aiming_at_your_own_feet_is_not_a_facing_command() -> void:
 	var player := _mount_player()
 	player.global_position = Vector3(3.0, 0.0, 3.0)
 	var movement := _movement_of(player)
+	_face_the_cursor(movement)
 	var source := ScriptedInputSource.new()
 	movement.input_source = source
 
@@ -141,6 +186,7 @@ func test_turning_reaches_the_aim_over_several_frames() -> void:
 	player.global_position = Vector3.ZERO
 	player.rotation.y = 0.0
 	var movement := _movement_of(player)
+	_face_the_cursor(movement)
 	var source := ScriptedInputSource.new()
 	movement.input_source = source
 	source.aim_at(Vector3(10.0, 0.0, 0.0))

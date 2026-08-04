@@ -110,14 +110,28 @@ func apply_facing(state: InputState, delta: float) -> void:
 
 ## Yaw the actor wants to face, or null if it has no opinion.
 ##
-## Aim wins over movement -- facing the cursor while strafing is the whole
-## point of a top-down control scheme. Standing still with no aim keeps the
-## current facing rather than snapping to a default.
+## Which candidate wins is [member MovementConfig.facing_mode], because it is a
+## design decision rather than a detail. Standing still with nothing to face
+## keeps the current heading rather than snapping to a default.
 func facing_target(state: InputState) -> Variant:
-	if state.has_aim:
-		var to_aim := MovementSolver.ground_direction(body.global_position, state.aim_point)
-		if not to_aim.is_zero_approx():
-			return MovementSolver.yaw_towards(to_aim)
+	if config.facing_mode == MovementConfig.FacingMode.CURSOR:
+		var aim: Variant = aim_yaw(state)
+		if aim != null:
+			return aim
 	if state.is_moving():
 		return MovementSolver.yaw_towards(state.move)
 	return null
+
+
+## Yaw toward what the actor is aiming at, or null if there is nothing usable.
+##
+## The cursor passes over the character constantly, and the direction to it is
+## zero-length there -- which would otherwise produce a garbage yaw and a
+## character that spins on the spot every time the mouse crosses it.
+func aim_yaw(state: InputState) -> Variant:
+	if not state.has_aim:
+		return null
+	var to_aim := MovementSolver.ground_direction(body.global_position, state.aim_point)
+	if to_aim.is_zero_approx():
+		return null
+	return MovementSolver.yaw_towards(to_aim)
