@@ -104,12 +104,14 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 11 | Save identifiers | done | `bdb7a1d` |
 | 12 | Player character (placeholder rig) | done | `460bb9a` |
 | 13 | Facing mode: face your travel, not the cursor | done | `6367ad9` |
+| 14 | Prototype level: a base to walk out of | done | |
 
-**The planned slice is complete.** 273 tests passing across 23 suites.
+**The planned slice is complete.** 301 tests passing across 25 suites.
 `./run_tests.sh` exits non-zero on failure.
 
-Playable now: `./run.sh`. Walk with WASD, face the cursor, hold shift to sprint
-until the bar runs out, watch the sun cross the sky, F3 for the readout.
+Playable now: `./run.sh`. You start in a room inside a two-room base. Walk with
+WASD, hold shift to sprint until the bar runs out, go through the internal
+doorway, out of the building and across to the tower. F3 for the readout.
 
 ### 1. Bootstrap
 
@@ -382,6 +384,41 @@ Verified by running all four compass directions with the cursor pinned to the
 north the whole time: facing matched travel to 0.0° every time, where the old
 behaviour would have faced north four times out of four.
 
+### 14. Prototype level
+
+A two-room base you start inside, a doorway between the rooms, a doorway out,
+and a tower to walk to. `StructureConfig` → `WallBuilder` → `Structure`, plus
+`PrototypeLevel` holding the layout.
+
+**A doorway is a subtraction, and subtraction is where the off-by-one lives.**
+`WallBuilder` turns a wall run plus its openings into solid boxes — piers either
+side, a lintel above — and is the only part of this with real logic in it, so it
+carries most of the tests. A gap half a metre out is a door you cannot walk
+through or a wall with daylight under it, and neither is visible from thirty
+metres up.
+
+**The ground had to be levelled first.** Terrain noise moves **3.4 m** across a
+building-sized footprint; a structure on that either floats at one corner or
+buries itself at another, and the resulting step at the doorway is not something
+a character can climb. `Heightfield.flatten()` cuts a pad, easing back to real
+terrain over 5 m so it does not read as a plateau stamped into the hillside.
+Both pads use one height, because levelling them separately puts a step between
+them that then needs a ramp or a cliff.
+
+`Terrain.present()` is the new seam: it shows a field without regenerating it,
+so mesh and collision are rebuilt together from the same data and cannot
+disagree. A crater will want the same door.
+
+The floor slab stands **5 cm** above the levelled ground. Not zero, because two
+coplanar surfaces fight over the same pixels; small enough that the capsule
+rolls over the threshold instead of being stopped by it. Confirmed by walking
+the character through, not by reasoning about it.
+
+**The layout is constants in a script, not data.** A deliberate limit: walls,
+openings and pads all have tested logic behind them, but *where the walls go* is
+still code. A level format is its own job, and inventing one to describe a
+single prototype building would be guessing at what the second building needs.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -392,6 +429,11 @@ needs and this repo does not have:
 - **A save system.** Objects can be addressed; nothing serialises them.
 - **Terrain streaming.** One 64 m tile. Chunking means many `Heightfield`s
   rather than a rewrite, which was the point of keeping it node-free.
+- **A level format.** The prototype layout is constants in
+  `scripts/world/prototype_level.gd`. The second building is what should decide
+  what a level resource needs to say.
+- **Roofs, doors that open, windows, stairs.** Buildings are open-topped boxes
+  with holes in them, which is all a top-down camera needs to see into.
 - **A character of our own.** The player is a CC0 robot standing in for one. It
   animates and it is the right height; it is not the art direction.
 - Crafting, inventory, combat, enemies, and real UI — all deliberately out of

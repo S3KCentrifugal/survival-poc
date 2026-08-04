@@ -28,7 +28,16 @@ func rebuild() -> void:
 		push_warning("Terrain has no config; falling back to defaults")
 		config = TerrainConfig.new()
 
-	_field = Heightfield.generate(config)
+	present(Heightfield.generate(config))
+
+
+## Shows [param field] as it stands, without regenerating it.
+##
+## The seam for anything that modifies the ground after generation — a building
+## pad, a crater later. Mesh and collision are rebuilt together from the same
+## field, which is the only way they cannot disagree.
+func present(field: Heightfield) -> void:
+	_field = field
 	_mesh_instance.mesh = build_mesh(_field)
 	_collision_shape.shape = build_shape(_field)
 	rebuilt.emit(_field)

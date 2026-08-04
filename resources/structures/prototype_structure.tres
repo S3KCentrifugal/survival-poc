@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="StructureConfig" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/structure_config.gd" id="1_config"]
+[ext_resource type="Material" path="res://materials/structure_wall.tres" id="2_wall"]
+[ext_resource type="Material" path="res://materials/structure_floor.tres" id="3_floor"]
+
+[resource]
+script = ExtResource("1_config")
+wall_height = 3.0
+wall_thickness = 0.3
+doorway_width = 1.6
+doorway_height = 2.2
+floor_thickness = 0.3
+wall_material = ExtResource("2_wall")
+floor_material = ExtResource("3_floor")

@@ -57,6 +57,62 @@ static func flat(p_size_meters: int, height: float = 0.0) -> Heightfield:
 	return Heightfield.new(p_size_meters, heights)
 
 
+## Levels [param area] to [param height], easing back to the original ground
+## over [param blend] metres beyond it.
+##
+## A building pad. Terrain noise moves several metres across a house-sized
+## footprint, and a structure on unlevelled ground either floats at one corner
+## or buries itself at another — and the step at its doorway is not something a
+## character can walk up.
+##
+## The blend is what stops the pad reading as a plateau stamped into the
+## hillside. Without it the edge is a cliff of exactly the relief that was
+## removed, which is worse than the problem it solves.
+##
+## [param area] is in the tile's local space, where (0, 0) is the centre.
+func flatten(area: Rect2, height: float, blend: float = 0.0) -> void:
+	var half := size_meters * 0.5
+	for z in resolution:
+		for x in resolution:
+			var local := Vector2(x - half, z - half)
+			var t := _pad_falloff(local, area, blend)
+			if t >= 1.0:
+				continue
+			var index := z * resolution + x
+			_heights[index] = lerpf(height, _heights[index], t)
+
+
+## How much of the original ground survives at [param point]: 0 inside the pad,
+## 1 outside the blend, eased between.
+func _pad_falloff(point: Vector2, area: Rect2, blend: float) -> float:
+	var outside := Vector2(
+		maxf(area.position.x - point.x, maxf(0.0, point.x - area.end.x)),
+		maxf(area.position.y - point.y, maxf(0.0, point.y - area.end.y))
+	)
+	var distance := outside.length()
+	if distance <= 0.0:
+		return 0.0
+	if blend <= 0.0 or distance >= blend:
+		return 1.0
+	return smoothstep(0.0, blend, distance)
+
+
+## Mean height over [param area], in local coordinates. What a pad should be
+## levelled to if it is to sit in the ground rather than on top of it.
+func average_in(area: Rect2, step: float = 1.0) -> float:
+	var total := 0.0
+	var samples := 0
+	var x := area.position.x
+	while x <= area.end.x:
+		var z := area.position.y
+		while z <= area.end.y:
+			total += height_at_local(x, z)
+			samples += 1
+			z += step
+		x += step
+	return 0.0 if samples == 0 else total / samples
+
+
 ## Raw samples, row-major by z. Matches [member HeightMapShape3D.map_data].
 func heights() -> PackedFloat32Array:
 	return _heights

@@ -7,6 +7,8 @@
 [ext_resource type="Script" path="res://scripts/systems/day_night_component.gd" id="5_day_night"]
 [ext_resource type="Resource" path="res://resources/day_night/default_day_night.tres" id="6_day_night_config"]
 [ext_resource type="PackedScene" path="res://ui/debug_overlay.tscn" id="7_overlay"]
+[ext_resource type="Script" path="res://scripts/world/prototype_level.gd" id="8_level"]
+[ext_resource type="Resource" path="res://resources/structures/prototype_structure.tres" id="9_structure_config"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sgp6g"]
 
@@ -25,6 +27,7 @@ terrain = NodePath("Terrain")
 player = NodePath("Player")
 player_movement = NodePath("Player/Movement")
 camera = NodePath("IsometricCamera")
+spawn_point = Vector2(-3, 0)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=159123357]
 environment = SubResource("Environment_0wfyh")
@@ -39,6 +42,11 @@ config = ExtResource("6_day_night_config")
 sun = NodePath("../Sun")
 
 [node name="Terrain" parent="." instance=ExtResource("1_terrain")]
+
+[node name="Level" type="Node3D" parent="." node_paths=PackedStringArray("terrain")]
+script = ExtResource("8_level")
+terrain = NodePath("../Terrain")
+structure_config = ExtResource("9_structure_config")
 
 [node name="Player" parent="." instance=ExtResource("4_player")]
 
