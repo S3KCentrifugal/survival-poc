@@ -78,9 +78,12 @@ it** — render a frame and inspect the image rather than assuming.
 
 ## Traps specific to this project
 
-- **`class_name` globals only resolve after an import pass.** On a fresh clone
-  run the import command above first, or every suite fails to compile with
-  "Could not find type". The wrappers handle this.
+- **`class_name` globals only resolve after an import pass.** They live in
+  `.godot/global_script_class_cache.cfg`. A fresh clone has no cache, and — the
+  one that actually bites — a cache older than a script you just added does not
+  know its `class_name`, failing as `Identifier "Foo" not declared`. The
+  wrappers re-import whenever any `.gd` is newer than the cache, so prefer them
+  over invoking Godot directly.
 - **Test suites run on the first processed frame, not `_initialize`.** Nodes
   added to `root` before the tree is live never enter it, so `_ready` never
   fires and scene tests silently inspect an unbuilt node. See
@@ -91,6 +94,14 @@ it** — render a frame and inspect the image rather than assuming.
   editor, build the nodes in a throwaway script, set transforms with
   `looking_at()`, and let `ResourceSaver.save()` serialize it: correct by
   construction.
+- **Godot treats CLOCKWISE winding as front-facing.** A procedurally built
+  surface wound the other way is back-face culled and simply invisible, which
+  reads as "the mesh failed to build" rather than as a winding bug. Assert on
+  `ARRAY_NORMAL` directions in a test — see `test_the_ground_faces_upwards`.
+- **`HeightMapShape3D` samples are always one unit apart** and it has no
+  spacing property. Any mesh resolution other than one vertex per metre forces
+  a scaled `CollisionShape3D`, which scales the heights too and silently
+  desynchronises collision from what you can see. Keep spacing at 1.
 - **`--headless` does not render.** `root.get_texture()` returns null and you
   get `ERROR: Parameter "t" is null`. Omit the flag when capturing a frame;
   keep it for logic-only runs like the test suite.

@@ -100,7 +100,7 @@ Two things that will bite otherwise:
 Vertical slice in progress. Built so far:
 
 - [x] Project bootstrap: folder hierarchy, test harness, empty 3D world
-- [ ] Terrain
+- [x] Terrain: noise heightfield, mesh and matching collision
 - [ ] Fixed isometric camera controller
 - [ ] Input abstraction
 - [ ] Movement (WASD, mouse rotation)

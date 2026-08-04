@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="TerrainConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/terrain_config.gd" id="1_config"]
+
+[resource]
+script = ExtResource("1_config")
+size_meters = 64
+height_scale = 6.0
+noise_seed = 1337
+noise_frequency = 0.015
+noise_octaves = 4

@@ -11,6 +11,7 @@ const REQUIRED_DIRS: PackedStringArray = [
 	"res://scripts",
 	"res://scripts/components",
 	"res://scripts/systems",
+	"res://scripts/world",
 	"res://resources",
 	"res://ui",
 	"res://characters",
