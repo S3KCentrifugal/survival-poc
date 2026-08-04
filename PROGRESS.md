@@ -3,7 +3,8 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 6 — Health and stamina**.
+Last updated after **Feature 11 — Save identifiers**, which completes the
+planned vertical slice.
 
 ## What this is
 
@@ -58,7 +59,7 @@ thing" unprompted.
 
 **In:** empty 3D world, terrain, player, fixed isometric camera, WASD movement,
 mouse rotation, sprint, collision, basic animation state machine, day/night
-placeholder, health component, stamina component.
+placeholder, health component, stamina component, save identifiers.
 
 **Out, deliberately:** crafting, inventory, combat, enemies, and any UI beyond a
 simple debug overlay.
@@ -80,7 +81,11 @@ builds the input source from the camera, and tells the camera what to follow.
 
 The reusable-component set the brief calls for: health, stamina, movement,
 interaction, save identifiers, animation controller, camera controller, input
-abstraction. Five of those exist so far.
+abstraction. **All but interaction exist.**
+
+Systems that belong to the world rather than to an actor — the day/night cycle,
+the save registry — live in `scripts/systems/`. The UI's own logic lives in
+`scripts/ui/`. Both follow the same three layers.
 
 ## Progress
 
@@ -91,18 +96,18 @@ abstraction. Five of those exist so far.
 | 3 | Fixed isometric camera controller | done | `80a4076` |
 | 4 | Input abstraction | done | `2e83539` |
 | 5 | Movement: WASD, cursor facing, collision | done | `d8dae5f` |
-| 6 | Health and stamina components | done | |
-| 7 | Sprint (movement × stamina) | done | |
-| 8 | Animation controller | done | |
-| 9 | Day/night placeholder | done | |
-| 10 | Debug overlay | done | |
-| 11 | Save identifiers | **next** | |
+| 6 | Health and stamina components | done | `cdd214b` |
+| 7 | Sprint (movement × stamina) | done | `65c6a43` |
+| 8 | Animation controller | done | `c83b4e3` |
+| 9 | Day/night placeholder | done | `f60aee6` |
+| 10 | Debug overlay | done | `f35cc35` |
+| 11 | Save identifiers | done | |
 
-**153 tests passing** across 14 suites. `./run_tests.sh` exits non-zero on
-failure.
+**The planned slice is complete.** 270 tests passing across 23 suites.
+`./run_tests.sh` exits non-zero on failure.
 
-The slice is playable now: `./run.sh`, walk with WASD, the character faces the
-cursor.
+Playable now: `./run.sh`. Walk with WASD, face the cursor, hold shift to sprint
+until the bar runs out, watch the sun cross the sky, F3 for the readout.
 
 ### 1. Bootstrap
 
@@ -293,6 +298,46 @@ since the overlay is most useful in exactly the situation that produced it.
 
 It refreshes ten times a second, not sixty: rebuilding that string every frame
 is pointless garbage for something the eye reads a few times a second.
+
+### 11. Save identifiers
+
+`SaveIdComponent` plus `SaveRegistry`. **Nothing here writes a save.** This is
+the half that has to be right first: an object whose identity changes between
+sessions cannot be reloaded into, and one that shares an identity with another
+silently overwrites it.
+
+An id comes from, in order: the one authored in the scene (the player's is
+`player`); otherwise the node's tree path, taken once as it enters the tree.
+For anything **spawned at runtime** neither is stable — assign
+`SaveIdComponent.random_id()` at spawn and save the id with the object. A path
+is not an identity for something that did not exist when the level was authored.
+That rule is a convention rather than something the code can detect, which is
+exactly why the duplicate check exists.
+
+Ids are readable rather than hashed: the first thing anyone does with an
+unfamiliar save file is look for something they recognise.
+
+The registry is **built on demand, not kept up to date** — a live registry has
+to be told about every spawn and every free, and the one that is never told is
+the bug. Components join a group and a save pass walks it. The duplicate check
+is the reason it is a class rather than a dictionary: two objects sharing an id
+is not a crash, it is a save where one quietly overwrites the other, discovered
+by a player a week later when their chest is empty. A test walks the assembled
+world and asserts there are none.
+
+## What is not built
+
+The slice is done, so this is the honest list of what a survival game still
+needs and this repo does not have:
+
+- **Interaction** — the one component from the brief's list that is missing. It
+  was not in the numbered plan, and nothing yet has anything to interact with.
+- **A save system.** Objects can be addressed; nothing serialises them.
+- **Terrain streaming.** One 64 m tile. Chunking means many `Heightfield`s
+  rather than a rewrite, which was the point of keeping it node-free.
+- **A rig.** The animation state machine drives nothing, by design.
+- Crafting, inventory, combat, enemies, and real UI — all deliberately out of
+  scope for the slice.
 
 ## Open items
 

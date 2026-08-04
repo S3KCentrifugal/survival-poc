@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/components/movement_component.gd" id="1_movement"]
 [ext_resource type="Resource" path="res://resources/movement/player_movement.tres" id="2_config"]
@@ -10,6 +10,7 @@
 [ext_resource type="Resource" path="res://resources/stamina/player_stamina.tres" id="8_stamina_config"]
 [ext_resource type="Script" path="res://scripts/components/animation_component.gd" id="9_animation"]
 [ext_resource type="Resource" path="res://resources/animation/player_animation.tres" id="10_animation_config"]
+[ext_resource type="Script" path="res://scripts/components/save_id_component.gd" id="11_save_id"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -58,3 +59,7 @@ script = ExtResource("9_animation")
 body = NodePath("..")
 movement = NodePath("../Movement")
 config = ExtResource("10_animation_config")
+
+[node name="SaveId" type="Node" parent="."]
+script = ExtResource("11_save_id")
+id = &"player"
