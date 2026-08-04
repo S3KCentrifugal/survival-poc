@@ -103,7 +103,7 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 10 | Debug overlay | done | `f35cc35` |
 | 11 | Save identifiers | done | `bdb7a1d` |
 | 12 | Player character (placeholder rig) | done | `460bb9a` |
-| 13 | Facing mode: face your travel, not the cursor | done | |
+| 13 | Facing mode: face your travel, not the cursor | done | `6367ad9` |
 
 **The planned slice is complete.** 273 tests passing across 23 suites.
 `./run_tests.sh` exits non-zero on failure.

@@ -1,6 +1,6 @@
 # 013 — Facing the way you run
 
-*2026-08-04 · commit pending*
+*2026-08-04 · commit `6367ad9`*
 
 The character used to turn to face the mouse cursor. Now it faces the direction
 it is travelling. Short post, but it covers a design reversal, a config
