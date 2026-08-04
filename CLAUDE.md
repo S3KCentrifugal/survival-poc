@@ -98,6 +98,16 @@ it** — render a frame and inspect the image rather than assuming.
   editor, build the nodes in a throwaway script, set transforms with
   `looking_at()`, and let `ResourceSaver.save()` serialize it: correct by
   construction.
+- **Exported node references need `node_paths` in a hand-written `.tscn`.**
+  `@export var body: CharacterBody3D` serialises as `body = NodePath("..")`, but
+  Godot only resolves it into a node if the node declaration also lists it:
+  `[node name="Movement" type="Node" parent="." node_paths=PackedStringArray("body")]`.
+  Without it the property is silently null at runtime — no error, the component
+  just does nothing. The editor writes this automatically; you must not forget it.
+- **Idle frames and physics ticks are not the same clock.** Counting
+  `_process` calls to time a test is wrong — headless runs idle frames
+  unbounded while physics stays at 60 Hz, so a "120 frame" wait can be any
+  amount of simulated time. Use `Engine.get_physics_frames()`.
 - **Godot treats CLOCKWISE winding as front-facing.** A procedurally built
   surface wound the other way is back-face culled and simply invisible, which
   reads as "the mesh failed to build" rather than as a winding bug. Assert on

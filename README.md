@@ -103,7 +103,7 @@ Vertical slice in progress. Built so far:
 - [x] Terrain: noise heightfield, mesh and matching collision
 - [x] Fixed isometric camera controller
 - [x] Input abstraction
-- [ ] Movement (WASD, mouse rotation)
+- [x] Movement (WASD, mouse rotation, collision)
 - [ ] Health and stamina components
 - [ ] Sprint
 - [ ] Animation controller
@@ -111,5 +111,13 @@ Vertical slice in progress. Built so far:
 - [ ] Debug overlay
 - [ ] Save identifiers
 
-The camera currently frames the world origin. It follows a target as soon as
-one exists — `CameraController.set_target()` is the seam the player plugs into.
+The slice is playable: run `./run.sh` and walk around with WASD. The character
+faces the cursor while it moves.
+
+`WorldRoot` on `main.tscn` is the composition root — it spawns the player on the
+terrain, builds the input source from the camera, and tells the camera what to
+follow. Components never look each other up; they are introduced by whoever
+owns them.
+
+Sprint is read by the input layer but not yet consumed. It lands with stamina,
+which is what gates it.

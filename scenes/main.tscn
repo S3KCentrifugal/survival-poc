@@ -2,6 +2,8 @@
 
 [ext_resource type="PackedScene" path="res://world/terrain.tscn" id="1_terrain"]
 [ext_resource type="PackedScene" path="res://prefabs/isometric_camera.tscn" id="2_camera"]
+[ext_resource type="Script" path="res://scripts/world/world_root.gd" id="3_root"]
+[ext_resource type="PackedScene" path="res://characters/player.tscn" id="4_player"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sgp6g"]
 
@@ -14,7 +16,12 @@ sky = SubResource("Sky_o5qli")
 ambient_light_source = 3
 tonemap_mode = 2
 
-[node name="Main" type="Node3D" unique_id=159748148]
+[node name="Main" type="Node3D" unique_id=159748148 node_paths=PackedStringArray("terrain", "player", "player_movement", "camera")]
+script = ExtResource("3_root")
+terrain = NodePath("Terrain")
+player = NodePath("Player")
+player_movement = NodePath("Player/Movement")
+camera = NodePath("IsometricCamera")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=159123357]
 environment = SubResource("Environment_0wfyh")
@@ -24,5 +31,7 @@ transform = Transform3D(0.59999996, -0.7155418, 0.3577709, 0, 0.4472136, 0.89442
 shadow_enabled = true
 
 [node name="Terrain" parent="." instance=ExtResource("1_terrain")]
+
+[node name="Player" parent="." instance=ExtResource("4_player")]
 
 [node name="IsometricCamera" parent="." instance=ExtResource("2_camera")]
