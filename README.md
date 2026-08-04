@@ -12,6 +12,34 @@ gd              # open in the editor (pinned version, see .godot-version)
 Both scripts resolve Godot from `.godot-version` and import the project on
 first run, so a fresh clone needs no setup step.
 
+## Environment
+
+**Godot 4.7.1 stable**, GDScript only. The version is pinned in
+`.godot-version` — opening the project with a newer Godot rewrites scenes and
+resources irreversibly, so launch through the scripts above rather than a
+`godot` on `PATH`.
+
+The repo sits inside a managed tree (`games-toolkit`), which keeps three heavy
+things out of git: the regenerable `.godot/` cache, builds, and art masters.
+
+| What | Where |
+|---|---|
+| Engine | `../../engine/4.7.1/godot` (`../../engine/current` → default) |
+| Art/audio masters | `../../source/survival-poc` — not in git |
+| Builds | `../../exports/survival-poc` — not in git |
+| Shared assets | `../../library` — not in git |
+| Toolkit | `../../toolkit` |
+
+On a fresh machine, clone [games-toolkit][toolkit] and run its `bootstrap.sh`:
+it installs the pinned Godot, restores this repo, and creates the surrounding
+tree. `source/` and `library/` are deliberately not in git and come from
+`toolkit/sync.sh pull` instead.
+
+[toolkit]: https://github.com/S3KCentrifugal/games-toolkit
+
+Working on this with Claude Code? `CLAUDE.md` has the conventions, the exact
+engine invocations, and the traps worth knowing before touching a `.tscn`.
+
 ## Layout
 
 ```

@@ -1,7 +1,60 @@
 # Working in this project
 
-A long-lived 3D survival game. Optimise for the person reading this in a year,
-not for finishing the current task quickly.
+A long-lived 3D survival game in Godot 4. Optimise for the person reading this
+in a year, not for finishing the current task quickly.
+
+## Environment
+
+**Engine: Godot 4.7.1 stable** (`4.7.1.stable.official.a13da4feb`), GDScript
+only — no C#, no .NET build step.
+
+The version is **pinned** in `.godot-version` and is not a suggestion. Opening
+the project with a newer Godot rewrites scenes and resources in place, and the
+rewrite is not reversible. Always launch through the wrappers below, which read
+the pin, rather than invoking whatever `godot` happens to be on `PATH` — there
+may not be one.
+
+This repo lives inside a managed tree. The layout is what matters; the absolute
+paths are what it resolves to on this machine:
+
+| What | Path |
+|---|---|
+| Repo | `<games-root>/projects/survival-poc` → `/home/rob/games/projects/survival-poc` |
+| Engine binary | `<games-root>/engine/<version>/godot` → `/home/rob/games/engine/4.7.1/godot` |
+| Default engine | `<games-root>/engine/current` (symlink → `4.7.1`) |
+| Art/audio masters | `<games-root>/source/survival-poc` — **outside the repo, not in git** |
+| Builds | `<games-root>/exports/survival-poc` — **outside the repo, not in git** |
+| Shared asset library | `<games-root>/library` — **outside the repo, not in git** |
+| Toolkit | `<games-root>/toolkit` (`bootstrap.sh`, `snapshot.sh`, `gd`, `new-game`) |
+| Remote | `git@github.com:S3KCentrifugal/survival-poc.git` |
+
+`<games-root>` is the repo's `../..`, which is how `run.sh` and `run_tests.sh`
+find the engine. It can be relocated via `GAMES_ROOT`, so prefer the wrappers
+over hardcoding any of the absolute paths above.
+
+Authoring files (`.blend`, `.psd`, `.aseprite`) belong in `source/`, **never**
+in the repo — that separation is why the repo stays small. Copy what a scene
+needs into `assets/` as an engine-ready format; do not symlink from `library/`,
+because Godot's importer follows the link and writes `.import` metadata that
+then disagrees across projects.
+
+## Commands
+
+```bash
+./run_tests.sh    # headless suite; exits non-zero on failure
+./run.sh          # play it (extra args pass through to Godot)
+gd                # open in the editor at the pinned version (toolkit wrapper)
+```
+
+Both scripts import the project on first run — a fresh clone has no `.godot/`,
+and without that pass every `class_name` global fails to resolve.
+
+Direct invocation, when a wrapper will not do:
+
+```bash
+/home/rob/games/engine/current/godot --headless --path . --script <script.gd>
+/home/rob/games/engine/current/godot --headless --editor --quit --path .   # import only
+```
 
 ## Non-negotiables
 
@@ -20,28 +73,60 @@ not for finishing the current task quickly.
 
 ## Before you finish
 
-Run `./run_tests.sh`. It must exit 0. If a change is visual, actually look at
-it — render a frame and inspect it rather than assuming.
+Run `./run_tests.sh`. It must exit 0. If a change is visual, **actually look at
+it** — render a frame and inspect the image rather than assuming.
 
 ## Traps specific to this project
 
 - **`class_name` globals only resolve after an import pass.** On a fresh clone
-  run `godot --headless --editor --quit --path .` first, or every suite fails
-  with "Could not find type". `run_tests.sh` and `run.sh` handle this.
+  run the import command above first, or every suite fails to compile with
+  "Could not find type". The wrappers handle this.
 - **Test suites run on the first processed frame, not `_initialize`.** Nodes
   added to `root` before the tree is live never enter it, so `_ready` never
-  fires. See `tests/framework/test_runner.gd`.
+  fires and scene tests silently inspect an unbuilt node. See
+  `tests/framework/test_runner.gd`.
 - **`Transform3D(...)` literals in `.tscn` are basis ROWS, not axis columns.**
-  Hand-writing one from computed axis vectors gives a transposed (rolled)
-  transform. To author a scene without the editor, build the nodes in a
-  throwaway script, set transforms with `looking_at()`, and let
-  `ResourceSaver.save()` serialize it — correct by construction.
-- **A launched game dies when its spawning shell exits.** Use `setsid ./run.sh &`
-  when launching from a shell that will close. Godot reports this as a clean
-  exit 0, not an error.
+  Hand-writing one from computed axis vectors yields a transposed (rolled)
+  transform — a diagonal horizon is the tell. To author a scene without the
+  editor, build the nodes in a throwaway script, set transforms with
+  `looking_at()`, and let `ResourceSaver.save()` serialize it: correct by
+  construction.
+- **`--headless` does not render.** `root.get_texture()` returns null and you
+  get `ERROR: Parameter "t" is null`. Omit the flag when capturing a frame;
+  keep it for logic-only runs like the test suite.
+- **A launched game dies when its spawning shell exits.** Use
+  `setsid ./run.sh &` from a shell that will close. Godot reports this as a
+  clean exit 0, not an error, so it looks like the app simply quit.
+
+### Rendering a frame to inspect
+
+```gdscript
+extends SceneTree
+var _frames: int = 0
+
+func _process(_delta: float) -> bool:
+	_frames += 1
+	if _frames == 1:
+		root.add_child(load("res://scenes/main.tscn").instantiate())
+		return false
+	if _frames < 30:   # let the renderer settle
+		return false
+	await process_frame
+	root.get_texture().get_image().save_png("/tmp/frame.png")
+	return true
+```
+
+```bash
+/home/rob/games/engine/current/godot --path . --resolution 1280x720 --script _shot.gd
+```
+
+Delete the throwaway script afterwards; it is a tool, not part of the project.
 
 ## Scope discipline
 
 The vertical slice is deliberately narrow: no crafting, no inventory, no
 combat, no enemies, no UI beyond a debug overlay. Build the feature asked for
 and stop. Do not add the "obvious next thing" unprompted.
+
+Work one feature at a time: explain the design, implement only that feature,
+say where every file belongs, then wait.
