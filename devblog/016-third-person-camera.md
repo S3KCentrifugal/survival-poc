@@ -1,6 +1,6 @@
 # 016 — Over the shoulder, and a correction
 
-*2026-08-04 · commit pending*
+*2026-08-04 · commit `a9ebd09`*
 
 The camera was fixed-yaw isometric from feature 3. It is now third-person: five
 metres behind the character, twenty degrees down, mouse to turn, wheel to zoom.
