@@ -3,7 +3,7 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 31 — Mushrooms and an inventory**. The planned
+Last updated after **Feature 32 — Dropping items and item icons**. The planned
 vertical slice (features 1–11) was completed long ago; everything since is
 built on top of it.
 
@@ -124,7 +124,8 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 28 | Title screen, scene routing, shared settings panel | done | `c82922a` |
 | 29 | Double jump, and a companion that dies | done | `cd68c74` |
 | 30 | A sky: gradient, sun disc, halo and stars | done | `63376d3` |
-| 31 | Mushrooms, pickup on F, and an inventory on I | done | — |
+| 31 | Mushrooms, pickup on F, and an inventory on I | done | `4748172` |
+| 32 | Dropping items, item icons, and stack counts | done | — |
 
 **The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
@@ -136,7 +137,8 @@ internal doorway, out of the building and across to the tower. F3 for the
 readout, backtick for the console, Escape for the menu. Space jumps twice, left
 click punches — hit a wanderer enough and it blows up. Red mushrooms grow in
 the grass: walk up to one, press **F** to pick it up, **I** to see what you are
-carrying. Health and stamina are on screen, and both come back on their own if
+carrying — drag a stack onto another slot to move it, or out of the panel to
+put it back on the ground. Health and stamina are on screen, and both come back on their own if
 you leave them alone.
 
 ### 1. Bootstrap
@@ -1027,6 +1029,44 @@ The bag does **not** pause the game: the pause menu is a menu about the game,
 this is a screen about your character, and in multiplayer a bag that stops the
 world cannot exist.
 
+### 32. Dragging things out
+
+Drag a stack onto another slot to move it, or out of the panel entirely to put
+it on the ground. Cells show a real icon scaled to fit, and stackable items
+show their count.
+
+**The drag methods decide nothing.** They answer which gesture happened and
+call something testable: `Inventory.move_to()` for a slot, or
+`InventoryScreen.drop_to_world()` for the ground. Moving merges same-item
+stacks and swaps otherwise -- a dragged stack that snaps back because the
+target was occupied is a UI arguing with you -- and only what fits pours
+across, with a test asserting the *total* is unchanged either way.
+
+**Nothing leaves the bag until it exists in the world.** The spawn happens
+first; only then is the slot emptied. A stack removed and then failed to spawn
+is a stack that exists nowhere. A whole stack lands as one pickup carrying a
+count, so nine mushrooms come back in one press of F rather than nine.
+
+`ItemDefinition` holds a **path** to its world scene, not an exported
+`PackedScene`: the mushroom scene holds the mushroom resource, so an exported
+scene would be a load cycle Godot resolves by luck.
+
+**Three leaks, all found by reading the tail of a green run.** Caching the
+loaded scene in a member made a cycle between two `RefCounted`s that GDScript
+never collects -- `ResourceLoader` already caches, so the fix was not to.
+`set_drag_preview()` outside a real drag hands the viewport a node nothing
+frees, so the payload was split into a mouse-free `drag_payload()`. And each
+cell builds its own `StyleBoxFlat` -- fifth appearance of the shared-resource
+trap, avoided by habit this time.
+
+Two error messages named the wrong file, both now in `CLAUDE.md`: a script that
+fails to compile reports at its *caller* as "Nonexistent function 'new'", and
+`as Dictionary` on a non-Dictionary raises rather than returning null.
+
+Icons are SVG, rasterised on import, drawn with `EXPAND_IGNORE_SIZE` and
+`STRETCH_KEEP_ASPECT_CENTERED` -- without the first, a 512-pixel icon makes an
+84-pixel cell 512 pixels wide.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -1058,11 +1098,13 @@ needs and this repo does not have:
   with holes in them, which is all a top-down camera needs to see into.
 - **A character of our own.** The player is a CC0 robot standing in for one. It
   animates and it is the right height; it is not the art direction.
-- **Dropping, using or eating items.** The bag takes things in and the code can
-  take them out; nothing in the game does. Eating a mushroom is the obvious
-  next thing and was deliberately not built.
-- **Item art.** Inventory cells are coloured swatches, which is honest about
-  there being no icons rather than pretending with a placeholder.
+- **Using or eating items.** They can be picked up, carried, rearranged and
+  dropped; nothing consumes them. Eating a mushroom is the obvious next thing
+  and was deliberately not built.
+- **Splitting a stack.** A drag moves the whole thing. Half-stack drags want a
+  modifier key and a decision about what the UI does with the remainder.
+- **Item art beyond one mushroom.** Everything else falls back to a coloured
+  swatch, which is honest about missing icons rather than pretending.
 - **A bag that survives a restart.** Objects can be addressed and items have
   stable ids, but nothing serialises them -- still waiting on the save system.
 - **Clouds, a moon, and weather.** The sky has a sun, a gradient and stars.

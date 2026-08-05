@@ -70,13 +70,14 @@ sky = SubResource("Sky_o5qli")
 ambient_light_source = 3
 tonemap_mode = 2
 
-[node name="Main" type="Node3D" unique_id=159748148 node_paths=PackedStringArray("terrain", "player", "player_movement", "player_attack", "player_collector", "camera", "companion", "companion_follow")]
+[node name="Main" type="Node3D" unique_id=159748148 node_paths=PackedStringArray("terrain", "player", "player_movement", "player_attack", "player_collector", "player_dropper", "camera", "companion", "companion_follow")]
 script = ExtResource("3_root")
 terrain = NodePath("Terrain")
 player = NodePath("Player")
 player_movement = NodePath("Player/Movement")
 player_attack = NodePath("Player/Attack")
 player_collector = NodePath("Player/Collector")
+player_dropper = NodePath("Player/Dropper")
 camera = NodePath("PlayerCamera")
 spawn_point = Vector2(-3, 0)
 companion = NodePath("Companion")
@@ -157,8 +158,9 @@ regrow_seconds = 20.0
 
 [node name="PlayerCamera" parent="." instance=ExtResource("2_camera")]
 
-[node name="InventoryScreen" parent="." instance=ExtResource("24_inventory_screen") node_paths=PackedStringArray("inventory", "world_root")]
+[node name="InventoryScreen" parent="." instance=ExtResource("24_inventory_screen") node_paths=PackedStringArray("inventory", "dropper", "world_root")]
 inventory = NodePath("../Player/Inventory")
+dropper = NodePath("../Player/Dropper")
 world_root = NodePath("..")
 
 [node name="PlayerHud" parent="." instance=ExtResource("14_hud") node_paths=PackedStringArray("health", "stamina", "collector")]

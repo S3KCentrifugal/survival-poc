@@ -21,10 +21,11 @@ content_margin_top = 16.0
 content_margin_right = 20.0
 content_margin_bottom = 16.0
 
-[node name="InventoryScreen" type="CanvasLayer" node_paths=PackedStringArray("grid", "empty_label", "title_label")]
+[node name="InventoryScreen" type="CanvasLayer" node_paths=PackedStringArray("grid", "drop_zone", "empty_label", "title_label")]
 layer = 3
 script = ExtResource("1_screen")
 grid = NodePath("Dim/Centre/Panel/Rows/Grid")
+drop_zone = NodePath("Dim")
 empty_label = NodePath("Dim/Centre/Panel/Rows/Empty")
 title_label = NodePath("Dim/Centre/Panel/Rows/Title")
 
@@ -69,5 +70,5 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 0.54, 0.58, 1)
 theme_override_font_sizes/font_size = 12
-text = "I to close"
+text = "Drag a stack to move it, or out of this panel to drop it.    I to close"
 horizontal_alignment = 1

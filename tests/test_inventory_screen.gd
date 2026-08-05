@@ -148,3 +148,127 @@ func test_a_picked_mushroom_shows_up_in_the_screen() -> void:
 
 	assert_eq(collector.collect(), 1, "F picked up nothing")
 	assert_eq(screen.cell_text(0), "1", "the bag on screen says '%s'" % screen.cell_text(0))
+
+
+func _mushroom() -> ItemDefinition:
+	return load("res://resources/items/mushroom.tres")
+
+
+## The two settings that make an icon of any size look right in a cell of any
+## size. Without KEEP_ASPECT_CENTERED a tall icon is squashed into the square;
+## without IGNORE_SIZE a 512-pixel icon makes the cell 512 pixels wide and the
+## grid runs off the screen.
+func test_icons_scale_to_the_cell_and_keep_their_shape() -> void:
+	var screen := _screen()
+	screen.inventory.collect(_mushroom(), 1)
+	var icon: TextureRect = screen.cell(0).get_node("Stack/Frame/Icon")
+
+	assert_eq(icon.expand_mode, TextureRect.EXPAND_IGNORE_SIZE, "the icon sizes the cell")
+	assert_eq(
+		icon.stretch_mode,
+		TextureRect.STRETCH_KEEP_ASPECT_CENTERED,
+		"the icon is stretched out of shape"
+	)
+
+
+func test_a_cell_shows_the_item_icon() -> void:
+	var screen := _screen()
+	screen.inventory.collect(_mushroom(), 1)
+	assert_not_null(screen.cell(0).icon(), "the cell drew no icon")
+	assert_eq(screen.cell(0).icon(), _mushroom().icon)
+
+
+## An 84-pixel cell must not be forced wider by the art inside it.
+func test_a_cell_stays_the_size_it_asked_for() -> void:
+	var screen := _screen()
+	screen.inventory.collect(_mushroom(), 1)
+	assert_eq(screen.cell(0).custom_minimum_size, Vector2(84, 84))
+
+
+func test_emptying_a_cell_clears_its_icon() -> void:
+	var screen := _screen()
+	screen.inventory.collect(_mushroom(), 1)
+	screen.inventory.drop(&"mushroom", 1)
+	assert_null(screen.cell(0).icon(), "the icon outlived the item")
+	assert_true(screen.cell(0).is_empty())
+
+
+## Counts are for things that stack. A "1" under an item you can only hold one
+## of is a number that never changes.
+func test_stackable_items_show_their_count() -> void:
+	var screen := _screen()
+	screen.inventory.collect(_item(&"mushroom", 20), 1)
+	assert_eq(screen.cell_text(0), "1", "a stackable item hid its count")
+
+	screen.inventory.collect(_item(&"mushroom", 20), 6)
+	assert_eq(screen.cell_text(0), "7")
+
+
+func test_an_item_that_does_not_stack_shows_no_count() -> void:
+	var screen := _screen()
+	screen.inventory.collect(_item(&"sword", 1), 1)
+	assert_eq(screen.cell_text(0), "", "a one-of-a-kind item was labelled '1'")
+
+
+## An empty cell must not offer a drag, or you can pick up nothing and drop it
+## somewhere.
+func test_an_empty_cell_cannot_be_dragged() -> void:
+	var screen := _screen()
+	assert_null(screen.cell(0).drag_payload())
+
+
+func test_a_filled_cell_hands_over_its_index() -> void:
+	var screen := _screen()
+	screen.inventory.collect(_mushroom(), 2)
+	var payload: Dictionary = screen.cell(0).drag_payload()
+	assert_eq(payload.get("index"), 0)
+	assert_true(InventoryCell.is_inventory_drag(payload))
+
+
+## A file dragged in from the desktop is not a mushroom.
+func test_a_foreign_payload_is_refused() -> void:
+	var screen := _screen()
+	assert_false(InventoryCell.is_inventory_drag({"files": ["/tmp/thing.png"]}))
+	assert_false(screen.cell(0)._can_drop_data(Vector2.ZERO, "some string"))
+
+
+func test_dragging_one_cell_onto_another_moves_the_stack() -> void:
+	var screen := _screen()
+	screen.inventory.collect(_mushroom(), 3)
+
+	screen.cell(2)._drop_data(Vector2.ZERO, {"source": &"inventory", "index": 0})
+	assert_eq(screen.cell_text(0), "", "it left a copy in the old slot")
+	assert_eq(screen.cell_text(2), "3", "the stack did not arrive")
+
+
+## Dropping outside the panel is what puts a stack on the ground, so the zone
+## has to accept the drag rather than ignore the mouse.
+func test_the_area_outside_the_panel_takes_a_drop() -> void:
+	var world: Node = load(MAIN_SCENE).instantiate()
+	_mount(world)
+	var screen: InventoryScreen = world.get_node("InventoryScreen")
+	var inventory: InventoryComponent = world.get_node("Player/Inventory")
+	inventory.collect(_mushroom(), 2)
+
+	assert_not_null(screen.drop_zone, "there is nowhere to drag a stack out to")
+	assert_eq(
+		screen.drop_zone.mouse_filter,
+		Control.MOUSE_FILTER_STOP,
+		"the drop zone ignores the mouse, so a drag out of the panel goes nowhere"
+	)
+	assert_true(screen._can_drop_outside(Vector2.ZERO, {"source": &"inventory", "index": 0}))
+
+	screen._dropped_outside(Vector2.ZERO, {"source": &"inventory", "index": 0})
+	assert_eq(inventory.count_of(&"mushroom"), 0, "the stack is still in the bag")
+
+
+## The cursor should say no rather than swallowing something that cannot be put
+## down.
+func test_dragging_out_an_item_with_no_world_form_is_refused() -> void:
+	var world: Node = load(MAIN_SCENE).instantiate()
+	_mount(world)
+	var screen: InventoryScreen = world.get_node("InventoryScreen")
+	var idea := _item(&"idea")
+	(world.get_node("Player/Inventory") as InventoryComponent).collect(idea, 1)
+
+	assert_false(screen._can_drop_outside(Vector2.ZERO, {"source": &"inventory", "index": 0}))

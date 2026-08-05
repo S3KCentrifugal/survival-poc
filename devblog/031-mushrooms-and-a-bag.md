@@ -149,4 +149,5 @@ every slot.
 
 ---
 
-Next: nothing scheduled. Posts 002–011 and 025–027 are still owed.
+Next: [032 — Dragging things out, and three ways to
+leak](032-dragging-things-out.md). Posts 002–011 and 025–027 are still owed.

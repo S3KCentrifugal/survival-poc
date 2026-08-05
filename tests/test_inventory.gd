@@ -194,3 +194,102 @@ func test_the_component_announces_changes() -> void:
 	assert_eq(changes[0], 2, "removing nothing counted as a change")
 
 	component.free()
+
+
+## Dragging a stack onto an empty slot moves it there.
+func test_moving_a_stack_to_an_empty_slot() -> void:
+	var bag := Inventory.new(4)
+	bag.add(_item(&"mushroom"), 3)
+
+	assert_true(bag.move_to(0, 2))
+	assert_true(bag.slot(0).is_empty(), "it left a copy behind")
+	assert_eq(bag.slot(2).count, 3)
+
+
+## Onto a different item, they swap. A dragged stack that snaps back because
+## the target was occupied is a UI arguing with you.
+func test_moving_onto_a_different_item_swaps_them() -> void:
+	var bag := Inventory.new(4)
+	bag.add(_item(&"mushroom"), 3)
+	bag.add(_item(&"berry"), 5)
+
+	assert_true(bag.move_to(0, 1))
+	assert_eq(bag.slot(0).definition.id, &"berry")
+	assert_eq(bag.slot(0).count, 5)
+	assert_eq(bag.slot(1).definition.id, &"mushroom")
+	assert_eq(bag.slot(1).count, 3)
+
+
+func test_moving_onto_the_same_item_merges_them() -> void:
+	var bag := Inventory.new(4)
+	var mushroom := _item(&"mushroom", 20)
+	bag.add(mushroom, 20)
+	bag.add(mushroom, 6)
+	assert_eq(bag.slot(1).count, 6)
+
+	# Slot 0 is full, so nothing pours in and they swap instead.
+	assert_true(bag.move_to(1, 0))
+	assert_eq(bag.slot(0).count, 6)
+	assert_eq(bag.slot(1).count, 20)
+
+
+## Only what fits pours across. 20 onto 15 in stacks of 20 is 20 and 15, not 35
+## in a slot that holds 20.
+func test_merging_leaves_the_overflow_behind() -> void:
+	var bag := Inventory.new(4)
+	var mushroom := _item(&"mushroom", 20)
+	bag.add(mushroom, 15)
+	bag.slot(2).add(mushroom, 12)
+
+	assert_true(bag.move_to(2, 0))
+	assert_eq(bag.slot(0).count, 20, "the target overfilled")
+	assert_eq(bag.slot(2).count, 7, "the overflow was deleted")
+	assert_eq(bag.count_of(&"mushroom"), 27, "mushrooms appeared or vanished")
+
+
+func test_moving_nothing_or_onto_itself_changes_nothing() -> void:
+	var bag := Inventory.new(4)
+	bag.add(_item(&"mushroom"), 3)
+
+	assert_false(bag.move_to(0, 0), "a slot moved onto itself")
+	assert_false(bag.move_to(1, 2), "an empty slot moved")
+	assert_false(bag.move_to(0, 9), "it moved into a slot that is not there")
+	assert_eq(bag.slot(0).count, 3)
+
+
+func test_taking_a_whole_slot_out() -> void:
+	var bag := Inventory.new(4)
+	bag.add(_item(&"mushroom"), 7)
+
+	var taken := bag.take_all(0)
+	assert_eq(taken.count, 7)
+	assert_eq(taken.definition.id, &"mushroom")
+	assert_true(bag.slot(0).is_empty(), "it was taken and also left behind")
+
+	assert_true(bag.take_all(1).is_empty(), "an empty slot produced items")
+
+
+## A "1" under something you can only hold one of is a number that never
+## changes and therefore says nothing.
+func test_only_stackable_items_have_a_count_worth_showing() -> void:
+	assert_true(_item(&"mushroom", 20).stacks())
+	assert_false(_item(&"sword", 1).stacks())
+
+
+func test_an_item_with_no_world_form_cannot_be_dropped() -> void:
+	var idea := _item(&"idea")
+	assert_false(idea.can_drop(), "an item with no scene claimed it could be dropped")
+	assert_null(idea.world_scene())
+
+	var mushroom: ItemDefinition = load(MUSHROOM_PATH)
+	assert_true(mushroom.can_drop(), "a mushroom cannot be put back down")
+	assert_not_null(mushroom.world_scene(), "its world scene did not load")
+
+
+## The mushroom scene holds the mushroom resource, so the resource must not
+## hold the scene -- that is a cycle Godot resolves by luck. The path is what
+## breaks it, and this is the test that says so.
+func test_the_item_carries_a_path_rather_than_a_scene() -> void:
+	var mushroom: ItemDefinition = load(MUSHROOM_PATH)
+	assert_eq(mushroom.world_scene_path, "res://items/mushroom.tscn")
+	assert_not_null(mushroom.icon, "the mushroom has no icon")

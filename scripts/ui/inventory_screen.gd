@@ -7,30 +7,44 @@ extends CanvasLayer
 ## multiplayer a bag that stops the world is a bag that cannot exist. It does
 ## release the cursor, because a grid you cannot click is not a grid.
 ##
-## Redrawn whole on every change. A bag holds twenty slots, and a diff between
-## two lists of twenty is more code and more bugs than rebuilding them.
+## Drag a stack onto another slot to move it, or out of the panel entirely to
+## put it on the ground. Neither rule lives here: moving is
+## [method Inventory.move_to] and dropping is [ItemDropper], both reachable
+## without a mouse. This file only decides which one a gesture meant.
 
 signal opened
 signal closed
 
+## Emitted when a stack is put on the ground, for a sound later.
+signal dropped(definition: ItemDefinition, amount: int)
+
 @export var toggle_key: Key = KEY_I
 
 @export var inventory: InventoryComponent
+
+## Puts dragged-out stacks back in the world. Without one, dragging out of the
+## panel does nothing rather than deleting what you dragged.
+@export var dropper: ItemDropper
 
 ## Released while the screen is open and taken back on close. Optional, so the
 ## screen can be tested with no world around it.
 @export var world_root: WorldRoot
 
 @export var grid: GridContainer
+
+## Everything outside the panel. Dropping a stack here puts it on the ground --
+## which is why it has to accept drops rather than ignore the mouse.
+@export var drop_zone: Control
+
 @export var empty_label: Label
 @export var title_label: Label
 
 ## Slots per row. Five by four is a bag that reads at a glance.
 @export_range(1, 12, 1) var columns: int = 5
 
-## Kept so a redraw can reuse them rather than rebuilding controls every time
-## a mushroom is picked.
-var _cells: Array[PanelContainer] = []
+## Kept so a redraw reuses them rather than rebuilding controls every time a
+## mushroom is picked.
+var _cells: Array[InventoryCell] = []
 
 
 func _ready() -> void:
@@ -41,6 +55,12 @@ func _ready() -> void:
 		grid.columns = columns
 	if inventory != null:
 		inventory.changed.connect(refresh)
+	if drop_zone != null:
+		# Forwarding rather than a script of its own: the zone has no state and
+		# no behaviour beyond "a drag ended out here", and a whole file for one
+		# question is a file to keep in sync.
+		drop_zone.mouse_filter = Control.MOUSE_FILTER_STOP
+		drop_zone.set_drag_forwarding(Callable(), _can_drop_outside, _dropped_outside)
 	refresh()
 
 
@@ -73,27 +93,66 @@ func is_open() -> bool:
 
 
 ## Rebuilds every cell from the bag.
+##
+## Whole, not diffed. A bag holds twenty slots, and a diff between two lists of
+## twenty is more code and more bugs than rebuilding them.
 func refresh() -> void:
 	if grid == null:
 		return
 	var bag := inventory.inventory() if inventory != null else Inventory.new()
 	_ensure_cells(bag.size())
-
 	for index in _cells.size():
-		_draw_cell(index, bag.slot(index))
-
+		_cells[index].show_slot(bag.slot(index))
 	if empty_label != null:
 		empty_label.visible = bag.is_empty()
 	if title_label != null:
 		title_label.text = "Inventory"
 
 
-## What a cell shows, so a test can read it back without walking the tree.
+## Moves a stack from one slot to another, merging or swapping.
+##
+## Public and mouse-free: this is what a drag *means*, and a test should not
+## have to synthesise one to check it.
+func move_stack(from: int, to: int) -> bool:
+	if inventory == null:
+		return false
+	var moved := inventory.inventory().move_to(from, to)
+	if moved:
+		refresh()
+	return moved
+
+
+## Puts the whole of one slot on the ground. Returns how many were dropped.
+##
+## Nothing leaves the bag until the item is standing in the world. A stack
+## removed first and then failed to spawn is a stack that no longer exists
+## anywhere.
+func drop_to_world(index: int) -> int:
+	if inventory == null or dropper == null:
+		return 0
+	var bag := inventory.inventory()
+	var slot := bag.slot(index)
+	if slot == null or slot.is_empty() or not slot.definition.can_drop():
+		return 0
+
+	var definition := slot.definition
+	var amount := slot.count
+	if dropper.drop(definition, amount) == null:
+		return 0
+
+	bag.take_all(index)
+	refresh()
+	dropped.emit(definition, amount)
+	return amount
+
+
+## What a cell's count reads, so a test does not have to walk the tree.
 func cell_text(index: int) -> String:
-	if index < 0 or index >= _cells.size():
-		return ""
-	var label := _cells[index].get_node_or_null("Stack/Count") as Label
-	return "" if label == null else label.text
+	return "" if index < 0 or index >= _cells.size() else _cells[index].count_text()
+
+
+func cell(index: int) -> InventoryCell:
+	return null if index < 0 or index >= _cells.size() else _cells[index]
 
 
 func cell_count() -> int:
@@ -102,61 +161,30 @@ func cell_count() -> int:
 
 func _ensure_cells(wanted: int) -> void:
 	while _cells.size() > wanted:
-		var extra: PanelContainer = _cells.pop_back()
+		var extra: InventoryCell = _cells.pop_back()
 		grid.remove_child(extra)
 		extra.queue_free()
 	while _cells.size() < wanted:
-		_cells.append(_build_cell())
+		var cell_node := InventoryCell.new()
+		cell_node.index = _cells.size()
+		cell_node.received.connect(_on_cell_received.bind(cell_node.index))
+		grid.add_child(cell_node)
+		_cells.append(cell_node)
 
 
-func _build_cell() -> PanelContainer:
-	var cell := PanelContainer.new()
-	cell.custom_minimum_size = Vector2(84, 84)
-	# Its own StyleBox per cell. A shared one is the trap this project has met
-	# four times: recolouring a slot would recolour every slot.
-	cell.add_theme_stylebox_override(&"panel", _empty_style())
-
-	var swatch := ColorRect.new()
-	swatch.name = "Swatch"
-	swatch.custom_minimum_size = Vector2(40, 40)
-	swatch.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	swatch.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	swatch.color = Color.TRANSPARENT
-
-	var count := Label.new()
-	count.name = "Count"
-	count.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	count.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
-
-	var stack := VBoxContainer.new()
-	stack.name = "Stack"
-	stack.add_child(swatch)
-	stack.add_child(count)
-	cell.add_child(stack)
-	grid.add_child(cell)
-	return cell
+func _on_cell_received(from_index: int, to_index: int) -> void:
+	move_stack(from_index, to_index)
 
 
-func _draw_cell(index: int, slot: InventorySlot) -> void:
-	var cell := _cells[index]
-	var swatch := cell.get_node_or_null("Stack/Swatch") as ColorRect
-	var count := cell.get_node_or_null("Stack/Count") as Label
-	var filled := slot != null and not slot.is_empty()
-
-	if swatch != null:
-		swatch.color = slot.definition.colour if filled else Color(1.0, 1.0, 1.0, 0.05)
-	if count != null:
-		# The count alone. A name in an 84-pixel cell is three characters and an
-		# ellipsis, which tells you less than the colour already did.
-		count.text = str(slot.count) if filled and slot.count > 1 else ("1" if filled else "")
-	cell.tooltip_text = "" if not filled else "%s x%d" % [slot.definition.display_name, slot.count]
+func _can_drop_outside(_at: Vector2, data: Variant) -> bool:
+	if not InventoryCell.is_inventory_drag(data) or inventory == null or dropper == null:
+		return false
+	var slot := inventory.inventory().slot(int((data as Dictionary).get("index", -1)))
+	# Refuses rather than accepting and doing nothing, so the cursor says no to
+	# an item with no world form instead of swallowing it.
+	return slot != null and not slot.is_empty() and slot.definition.can_drop()
 
 
-func _empty_style() -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.13, 0.14, 0.16, 0.9)
-	style.border_color = Color(0.3, 0.33, 0.37)
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(3)
-	style.set_content_margin_all(6)
-	return style
+func _dropped_outside(_at: Vector2, data: Variant) -> void:
+	if InventoryCell.is_inventory_drag(data):
+		drop_to_world(int((data as Dictionary).get("index", -1)))

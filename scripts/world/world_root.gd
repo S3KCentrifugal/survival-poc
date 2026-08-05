@@ -22,6 +22,11 @@ extends Node3D
 ## without a second path through the code.
 @export var player_collector: PickupCollector
 
+## Given the terrain and somewhere to parent dropped items. Both are the
+## world's to know: a player prefab that names a terrain only works in a world
+## that happens to have one.
+@export var player_dropper: ItemDropper
+
 @export var camera: CameraController
 
 ## Where the player starts, on the ground plane. Height comes from the terrain.
@@ -114,6 +119,9 @@ func _wire_input() -> void:
 		player_attack.input_source = _player_input
 	if player_collector != null:
 		player_collector.input_source = _player_input
+	if player_dropper != null:
+		player_dropper.terrain = terrain
+		player_dropper.container = self
 	if companion_follow != null:
 		companion_follow.target = player
 

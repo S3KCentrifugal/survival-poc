@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Flat, high-contrast, and readable at 24 px: an inventory icon is looked
+       at for a tenth of a second, not admired. -->
+  <path d="M26 34 h12 v18 a6 6 0 0 1 -12 0 z" fill="#efe6cd"/>
+  <path d="M32 34 h6 v18 a6 6 0 0 1 -6 6 z" fill="#d9cba8"/>
+  <path d="M6 34 a26 22 0 0 1 52 0 z" fill="#c8342b"/>
+  <path d="M32 12 a26 22 0 0 1 26 22 h-26 z" fill="#a82a22"/>
+  <ellipse cx="20" cy="24" rx="5" ry="4" fill="#f2ded7"/>
+  <ellipse cx="40" cy="21" rx="4" ry="3.2" fill="#f2ded7"/>
+  <ellipse cx="47" cy="30" rx="3.4" ry="2.6" fill="#f2ded7"/>
+  <path d="M6 34 h52 a3 3 0 0 1 -3 3 H9 a3 3 0 0 1 -3 -3 z" fill="#8f231c"/>
+</svg>

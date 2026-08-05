@@ -54,6 +54,49 @@ func add(definition: ItemDefinition, amount: int = 1) -> int:
 	return maxi(left, 0)
 
 
+## Moves a whole stack from one slot to another.
+##
+## Merges when both hold the same item and there is room, swaps otherwise.
+## Swapping rather than refusing is what makes a grid feel like a grid: a
+## dragged stack that snaps back because the target was occupied is a UI
+## arguing with you.
+##
+## Returns whether anything changed, so a caller knows whether to redraw.
+func move_to(from: int, to: int) -> bool:
+	var source := slot(from)
+	var target := slot(to)
+	if source == null or target == null or from == to or source.is_empty():
+		return false
+
+	if target.is_empty() or not target.accepts(source.definition):
+		_swap(from, to)
+		return true
+
+	# Same item with room: pour what fits and leave the rest behind, which is
+	# how a stack of 20 dropped on a stack of 15 becomes 20 and 15 rather than
+	# 35 in a slot that holds 20.
+	var moved := target.add(source.definition, source.count)
+	if moved <= 0:
+		_swap(from, to)
+		return true
+	source.remove(moved)
+	return true
+
+
+## Takes everything out of one slot and returns it as a slot of its own.
+##
+## The slot rather than a definition and a count, because two return values in
+## GDScript is a dictionary nobody wants to read. The bag's own slot is left
+## empty.
+func take_all(index: int) -> InventorySlot:
+	var source := slot(index)
+	if source == null or source.is_empty():
+		return InventorySlot.new()
+	var taken := InventorySlot.new(source.definition, source.count)
+	source.clear()
+	return taken
+
+
 ## Whether every one of [param amount] would fit right now.
 func has_room_for(definition: ItemDefinition, amount: int = 1) -> bool:
 	if definition == null or not definition.is_valid():
@@ -120,6 +163,17 @@ func resize(capacity: int) -> void:
 func clear() -> void:
 	for existing: InventorySlot in _slots:
 		existing.clear()
+
+
+func _swap(from: int, to: int) -> void:
+	var source := _slots[from]
+	var target := _slots[to]
+	var definition := source.definition
+	var count := source.count
+	source.definition = target.definition
+	source.count = target.count
+	target.definition = definition
+	target.count = count
 
 
 func _sorted_holders(id: StringName) -> Array[InventorySlot]:

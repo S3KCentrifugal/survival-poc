@@ -181,6 +181,28 @@ then left alone.
   180-degree half-arc misses the thing directly behind. Compare angles with a
   small tolerance, never exactly. The symptom is a check that works everywhere
   except at the boundary, which is exactly where the test is.
+- **A script that fails to compile is reported at its caller.** The message is
+  `Invalid call. Nonexistent function 'new' in base 'GDScript'` and it names
+  the file doing `Foo.new()`, not the broken file `Foo` lives in — an
+  uncompiled script still resolves as a `GDScript` object, it just has no
+  `new`. The real error is a `Parse Error` further up the log. Read upward
+  before believing the line number.
+- **`as` raises on built-in types and returns null on objects.**
+  `data as Dictionary` where `data` is a String does not give null, it aborts
+  with `Invalid cast`. So a guard written to reject foreign values is itself
+  the thing that crashes on one. Check `typeof(x) != TYPE_DICTIONARY` first;
+  `as` is only null-safe for `Object` subclasses.
+- **Caching a resource that references you back never gets collected.** An
+  `ItemDefinition` holding the `PackedScene` that holds the `ItemDefinition` is
+  two `RefCounted`s pointing at each other, which GDScript cannot free. It
+  surfaces only as `resources still in use at exit` on a green test run.
+  `ResourceLoader` has its own cache, so `load()` on demand is cheap and does
+  not build the cycle. Related: a `.tres` that exports a `PackedScene` which
+  ext_resources that same `.tres` is a *load-time* cycle — hold a path instead.
+- **`Control.set_drag_preview()` outside a real drag leaks the preview.**
+  Calling `_get_drag_data()` from a test hands the viewport a node no drag will
+  ever finish and nothing will ever free. Split the payload into a plain method
+  and test that; leave the preview to the mouse.
 - **Sub-resources are shared between instantiations of a scene.** A
   `[sub_resource]` in a `.tscn` looks private and is not: every instance of the
   scene gets the same object unless it carries
