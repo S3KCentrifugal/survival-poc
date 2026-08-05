@@ -108,15 +108,16 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 15 | Dev console | done | `41647fc` |
 | 16 | Third-person camera: mouse look, wheel zoom | done | `a9ebd09` |
 | 17 | Jump | done | `4b13064` |
+| 18 | Escape menu and graphics settings | done | `6ec1535` |
 
-**The planned slice is complete.** 386 tests passing across 29 suites.
+**The planned slice is complete.** 427 tests passing across 32 suites.
 `./run_tests.sh` exits non-zero on failure.
 
 Playable now: `./run.sh`. You start in a room inside a two-room base, seen from
 over the character's shoulder. WASD moves relative to the camera, the mouse
 turns it, the wheel zooms. Shift sprints until the bar runs out. Go through the
 internal doorway, out of the building and across to the tower. F3 for the
-readout, backtick for the console, Escape to release the cursor. Space jumps.
+readout, backtick for the console, Escape for the menu. Space jumps.
 
 ### 1. Bootstrap
 
@@ -521,6 +522,53 @@ One rig lesson: **a clip name tells you nothing about its length.** The robot's
 `Jump` is a 0.04 second single-frame pose that ends in two frames and leaves the
 `AnimationPlayer` reporting nothing playing. `Jump2` is 0.21 s of actual launch
 motion, and is what the config names.
+
+### 18. Escape menu and settings
+
+Escape opens Resume / Settings / Quit. Settings covers display mode (windowed,
+exclusive fullscreen, borderless fullscreen), resolution, monitor, v-sync, frame
+cap, anti-aliasing, render scale, master volume, look sensitivity and invert
+look. **Everything listed does something** — nothing is a placeholder for a
+system that does not exist yet, which is why there is one volume slider rather
+than the usual three.
+
+Four pieces, so the part that cannot be tested is as small as possible:
+
+| | |
+|---|---|
+| `GameSettings` | plain data plus the rules about what is valid |
+| `SettingsStore` | reads and writes `user://settings.cfg` |
+| `SettingsMenu` / `PauseMenu` | show settings, collect them, say what was pressed |
+| `SettingsApplier` | the only file that touches a window, renderer or audio bus |
+
+The validation rules are not defensive padding — the settings file is the one
+piece of state a player can reach with a text editor. A monitor index from a
+two-screen desk, opened on a laptop, falls back to the first screen rather than
+opening off-screen. An unsupported frame cap **rounds down** to one we offer
+rather than being honoured. A corrupt file gives defaults, a truncated one loses
+a single setting rather than all of them, and keys from a later build are
+ignored.
+
+**Escape used to release the mouse.** The menu owns that key now and releases the
+cursor as part of opening — one gesture doing one thing instead of two. Pausing,
+releasing the cursor and showing the panel happen together, because any one
+without the others is a bug you can feel. The dev console takes its own Escape
+first (it uses `_input`, the menu uses `_unhandled_input`), so the key closes a
+console before it reaches the menu; inside the settings panel Escape steps back
+rather than throwing the panel away.
+
+Settings rows are built from a list in code rather than laid out in the scene. A
+dozen label-and-control pairs hand-written into a `.tscn` is four hundred lines
+that have to be edited in lockstep with `GameSettings`.
+
+Two things to know when running the suite:
+
+- `./run_tests.sh` prints **one** `ConfigFile parse error` line, from the test
+  that proves a corrupt settings file cannot stop the game starting. Godot's
+  parser logs before returning its error code and has no quiet variant. A second
+  error line means something is actually wrong.
+- `PauseMenu.settings_path` is overridable so tests write somewhere harmless. It
+  is not: the suite rewrote the real settings file once before that was noticed.
 
 ## What is not built
 
