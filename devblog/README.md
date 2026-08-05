@@ -34,6 +34,7 @@ rather than an edit to the old one.
 | 019 | [A punch that hits nothing](019-punch.md) | Why the swing is not the combat, and a reusable cooldown |
 | 020 | [Six characters, and the promise from feature 4](020-wanderers.md) | The input abstraction paying off, and a give-up timer |
 | 021 | [Punches connect, and π is not π](021-punches-connect.md) | Hit detection, flinching, and 32-bit trigonometry |
+| 022 | [Two bars, one delay, and a puff of sparks](022-regen-hud-explosions.md) | Regeneration, why the HUD is not the overlay, and a guard that cleared itself |
 
 Numbers follow the **feature** order, not the order posts get written — 012 is
 the twelfth feature, and 002–011 below are still owed.

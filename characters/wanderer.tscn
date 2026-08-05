@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/components/movement_component.gd" id="1_movement"]
 [ext_resource type="Resource" path="res://resources/movement/wanderer_movement.tres" id="2_config"]
@@ -10,6 +10,8 @@
 [ext_resource type="Script" path="res://scripts/components/wander_component.gd" id="8_wander"]
 [ext_resource type="Resource" path="res://resources/wander/default_wander.tres" id="9_wander_config"]
 [ext_resource type="Script" path="res://scripts/components/hurt_reaction.gd" id="10_hurt"]
+[ext_resource type="Script" path="res://scripts/components/explode_on_death.gd" id="11_explode"]
+[ext_resource type="PackedScene" path="res://effects/explosion.tscn" id="12_explosion"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -40,6 +42,12 @@ config = ExtResource("5_health_config")
 script = ExtResource("10_hurt")
 health = NodePath("../Health")
 stagger_seconds = 0.6
+
+[node name="Explode" type="Node" parent="." node_paths=PackedStringArray("health", "actor")]
+script = ExtResource("11_explode")
+health = NodePath("../Health")
+actor = NodePath("..")
+effect = ExtResource("12_explosion")
 
 [node name="Wander" type="Node" parent="." node_paths=PackedStringArray("body", "movement", "hurt")]
 script = ExtResource("8_wander")

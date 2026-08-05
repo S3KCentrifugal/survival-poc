@@ -13,6 +13,7 @@
 [ext_resource type="PackedScene" path="res://ui/pause_menu.tscn" id="11_pause"]
 [ext_resource type="Script" path="res://scripts/world/wanderer_spawner.gd" id="12_spawner"]
 [ext_resource type="PackedScene" path="res://characters/wanderer.tscn" id="13_wanderer"]
+[ext_resource type="PackedScene" path="res://ui/player_hud.tscn" id="14_hud"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sgp6g"]
 
@@ -62,6 +63,10 @@ count = 6
 [node name="Player" parent="." instance=ExtResource("4_player")]
 
 [node name="PlayerCamera" parent="." instance=ExtResource("2_camera")]
+
+[node name="PlayerHud" parent="." instance=ExtResource("14_hud") node_paths=PackedStringArray("health", "stamina")]
+health = NodePath("../Player/Health")
+stamina = NodePath("../Player/Stamina")
 
 [node name="DebugOverlay" parent="." instance=ExtResource("7_overlay") node_paths=PackedStringArray("body", "movement", "health", "stamina", "animation", "day_night")]
 body = NodePath("../Player")

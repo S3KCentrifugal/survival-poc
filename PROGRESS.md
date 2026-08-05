@@ -112,8 +112,9 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 19 | Punch on left click | done | `eeaef61` |
 | 20 | Wandering characters | done | `a3b1062` |
 | 21 | Punches connect; wanderers react | done | `c222edb` |
+| 22 | Health regen, player HUD, and death by explosion | done | |
 
-**The planned slice is complete.** 506 tests passing across 37 suites.
+**The planned slice is complete.** 540 tests passing across 40 suites.
 `./run_tests.sh` exits non-zero on failure.
 
 Playable now: `./run.sh`. You start in a room inside a two-room base, seen from
@@ -121,7 +122,8 @@ over the character's shoulder. WASD moves relative to the camera, the mouse
 turns it, the wheel zooms. Shift sprints until the bar runs out. Go through the
 internal doorway, out of the building and across to the tower. F3 for the
 readout, backtick for the console, Escape for the menu. Space jumps, left
-click punches.
+click punches — hit a wanderer enough and it blows up. Health and stamina are
+on screen, and both come back on their own if you leave them alone.
 
 ### 1. Bootstrap
 
@@ -673,6 +675,34 @@ directly behind. Angles need a tolerance, never an exact comparison.
 and that is all: the rig has no death clip, and nothing despawns or loots it. It
 stands there. Deliberate — a death *system* is its own feature, and inventing
 one here would decide respawning, bodies and loot on the game's behalf.
+
+### 22. Regeneration, a HUD, and blowing up
+
+**Health regenerates** at 3/s after 6 quiet seconds, the same shape stamina has
+had since feature 6 — and for the same reason: without the delay, health ticks
+back up between blows and a fight has no attrition in it. The delay reuses
+`Cooldown`, because "you cannot do that again yet" is the same problem the punch
+already solved.
+
+**`PlayerHud` is not the debug overlay.** They are separate because they answer
+to different people — one is for whoever is playing, the other for whoever is
+building — and because F3 should not take your health bar away with it. It is
+driven by the `changed` signals rather than polled, so a bar redraws only when
+the number behind it moves. Health turns urgent below 30%, and the stamina bar
+changes colour while you are locked out, because an actor who cannot sprint
+should not look identical to one who can.
+
+**`ExplodeOnDeath` finishes what feature 21 left half-done.** A wanderer at zero
+health bursts and is removed. Still not a death *system* — nothing respawns,
+drops loot or leaves a body — but nothing stands there inert either.
+
+The trap worth keeping: **the burst is parented to the actor's parent, never the
+actor.** An effect spawned as a child of the thing being freed is freed with it
+and lasts zero frames. There is a test that asserts a surviving explosion is
+left in the world.
+
+Measured end to end: nine punches to blow a wanderer up, and a player at 55
+health back to 72 once the delay had run.
 
 ## What is not built
 

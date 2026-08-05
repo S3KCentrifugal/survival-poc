@@ -21,15 +21,43 @@ signal healed(amount: float)
 ## response -- whoever owns the actor decides what dying looks like.
 signal died
 
+## Emitted when regeneration starts giving health back, for a UI cue.
+signal regenerating
+
 @export var config: HealthConfig
 
 var _pool: VitalPool
+
+## Counts down the quiet period after a hit. Reuses the same primitive the
+## punch cooldown does -- "you cannot do that again yet" is the same problem.
+var _regen_delay: Cooldown
 
 
 func _ready() -> void:
 	if config == null:
 		push_warning("HealthComponent has no config; falling back to defaults")
 	_ensure_pool()
+
+
+func _physics_process(delta: float) -> void:
+	step(delta)
+
+
+## Advances regeneration by [param delta].
+##
+## Public so tests can heal an actor without waiting on the physics clock.
+func step(delta: float) -> void:
+	_ensure_pool()
+	if not _regen_delay.is_ready():
+		_regen_delay.advance(delta)
+		if _regen_delay.is_ready() and is_alive() and not _pool.is_full():
+			regenerating.emit()
+		return
+	if config.regen_per_second <= 0.0 or not is_alive() or _pool.is_full():
+		return
+	# Through heal(), so the dead stay dead and listeners hear about it the same
+	# way they would hear about a bandage.
+	heal(config.regen_per_second * delta)
 
 
 func current() -> float:
@@ -65,6 +93,9 @@ func take_damage(amount: float) -> float:
 	if taken <= 0.0:
 		return 0.0
 
+	_regen_delay.duration = config.regen_delay
+	_regen_delay.clear()
+	_regen_delay.use()
 	damaged.emit(taken)
 	changed.emit(_pool.current, _pool.maximum)
 	if _pool.is_empty():
@@ -98,3 +129,4 @@ func _ensure_pool() -> void:
 	if config == null:
 		config = HealthConfig.new()
 	_pool = VitalPool.new(config.maximum)
+	_regen_delay = Cooldown.new(config.regen_delay)
