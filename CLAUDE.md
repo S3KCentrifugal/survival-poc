@@ -181,6 +181,15 @@ then left alone.
   180-degree half-arc misses the thing directly behind. Compare angles with a
   small tolerance, never exactly. The symptom is a check that works everywhere
   except at the boundary, which is exactly where the test is.
+- **Sub-resources are shared between instantiations of a scene.** A
+  `[sub_resource]` in a `.tscn` looks private and is not: every instance of the
+  scene gets the same object unless it carries
+  `resource_local_to_scene = true`. Two worlds then write to one material, and
+  one world's clock recolours the other's sky. Same family as the `load()`
+  cache trap, which has now caught this project four times — a `MovementConfig`
+  in a test, a HUD `StyleBox`, a health bar material, and the sky. If a scene
+  mutates a resource at runtime, that resource must be local to the scene or
+  `duplicate()`d.
 - **A component nobody attached is silent.** Composition's cost: there is no
   base class whose contract went unfulfilled, so a missing node produces no
   error, no warning, and no null — the actor simply lacks a behaviour. The

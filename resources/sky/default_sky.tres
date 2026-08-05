@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="SkyConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/systems/sky_config.gd" id="1_config"]
+
+[resource]
+script = ExtResource("1_config")
+day_zenith = Color(0.09, 0.29, 0.72, 1)
+day_horizon = Color(0.68, 0.83, 0.96, 1)
+dusk_zenith = Color(0.16, 0.19, 0.45, 1)
+dusk_horizon = Color(1, 0.48, 0.22, 1)
+dusk_band = 0.16
+night_zenith = Color(0.015, 0.025, 0.075, 1)
+night_horizon = Color(0.05, 0.07, 0.14, 1)
+ground_darkening = 0.45
+sun_high_color = Color(1, 0.97, 0.9, 1)
+sun_low_color = Color(1, 0.55, 0.25, 1)
+halo_color = Color(1, 0.7, 0.4, 1)
+sun_angular_radius = 0.028
+sun_energy = 26.0
+halo_strength = 1.6
+star_brightness = 3.2
+star_sparsity = 0.94
+star_density = 190.0
+twilight_band = 0.25

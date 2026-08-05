@@ -2,10 +2,15 @@ class_name DayNightComponent
 extends Node
 ## Drives a [DirectionalLight3D] from a [DayNightCycle].
 ##
-## The sun is the only thing it touches. The scene's procedural sky already
-## takes its gradient from the brightest directional light, so moving this one
-## moves the sky and the ambient light with it -- one rotation, a whole
-## atmosphere, and nothing else to keep in sync.
+## The sun is the only thing it touches. [SkyComponent] listens to
+## [signal time_changed] and repaints the sky to match; the ambient light then
+## comes from that sky, so one rotation still moves the whole atmosphere.
+##
+## This used to be true for a different reason: the scene ran a stock
+## [ProceduralSkyMaterial], which takes its gradient from the brightest
+## directional light on its own. That sky could not do a sunset or a star, so
+## it was replaced -- and the coupling that came free had to be wired up by
+## hand. See devblog 030.
 
 ## Emitted every frame the clock advances. Carries the fraction of the day
 ## elapsed, not seconds.

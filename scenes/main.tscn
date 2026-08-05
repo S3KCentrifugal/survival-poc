@@ -18,11 +18,26 @@
 [ext_resource type="Script" path="res://scripts/systems/game_session.gd" id="16_session"]
 [ext_resource type="Script" path="res://scripts/systems/network_service.gd" id="17_network"]
 [ext_resource type="Script" path="res://scripts/systems/replication_service.gd" id="18_replication"]
+[ext_resource type="Shader" path="res://shaders/sky.gdshader" id="19_sky_shader"]
+[ext_resource type="Resource" path="res://resources/sky/default_sky.tres" id="20_sky_config"]
+[ext_resource type="Script" path="res://scripts/systems/sky_component.gd" id="21_sky"]
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sgp6g"]
+; local_to_scene on all three, and it is load-bearing. Sub-resources are
+; SHARED between instantiations of a scene by default, so without it two
+; worlds -- two tests, or a second window later -- write the same uniforms and
+; one world's clock recolours the other's sky.
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sky"]
+resource_local_to_scene = true
+shader = ExtResource("19_sky_shader")
 
+; Incremental, over a small cubemap. The sky lights the world through this, so
+; it has to keep up with the sun -- but a full re-bake every frame for a light
+; that moves a degree a second is paying for nothing.
 [sub_resource type="Sky" id="Sky_o5qli"]
-sky_material = SubResource("ProceduralSkyMaterial_sgp6g")
+resource_local_to_scene = true
+sky_material = SubResource("ShaderMaterial_sky")
+radiance_size = 2
+process_mode = 2
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_world"]
 geometry_parsed_geometry_type = 2
@@ -46,6 +61,7 @@ filter_ledge_spans = true
 filter_walkable_low_height_spans = true
 
 [sub_resource type="Environment" id="Environment_0wfyh"]
+resource_local_to_scene = true
 background_mode = 2
 sky = SubResource("Sky_o5qli")
 ambient_light_source = 3
@@ -95,6 +111,12 @@ shadow_enabled = true
 script = ExtResource("5_day_night")
 config = ExtResource("6_day_night_config")
 sun = NodePath("../Sun")
+
+[node name="Sky" type="Node" parent="." node_paths=PackedStringArray("day_night", "environment")]
+script = ExtResource("21_sky")
+config = ExtResource("20_sky_config")
+day_night = NodePath("../DayNight")
+environment = NodePath("../WorldEnvironment")
 
 [node name="Terrain" parent="." instance=ExtResource("1_terrain")]
 

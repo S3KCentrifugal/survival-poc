@@ -3,7 +3,7 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 29 — Double jump, and a companion that dies**. The planned
+Last updated after **Feature 30 — The sky**. The planned
 vertical slice (features 1–11) was completed long ago; everything since is
 built on top of it.
 
@@ -122,7 +122,8 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 26 | Wire protocol and transport, sized for 100 players | done | `d29a428` |
 | 27 | Entity replication, interpolation, tuning export | done | `831fdaf` |
 | 28 | Title screen, scene routing, shared settings panel | done | `c82922a` |
-| 29 | Double jump, and a companion that dies | done | — |
+| 29 | Double jump, and a companion that dies | done | `cd68c74` |
+| 30 | A sky: gradient, sun disc, halo and stars | done | — |
 
 **The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
@@ -953,6 +954,37 @@ has a test asserting that killing it does something.
 The companion does **not** respawn. `WandererSpawner` tops the wanderer
 population back up; nothing does that for the scene-placed companion.
 
+### 30. The sky
+
+The day/night cycle has driven a directional light since feature 9; what was
+above it was a stock `ProceduralSkyMaterial` with every property at its
+default. It is now a shader with a gradient, a sun disc, a horizon halo and a
+field of stars, driven by the same clock.
+
+**The colour decisions are not in the shader.** `SkyGradient` is a plain
+`RefCounted` that takes the sun's elevation and returns colours, so "is the
+sunset warmer than noon", "is the halo gone once the sun is down", "are there
+stars at midday" are assertions rather than opinions. The shader only draws.
+
+`SkyComponent` reads the sun's direction off the `DirectionalLight3D`'s own
+basis rather than recomputing it from the clock — two sources for one
+direction is two chances to disagree, and a sun drawn away from where the
+shadows point is glaring in a screenshot and invisible in a diff.
+
+Three things were wrong on the first render and fixed by looking: a fixed grey
+below the horizon put a black band across the view where the terrain tile runs
+out (the ground is now the horizon colour darkened, over a much longer fade);
+the stars were finer than a pixel and averaged away to nothing; and the sun
+needed clipping at the horizon rather than fading, which is what makes it read
+as sinking behind something.
+
+**The shared-resource trap, for the fourth time.** Sub-resources are shared
+between instantiations of a scene unless they carry
+`resource_local_to_scene = true`. Without it, two worlds write uniforms to the
+same sky material and one world's clock recolours the other's sky. The
+material, the `Sky` and the `Environment` all carry the flag now, and a test
+mounts two worlds at opposite times of day and asserts their skies differ.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -984,6 +1016,8 @@ needs and this repo does not have:
   with holes in them, which is all a top-down camera needs to see into.
 - **A character of our own.** The player is a CC0 robot standing in for one. It
   animates and it is the right height; it is not the art direction.
+- **Clouds, a moon, and weather.** The sky has a sun, a gradient and stars.
+  Everything else in the sky is still nothing.
 - **A companion that comes back.** Killing it is permanent until relaunch;
   only wanderers are topped back up.
 - **Devblog posts 025–027.** The three multiplayer features shipped without

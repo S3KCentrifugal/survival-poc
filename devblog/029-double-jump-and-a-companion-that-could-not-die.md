@@ -150,4 +150,4 @@ Killing your only friend is currently permanent until the next launch.
 
 ---
 
-Next: nothing scheduled. Posts 002–011 and 025–027 are still owed.
+Next: [030 — The sky](030-the-sky.md). Posts 002–011 and 025–027 are still owed.
