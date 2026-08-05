@@ -38,11 +38,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	_player_input.handle_event(event)
 
-	# Escape lets go of the cursor and a click takes it back. Without both, a
-	# captured mouse is a window you cannot leave.
-	var key := event as InputEventKey
-	if key != null and key.pressed and not key.echo and key.keycode == KEY_ESCAPE:
-		set_mouse_captured(false)
+	# Clicking takes the cursor back. Escape used to release it; the pause menu
+	# owns that key now and releases the cursor as part of opening, which is the
+	# same gesture doing one thing instead of two.
+	if get_tree().paused:
 		return
 	var button := event as InputEventMouseButton
 	if button != null and button.pressed and button.button_index == MOUSE_BUTTON_LEFT:

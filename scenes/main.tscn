@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://scripts/world/prototype_level.gd" id="8_level"]
 [ext_resource type="Resource" path="res://resources/structures/prototype_structure.tres" id="9_structure_config"]
 [ext_resource type="PackedScene" path="res://ui/dev_console.tscn" id="10_console"]
+[ext_resource type="PackedScene" path="res://ui/pause_menu.tscn" id="11_pause"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sgp6g"]
 
@@ -69,3 +70,7 @@ stamina = NodePath("../Player/Stamina")
 movement = NodePath("../Player/Movement")
 day_night = NodePath("../DayNight")
 terrain = NodePath("../Terrain")
+
+[node name="PauseMenu" parent="." instance=ExtResource("11_pause") node_paths=PackedStringArray("world_root", "camera")]
+world_root = NodePath("..")
+camera = NodePath("../PlayerCamera")
