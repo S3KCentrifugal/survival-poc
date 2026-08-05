@@ -113,8 +113,9 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 20 | Wandering characters | done | `a3b1062` |
 | 21 | Punches connect; wanderers react | done | `c222edb` |
 | 22 | Health regen, player HUD, and death by explosion | done | `669a517` |
+| 23 | Respawning, damage numbers, health bars over heads | done | |
 
-**The planned slice is complete.** 540 tests passing across 40 suites.
+**The planned slice is complete.** 568 tests passing across 42 suites.
 `./run_tests.sh` exits non-zero on failure.
 
 Playable now: `./run.sh`. You start in a room inside a two-room base, seen from
@@ -703,6 +704,42 @@ left in the world.
 
 Measured end to end: nine punches to blow a wanderer up, and a player at 55
 health back to 72 once the delay had run.
+
+### 23. Respawning and hit feedback
+
+**The world tops itself back up.** `WandererSpawner` prunes actors that have
+been freed, notices the gap, waits eight seconds and puts one back. Not instant:
+somebody reappearing the moment you finished them reads as the punch not
+counting. Replacements never land within 14 m of the player — a wanderer
+materialising in front of you is worse than a world with one fewer in it for a
+moment.
+
+The delay had a bug worth remembering: a fresh `Cooldown` is **ready**, not
+waiting, so the first death refilled on the spot and the delay only ever applied
+*between* replacements. The wait now starts when a gap appears.
+
+**Damage numbers** float up off whatever was hit and fade late — a number that
+starts disappearing immediately is one you have to be already looking at. They
+belong to the *attacker* (`DamageNumbers` on the player), because the question
+is "how much am I doing"; a wanderer walking into a wall does not litter the
+world with numbers. The killing hit prints bigger and in a different colour,
+decided *before* the damage lands so it answers what is about to happen.
+
+**A health bar floats over whoever you hit**, and only over them. Always-on bars
+turn a landscape into a spreadsheet; one that appears on damage and fades after
+four quiet seconds answers the only question you were asking. Built from two
+billboarded quads rather than a `SubViewport` per actor, which would be a render
+target per actor.
+
+Two details that are load-bearing rather than fussy: the fill pivot never scales
+to exactly zero, because a zero scale collapses the basis and Godot warns about
+a non-invertible transform every frame it is on screen. And both the bar
+material and the HUD's `StyleBox` are duplicated before tinting, or recolouring
+one recolours every one in the world — post 013's trap, now met three times.
+
+Both the number and the burst are parented to the victim's **parent**. Anything
+attached to the thing being freed is freed with it, and the killing blow is
+exactly the feedback you most want to see.
 
 ## What is not built
 

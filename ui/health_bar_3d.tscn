@@ -1,0 +1,46 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/health_bar_3d.gd" id="1_bar"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_back"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.05, 0.05, 0.06, 0.75)
+billboard_mode = 1
+billboard_keep_scale = true
+no_depth_test = true
+render_priority = 1
+
+[sub_resource type="QuadMesh" id="QuadMesh_back"]
+material = SubResource("StandardMaterial3D_back")
+size = Vector2(1.05, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fill"]
+shading_mode = 0
+albedo_color = Color(0.35, 0.75, 0.3, 1)
+billboard_mode = 1
+billboard_keep_scale = true
+no_depth_test = true
+render_priority = 2
+
+[sub_resource type="QuadMesh" id="QuadMesh_fill"]
+size = Vector2(1, 0.11)
+
+[node name="HealthBar3D" type="Node3D" node_paths=PackedStringArray("fill_pivot", "fill", "background")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
+script = ExtResource("1_bar")
+fill_pivot = NodePath("FillPivot")
+fill = NodePath("FillPivot/Fill")
+background = NodePath("Background")
+
+[node name="Background" type="MeshInstance3D" parent="."]
+mesh = SubResource("QuadMesh_back")
+material_override = SubResource("StandardMaterial3D_back")
+
+[node name="FillPivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 0, 0.01)
+
+[node name="Fill" type="MeshInstance3D" parent="FillPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0, 0)
+mesh = SubResource("QuadMesh_fill")
+material_override = SubResource("StandardMaterial3D_fill")

@@ -54,11 +54,15 @@ script = ExtResource("8_level")
 terrain = NodePath("../Terrain")
 structure_config = ExtResource("9_structure_config")
 
-[node name="Wanderers" type="Node3D" parent="." node_paths=PackedStringArray("terrain")]
+[node name="Wanderers" type="Node3D" parent="." node_paths=PackedStringArray("terrain", "keep_away_from")]
 script = ExtResource("12_spawner")
 scene = ExtResource("13_wanderer")
 terrain = NodePath("../Terrain")
 count = 6
+respawn = true
+respawn_delay = 8.0
+keep_away = 14.0
+keep_away_from = NodePath("../Player")
 
 [node name="Player" parent="." instance=ExtResource("4_player")]
 

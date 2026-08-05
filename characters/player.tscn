@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scripts/components/movement_component.gd" id="1_movement"]
 [ext_resource type="Resource" path="res://resources/movement/player_movement.tres" id="2_config"]
@@ -13,6 +13,8 @@
 [ext_resource type="Script" path="res://scripts/components/attack_component.gd" id="12_attack"]
 [ext_resource type="Resource" path="res://resources/attack/player_attack.tres" id="13_attack_config"]
 [ext_resource type="Script" path="res://scripts/components/hurt_reaction.gd" id="14_hurt"]
+[ext_resource type="Script" path="res://scripts/components/damage_numbers.gd" id="15_numbers"]
+[ext_resource type="PackedScene" path="res://effects/damage_number.tscn" id="16_number_scene"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -62,6 +64,11 @@ attack = NodePath("../Attack")
 hurt = NodePath("../Hurt")
 animation_player = NodePath("../Model/AnimationPlayer")
 config = ExtResource("10_animation_config")
+
+[node name="DamageNumbers" type="Node" parent="." node_paths=PackedStringArray("attack")]
+script = ExtResource("15_numbers")
+attack = NodePath("../Attack")
+effect = ExtResource("16_number_scene")
 
 [node name="SaveId" type="Node" parent="."]
 script = ExtResource("11_save_id")

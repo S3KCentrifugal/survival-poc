@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/components/movement_component.gd" id="1_movement"]
 [ext_resource type="Resource" path="res://resources/movement/wanderer_movement.tres" id="2_config"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://scripts/components/hurt_reaction.gd" id="10_hurt"]
 [ext_resource type="Script" path="res://scripts/components/explode_on_death.gd" id="11_explode"]
 [ext_resource type="PackedScene" path="res://effects/explosion.tscn" id="12_explosion"]
+[ext_resource type="PackedScene" path="res://ui/health_bar_3d.tscn" id="13_healthbar"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -42,6 +43,9 @@ config = ExtResource("5_health_config")
 script = ExtResource("10_hurt")
 health = NodePath("../Health")
 stagger_seconds = 0.6
+
+[node name="HealthBar" parent="." instance=ExtResource("13_healthbar") node_paths=PackedStringArray("health")]
+health = NodePath("../Health")
 
 [node name="Explode" type="Node" parent="." node_paths=PackedStringArray("health", "actor")]
 script = ExtResource("11_explode")
