@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scripts/components/movement_component.gd" id="1_movement"]
 [ext_resource type="Resource" path="res://resources/movement/companion_movement.tres" id="2_config"]
@@ -13,6 +13,7 @@
 [ext_resource type="Resource" path="res://resources/follow/companion_follow.tres" id="11_follow_config"]
 [ext_resource type="Script" path="res://scripts/components/hurt_reaction.gd" id="12_hurt"]
 [ext_resource type="PackedScene" path="res://ui/health_bar_3d.tscn" id="13_healthbar"]
+[ext_resource type="Script" path="res://scripts/components/network_entity.gd" id="90_netent"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -71,3 +72,12 @@ movement = NodePath("../Movement")
 hurt = NodePath("../Hurt")
 animation_player = NodePath("../Model/AnimationPlayer")
 config = ExtResource("7_animation_config")
+
+[node name="Network" type="Node" parent="." node_paths=PackedStringArray("body", "health", "movement", "animation", "simulated")]
+script = ExtResource("90_netent")
+kind = 3
+body = NodePath("..")
+health = NodePath("../Health")
+movement = NodePath("../Movement")
+animation = NodePath("../Animation")
+simulated = [NodePath("../Movement"), NodePath("../Follow")]

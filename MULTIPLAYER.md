@@ -159,10 +159,12 @@ Everything above it speaks `NetworkProtocol` and does not care.
 that decide how fast a player moves and how hard a punch hits. A Rust server
 must agree with the client on every one of them, and cannot parse `.tres`.
 
-*Not yet solved, and the next thing to do about it:* export the tuning to JSON
-from a single source of truth, so both implementations read the same numbers.
-Until then, the risk is small — thirteen files, none large — but it grows with
-every new config.
+*Avoided by:* `TuningExport`, and the `tuning` console command. The `.tres`
+files remain the single source of truth, edited in the inspector where they
+belong, and are dumped to JSON that anything can read. Exported rather than
+hand-maintained, because two hand-maintained copies of the same number are two
+numbers. Godot types are unwrapped on the way out — a `Color` becomes four named
+floats — so nothing on the far side has to parse `"(1600, 900)"`.
 
 ### The one that is genuinely hard: physics
 
@@ -202,8 +204,9 @@ independently useful. Nothing below is built yet except step 1.
 3. **A transport.** Host and join over ENet, carrying `NetworkProtocol` bytes.
    *(Done — see `PROGRESS.md` feature 26. Two processes exchange handshake,
    intent and snapshots; entity replication is step 4.)*
-4. **State replication with interpolation.** Remote players and AI move
-   smoothly at 20 Hz.
+4. **State replication with interpolation.** *(Done — see `PROGRESS.md` feature
+   27. Players who join are spawned, simulated and broadcast at 20 Hz; clients
+   render puppets 100 ms in the past and interpolate.)*
 5. **Client prediction and reconciliation** for the local player, so your own
    movement is not latency-bound. The pure `MovementSolver` is what makes this
    tractable.

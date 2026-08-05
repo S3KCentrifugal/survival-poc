@@ -56,6 +56,11 @@ func install(console: DevConsole) -> void:
 	console.register(
 		DevCommand.new(&"net", "net", "who is connected, and as what", 0, 0, _net)
 	)
+	console.register(
+		DevCommand.new(
+			&"tuning", "tuning [path]", "export tuning as JSON for a server", 0, 1, _tuning
+		)
+	)
 
 
 func _where(_arguments: PackedStringArray) -> String:
@@ -186,6 +191,15 @@ func _net(_arguments: PackedStringArray) -> String:
 	return "mode %s  players %d/%d  peers %s" % [
 		mode, network.player_count(), NetworkService.MAX_PLAYERS, network.peers()
 	]
+
+
+## Dumps the .tres tuning so something that is not Godot can read the same
+## numbers. See MULTIPLAYER.md.
+func _tuning(arguments: PackedStringArray) -> String:
+	var path := arguments[0] if not arguments.is_empty() else TuningExport.DEFAULT_OUTPUT
+	if not TuningExport.write(path):
+		return "could not write %s" % path
+	return "exported %d resources to %s" % [TuningExport.count(), path]
 
 
 func _quit(_arguments: PackedStringArray) -> String:

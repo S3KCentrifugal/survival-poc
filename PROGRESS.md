@@ -119,8 +119,9 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 24 | Companion that follows you, with pathfinding | done | `563e75b` |
 | 25 | Multiplayer foundation: session and authority seam | done | `bf555d5` |
 | 26 | Wire protocol and transport, sized for 100 players | done | `d29a428` |
+| 27 | Entity replication, interpolation, tuning export | done | |
 
-**The planned slice is complete.** 632 tests passing across 46 suites.
+**The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
 
 Playable now: `./run.sh`. You start in a room inside a two-room base, seen from
@@ -856,6 +857,39 @@ Two things learned doing it:
 `MULTIPLAYER.md` now has a section on what would make a Rust server hard and how
 each is avoided — including the one that genuinely is hard, which is physics.
 
+### 27. Replication
+
+Two machines now see the same world. A player who joins is spawned by the
+server, simulated there from their own intent, and broadcast to everyone at
+20 Hz. Verified across two processes: nine entities — six wanderers, two
+players, one companion — each with its own id, the joining player's character
+moved by the server from intent that arrived over the wire.
+
+**Clients render 100 ms in the past.** `SnapshotInterpolator` holds a short
+buffer and samples between the two snapshots either side of that moment.
+Snapping to the newest would show every remote character stepping twenty times a
+second; the cost is a fixed delay and the benefit is that jitter and the odd
+lost packet never show. Two snapshot intervals of delay, because one leaves
+nothing on the far side to interpolate toward.
+
+`NetworkEntity` is the only thing that knows an actor can be either the real
+thing or a **proxy**. A proxy switches off everything that would decide where it
+goes — a puppet that also simulates fights its own replicated position — and
+`HealthComponent.set_health_fraction` applies replicated health *silently*,
+because replaying `damaged` on a client fires flinches and damage numbers for
+blows never struck there.
+
+**A bug worth the test that caught it.** Entities placed in the scene rather
+than spawned by the service arrive with no id, and all went out as entity 0 — a
+client folded the whole world into one character standing in eight places.
+Numbering is now its own method precisely so it could be checked without opening
+a socket, which is how it was found.
+
+`TuningExport` and the `tuning` command dump all thirteen `.tres` files to JSON,
+so a Rust server can read the same numbers from the same source of truth. Godot
+types are unwrapped on the way out — nothing should have to parse
+`"(1600, 900)"`.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -866,13 +900,18 @@ needs and this repo does not have:
 - **A save system.** Objects can be addressed; nothing serialises them. Worth
   building *after* the networking decisions rather than before: an MMO's
   persistence is a database on the server, not a file on a client.
-- **Entity replication.** Features 25 and 26 laid the seam and the transport;
-  players connect and can exchange messages, but nobody is spawned for a remote
-  peer and no world state is broadcast yet. That is step 4 in `MULTIPLAYER.md`,
-  followed by client prediction and interest management.
-- **Tuning a Rust server could read.** Thirteen `.tres` files hold the numbers
-  both implementations must agree on. Exporting them to JSON is the next
-  Rust-facing job.
+- **Client prediction.** Your own movement is currently latency-bound: intent
+  goes to the server and the result comes back. Step 5 in `MULTIPLAYER.md`, and
+  the reason `MovementSolver` is pure.
+- **Interest management.** Every client is sent every entity. Fine for the
+  prototype world, and the thing that has to exist before player counts get
+  interesting. Step 6.
+- **A client that defers entirely to the server.** A joining client still runs
+  its own scene-placed world alongside the replicated one, so it sees both. The
+  world should come from the server alone once connected.
+- **Server-validated damage, and a gated console.** Items 1 and 5 of "what is
+  wrong today" in `MULTIPLAYER.md` are still open: the attacker applies damage,
+  and `tp`/`kill`/`time` are ungated.
 - **Terrain streaming.** One 64 m tile. Chunking means many `Heightfield`s
   rather than a rewrite, which was the point of keeping it node-free.
 - **A level format.** The prototype layout is constants in

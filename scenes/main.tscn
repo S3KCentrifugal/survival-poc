@@ -17,6 +17,7 @@
 [ext_resource type="PackedScene" path="res://characters/companion.tscn" id="15_companion"]
 [ext_resource type="Script" path="res://scripts/systems/game_session.gd" id="16_session"]
 [ext_resource type="Script" path="res://scripts/systems/network_service.gd" id="17_network"]
+[ext_resource type="Script" path="res://scripts/systems/replication_service.gd" id="18_replication"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sgp6g"]
 
@@ -71,6 +72,17 @@ mode = 0
 [node name="Network" type="Node" parent="." node_paths=PackedStringArray("session")]
 script = ExtResource("17_network")
 session = NodePath("../Session")
+
+[node name="Replication" type="Node" parent="." node_paths=PackedStringArray("session", "network", "spawn_root", "terrain")]
+script = ExtResource("18_replication")
+session = NodePath("../Session")
+network = NodePath("../Network")
+spawn_root = NodePath("../Wanderers")
+terrain = NodePath("../Terrain")
+player_scene = ExtResource("4_player")
+wanderer_scene = ExtResource("13_wanderer")
+companion_scene = ExtResource("15_companion")
+spawn_point = Vector2(-3, 0)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=159123357]
 environment = SubResource("Environment_0wfyh")

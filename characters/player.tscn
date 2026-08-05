@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/components/movement_component.gd" id="1_movement"]
 [ext_resource type="Resource" path="res://resources/movement/player_movement.tres" id="2_config"]
@@ -15,6 +15,7 @@
 [ext_resource type="Script" path="res://scripts/components/hurt_reaction.gd" id="14_hurt"]
 [ext_resource type="Script" path="res://scripts/components/damage_numbers.gd" id="15_numbers"]
 [ext_resource type="PackedScene" path="res://effects/damage_number.tscn" id="16_number_scene"]
+[ext_resource type="Script" path="res://scripts/components/network_entity.gd" id="90_netent"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -73,3 +74,12 @@ effect = ExtResource("16_number_scene")
 [node name="SaveId" type="Node" parent="."]
 script = ExtResource("11_save_id")
 id = &"player"
+
+[node name="Network" type="Node" parent="." node_paths=PackedStringArray("body", "health", "movement", "animation", "simulated")]
+script = ExtResource("90_netent")
+kind = 1
+body = NodePath("..")
+health = NodePath("../Health")
+movement = NodePath("../Movement")
+animation = NodePath("../Animation")
+simulated = [NodePath("../Movement"), NodePath("../Attack")]

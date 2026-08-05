@@ -121,6 +121,21 @@ func heal(amount: float) -> float:
 	return given
 
 
+## Sets health from a replicated fraction, without any of the announcements a
+## real change makes.
+##
+## A proxy's health is *told*, not computed: the server already decided, and
+## replaying `damaged` on a client would fire flinches and damage numbers for
+## blows that were never struck here.
+func set_health_fraction(fraction: float) -> void:
+	_ensure_pool()
+	var wanted := clampf(fraction, 0.0, 1.0) * _pool.maximum
+	if is_equal_approx(wanted, _pool.current):
+		return
+	_pool.set_current(wanted)
+	changed.emit(_pool.current, _pool.maximum)
+
+
 ## Builds the pool on first use rather than only in [method _ready], so a test
 ## or a tool can ask about health without mounting the actor in a scene tree.
 func _ensure_pool() -> void:

@@ -28,11 +28,17 @@ extends RefCounted
 ## | 1 | HELLO | client → server | 3 | `u16` protocol version |
 ## | 2 | WELCOME | server → client | 11 | `u16` version, `u32` your id, `u32` tick |
 ## | 3 | INPUT | client → server | 10 | `u32` tick, `i8` move x, `i8` move z, `u16` yaw, `u8` buttons |
-## | 4 | SNAPSHOT | server → client | 7 + 20n | `u32` tick, `u16` count, then n entities |
+## | 4 | SNAPSHOT | server → client | 7 + 21n | `u32` tick, `u16` count, then n entities |
 ## | 5 | DESPAWN | server → client | 5 | `u32` entity id |
 ##
-## An entity inside a snapshot is 20 bytes: `u32` id, three `f32` position,
-## `u16` yaw, `u8` flags, `u8` health.
+## An entity inside a snapshot is 21 bytes: `u32` id, `u8` kind, three `f32`
+## position, `u16` yaw, `u8` flags, `u8` health.
+##
+## The kind byte rides on every snapshot rather than arriving once in a
+## separate reliable spawn message. That costs a byte per entity per tick
+## forever, and buys two things worth more than the byte: a client that joins
+## late needs no catch-up, and a client that dropped the spawn packet heals on
+## the next snapshot instead of never seeing that entity again.
 ##
 ## ## Quantisation
 ##
@@ -54,7 +60,7 @@ extends RefCounted
 
 ## Bumped whenever a layout changes. A client and server that disagree must
 ## refuse each other rather than misread each other's bytes.
-const VERSION: int = 1
+const VERSION: int = 2
 
 enum Kind {
 	NONE = 0,
@@ -77,7 +83,15 @@ const FLAG_ATTACKING: int = 1 << 2
 const FLAG_HURT: int = 1 << 3
 const FLAG_DEAD: int = 1 << 4
 
-const ENTITY_SIZE: int = 20
+## What an entity is, so a client knows which scene to put on screen.
+enum EntityKind {
+	UNKNOWN = 0,
+	PLAYER = 1,
+	WANDERER = 2,
+	COMPANION = 3,
+}
+
+const ENTITY_SIZE: int = 21
 const SNAPSHOT_HEADER_SIZE: int = 7
 
 
@@ -162,12 +176,13 @@ static func encode_snapshot(tick: int, entities: Array[Dictionary]) -> PackedByt
 	for entity: Dictionary in entities:
 		var position: Vector3 = entity.get("position", Vector3.ZERO)
 		bytes.encode_u32(at, int(entity.get("id", 0)))
-		bytes.encode_float(at + 4, position.x)
-		bytes.encode_float(at + 8, position.y)
-		bytes.encode_float(at + 12, position.z)
-		bytes.encode_u16(at + 16, quantise_angle(float(entity.get("yaw", 0.0))))
-		bytes.encode_u8(at + 18, int(entity.get("flags", 0)) & 0xFF)
-		bytes.encode_u8(at + 19, quantise_fraction(float(entity.get("health", 1.0))))
+		bytes.encode_u8(at + 4, int(entity.get("kind", EntityKind.UNKNOWN)) & 0xFF)
+		bytes.encode_float(at + 5, position.x)
+		bytes.encode_float(at + 9, position.y)
+		bytes.encode_float(at + 13, position.z)
+		bytes.encode_u16(at + 17, quantise_angle(float(entity.get("yaw", 0.0))))
+		bytes.encode_u8(at + 19, int(entity.get("flags", 0)) & 0xFF)
+		bytes.encode_u8(at + 20, quantise_fraction(float(entity.get("health", 1.0))))
 		at += ENTITY_SIZE
 	return bytes
 
@@ -185,12 +200,13 @@ static func decode_snapshot(bytes: PackedByteArray) -> Dictionary:
 	for _index in count:
 		entities.append({
 			"id": bytes.decode_u32(at),
+			"kind": bytes.decode_u8(at + 4),
 			"position": Vector3(
-				bytes.decode_float(at + 4), bytes.decode_float(at + 8), bytes.decode_float(at + 12)
+				bytes.decode_float(at + 5), bytes.decode_float(at + 9), bytes.decode_float(at + 13)
 			),
-			"yaw": unquantise_angle(bytes.decode_u16(at + 16)),
-			"flags": bytes.decode_u8(at + 18),
-			"health": unquantise_fraction(bytes.decode_u8(at + 19)),
+			"yaw": unquantise_angle(bytes.decode_u16(at + 17)),
+			"flags": bytes.decode_u8(at + 19),
+			"health": unquantise_fraction(bytes.decode_u8(at + 20)),
 		})
 		at += ENTITY_SIZE
 	return {"tick": bytes.decode_u32(1), "entities": entities}

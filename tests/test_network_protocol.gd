@@ -49,6 +49,7 @@ func test_a_snapshot_round_trips() -> void:
 			"yaw": 1.0,
 			"flags": NetworkProtocol.FLAG_ON_FLOOR | NetworkProtocol.FLAG_SPRINTING,
 			"health": 0.5,
+			"kind": NetworkProtocol.EntityKind.PLAYER,
 		},
 		{"id": 2, "position": Vector3(-1.0, 0.0, 2.0), "yaw": 0.0, "flags": 0, "health": 1.0},
 	]
@@ -60,6 +61,7 @@ func test_a_snapshot_round_trips() -> void:
 	assert_eq(back[0]["id"], 1)
 	assert_true(back[0]["position"].is_equal_approx(Vector3(12.5, 3.25, -40.75)))
 	assert_eq(back[0]["flags"], NetworkProtocol.FLAG_ON_FLOOR | NetworkProtocol.FLAG_SPRINTING)
+	assert_eq(back[0]["kind"], NetworkProtocol.EntityKind.PLAYER, "the client would not know what to spawn")
 	assert_true(absf(back[0]["health"] - 0.5) < 0.005)
 	assert_eq(back[1]["id"], 2)
 
