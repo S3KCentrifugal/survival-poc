@@ -1,6 +1,6 @@
 # 024 — A friend, and two numbers that broke pathfinding
 
-*2026-08-05 · commit pending*
+*2026-08-05 · commit `563e75b`*
 
 There is now a companion that follows you around, and it goes round walls rather
 than into them. Most of this post is about the hour it spent walking into one.
