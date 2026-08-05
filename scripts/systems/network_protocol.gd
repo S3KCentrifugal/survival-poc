@@ -76,6 +76,11 @@ const BUTTON_SPRINT: int = 1 << 0
 const BUTTON_JUMP: int = 1 << 1
 const BUTTON_ATTACK: int = 1 << 2
 
+## Bit 3 of a byte that already had five spare. The packet is the same ten
+## bytes in the same order, so VERSION does not move -- an older peer simply
+## never sets it, which reads as a player who is not pressing F.
+const BUTTON_INTERACT: int = 1 << 3
+
 ## Flag bits on a snapshot entity.
 const FLAG_ON_FLOOR: int = 1 << 0
 const FLAG_SPRINTING: int = 1 << 1
@@ -246,6 +251,8 @@ static func buttons_of(state: InputState) -> int:
 		buttons |= BUTTON_JUMP
 	if state.attack:
 		buttons |= BUTTON_ATTACK
+	if state.interact:
+		buttons |= BUTTON_INTERACT
 	return buttons
 
 
@@ -260,6 +267,7 @@ static func input_state_from(decoded: Dictionary) -> InputState:
 	state.sprint = (buttons & BUTTON_SPRINT) != 0
 	state.jump = (buttons & BUTTON_JUMP) != 0
 	state.attack = (buttons & BUTTON_ATTACK) != 0
+	state.interact = (buttons & BUTTON_INTERACT) != 0
 	return state
 
 

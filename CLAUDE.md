@@ -242,9 +242,11 @@ framing is right or badly wrong.
 
 ## Scope discipline
 
-The vertical slice is deliberately narrow: no crafting, no inventory, no
-combat, no enemies, no UI beyond a debug overlay. Build the feature asked for
-and stop. Do not add the "obvious next thing" unprompted.
+The vertical slice was deliberately narrow, and the game has grown past it —
+there is now combat, a settings menu, a title screen and an inventory, because
+each was asked for. The rule that has not changed: **build the feature asked
+for and stop.** Do not add the "obvious next thing" unprompted. An inventory
+does not imply crafting; mushrooms do not imply eating them.
 
 Work one feature at a time: explain the design, implement only that feature,
 say where every file belongs, then wait.

@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://scripts/components/movement_component.gd" id="1_movement"]
 [ext_resource type="Resource" path="res://resources/movement/player_movement.tres" id="2_config"]
@@ -15,6 +15,8 @@
 [ext_resource type="Script" path="res://scripts/components/hurt_reaction.gd" id="14_hurt"]
 [ext_resource type="Script" path="res://scripts/components/damage_numbers.gd" id="15_numbers"]
 [ext_resource type="PackedScene" path="res://effects/damage_number.tscn" id="16_number_scene"]
+[ext_resource type="Script" path="res://scripts/components/inventory_component.gd" id="17_inventory"]
+[ext_resource type="Script" path="res://scripts/components/pickup_collector.gd" id="18_collector"]
 [ext_resource type="Script" path="res://scripts/components/network_entity.gd" id="90_netent"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
@@ -70,6 +72,16 @@ config = ExtResource("10_animation_config")
 script = ExtResource("15_numbers")
 attack = NodePath("../Attack")
 effect = ExtResource("16_number_scene")
+
+[node name="Inventory" type="Node" parent="."]
+script = ExtResource("17_inventory")
+capacity = 20
+
+[node name="Collector" type="Node" parent="." node_paths=PackedStringArray("body", "inventory")]
+script = ExtResource("18_collector")
+body = NodePath("..")
+inventory = NodePath("../Inventory")
+reach = 2.2
 
 [node name="SaveId" type="Node" parent="."]
 script = ExtResource("11_save_id")

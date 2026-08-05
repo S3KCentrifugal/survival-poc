@@ -31,12 +31,13 @@ corner_radius_top_right = 2
 corner_radius_bottom_right = 2
 corner_radius_bottom_left = 2
 
-[node name="PlayerHud" type="CanvasLayer" node_paths=PackedStringArray("health_bar", "stamina_bar", "health_label")]
+[node name="PlayerHud" type="CanvasLayer" node_paths=PackedStringArray("health_bar", "stamina_bar", "health_label", "prompt_label")]
 layer = 1
 script = ExtResource("1_hud")
 health_bar = NodePath("Anchor/Bars/Health")
 stamina_bar = NodePath("Anchor/Bars/Stamina")
 health_label = NodePath("Anchor/Bars/Health/Value")
+prompt_label = NodePath("Prompt/Text")
 
 [node name="Anchor" type="MarginContainer" parent="."]
 anchor_top = 1.0
@@ -84,3 +85,23 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_stamina_fill")
 max_value = 100.0
 value = 100.0
 show_percentage = false
+
+[node name="Prompt" type="MarginContainer" parent="."]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -140.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/margin_bottom = 24
+
+[node name="Text" type="Label" parent="Prompt"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.85, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 20
+text = ""
+horizontal_alignment = 1
+vertical_alignment = 2

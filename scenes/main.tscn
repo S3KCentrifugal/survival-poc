@@ -21,6 +21,9 @@
 [ext_resource type="Shader" path="res://shaders/sky.gdshader" id="19_sky_shader"]
 [ext_resource type="Resource" path="res://resources/sky/default_sky.tres" id="20_sky_config"]
 [ext_resource type="Script" path="res://scripts/systems/sky_component.gd" id="21_sky"]
+[ext_resource type="Script" path="res://scripts/world/mushroom_patch.gd" id="22_patch"]
+[ext_resource type="PackedScene" path="res://items/mushroom.tscn" id="23_mushroom"]
+[ext_resource type="PackedScene" path="res://ui/inventory_screen.tscn" id="24_inventory_screen"]
 
 ; local_to_scene on all three, and it is load-bearing. Sub-resources are
 ; SHARED between instantiations of a scene by default, so without it two
@@ -67,12 +70,13 @@ sky = SubResource("Sky_o5qli")
 ambient_light_source = 3
 tonemap_mode = 2
 
-[node name="Main" type="Node3D" unique_id=159748148 node_paths=PackedStringArray("terrain", "player", "player_movement", "player_attack", "camera", "companion", "companion_follow")]
+[node name="Main" type="Node3D" unique_id=159748148 node_paths=PackedStringArray("terrain", "player", "player_movement", "player_attack", "player_collector", "camera", "companion", "companion_follow")]
 script = ExtResource("3_root")
 terrain = NodePath("Terrain")
 player = NodePath("Player")
 player_movement = NodePath("Player/Movement")
 player_attack = NodePath("Player/Attack")
+player_collector = NodePath("Player/Collector")
 camera = NodePath("PlayerCamera")
 spawn_point = Vector2(-3, 0)
 companion = NodePath("Companion")
@@ -139,13 +143,26 @@ respawn_delay = 8.0
 keep_away = 14.0
 keep_away_from = NodePath("../Player")
 
+[node name="Mushrooms" type="Node3D" parent="." node_paths=PackedStringArray("terrain")]
+script = ExtResource("22_patch")
+scene = ExtResource("23_mushroom")
+terrain = NodePath("../Terrain")
+count = 14
+regrow = true
+regrow_seconds = 20.0
+
 [node name="Player" parent="." instance=ExtResource("4_player")]
 
 [node name="Companion" parent="." instance=ExtResource("15_companion")]
 
 [node name="PlayerCamera" parent="." instance=ExtResource("2_camera")]
 
-[node name="PlayerHud" parent="." instance=ExtResource("14_hud") node_paths=PackedStringArray("health", "stamina")]
+[node name="InventoryScreen" parent="." instance=ExtResource("24_inventory_screen") node_paths=PackedStringArray("inventory", "world_root")]
+inventory = NodePath("../Player/Inventory")
+world_root = NodePath("..")
+
+[node name="PlayerHud" parent="." instance=ExtResource("14_hud") node_paths=PackedStringArray("health", "stamina", "collector")]
+collector = NodePath("../Player/Collector")
 health = NodePath("../Player/Health")
 stamina = NodePath("../Player/Stamina")
 

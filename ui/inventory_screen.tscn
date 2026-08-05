@@ -1,0 +1,73 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/inventory_screen.gd" id="1_screen"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dim"]
+bg_color = Color(0, 0, 0, 0.45)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.11, 0.12, 0.14, 0.97)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.32, 0.36, 0.4, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+content_margin_left = 20.0
+content_margin_top = 16.0
+content_margin_right = 20.0
+content_margin_bottom = 16.0
+
+[node name="InventoryScreen" type="CanvasLayer" node_paths=PackedStringArray("grid", "empty_label", "title_label")]
+layer = 3
+script = ExtResource("1_screen")
+grid = NodePath("Dim/Centre/Panel/Rows/Grid")
+empty_label = NodePath("Dim/Centre/Panel/Rows/Empty")
+title_label = NodePath("Dim/Centre/Panel/Rows/Title")
+
+[node name="Dim" type="PanelContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dim")
+
+[node name="Centre" type="CenterContainer" parent="Dim"]
+layout_mode = 2
+
+[node name="Panel" type="PanelContainer" parent="Dim/Centre"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Rows" type="VBoxContainer" parent="Dim/Centre/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Dim/Centre/Panel/Rows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Inventory"
+horizontal_alignment = 1
+
+[node name="Grid" type="GridContainer" parent="Dim/Centre/Panel/Rows"]
+layout_mode = 2
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
+columns = 5
+
+[node name="Empty" type="Label" parent="Dim/Centre/Panel/Rows"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.64, 0.68, 1)
+text = "Nothing yet. Walk up to a mushroom and press F."
+horizontal_alignment = 1
+
+[node name="Hint" type="Label" parent="Dim/Centre/Panel/Rows"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.54, 0.58, 1)
+theme_override_font_sizes/font_size = 12
+text = "I to close"
+horizontal_alignment = 1

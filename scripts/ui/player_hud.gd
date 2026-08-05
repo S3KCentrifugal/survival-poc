@@ -13,9 +13,16 @@ extends CanvasLayer
 @export var health: HealthComponent
 @export var stamina: StaminaComponent
 
+## What is in reach, so the HUD can say what F would do. Optional.
+@export var collector: PickupCollector
+
 @export var health_bar: ProgressBar
 @export var stamina_bar: ProgressBar
 @export var health_label: Label
+
+## Says "Pick up Mushroom" when something is in reach. Hidden otherwise -- a
+## prompt that is always on screen is a prompt nobody reads.
+@export var prompt_label: Label
 
 ## Below this fraction the health bar turns urgent. A bar that looks the same at
 ## 90% and 9% is a bar you stop reading.
@@ -30,6 +37,9 @@ extends CanvasLayer
 func _ready() -> void:
 	if health != null:
 		health.changed.connect(_on_health_changed)
+	if collector != null:
+		collector.target_changed.connect(_on_target_changed)
+		_on_target_changed(collector.target())
 	if stamina != null:
 		stamina.changed.connect(_on_stamina_changed)
 		stamina.exhausted.connect(_refresh_stamina_colour)
@@ -103,3 +113,13 @@ func _tint(bar: ProgressBar, colour: Color) -> void:
 	var own := fill.duplicate() as StyleBoxFlat
 	own.bg_color = colour
 	bar.add_theme_stylebox_override(&"fill", own)
+
+
+## Shows what the interact key would do, or hides the prompt when nothing is in
+## reach.
+func _on_target_changed(pickup: PickupComponent) -> void:
+	if prompt_label == null:
+		return
+	prompt_label.visible = pickup != null
+	if pickup != null:
+		prompt_label.text = "[F]  %s" % pickup.prompt_text()

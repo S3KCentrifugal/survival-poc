@@ -43,6 +43,11 @@ func attack(held: bool) -> void:
 	state.attack = held
 
 
+## Holds or releases the interact key.
+func interact(held: bool) -> void:
+	state.interact = held
+
+
 ## Queues a mouse movement in pixels for the camera to consume.
 var pending_look: Vector2 = Vector2.ZERO
 

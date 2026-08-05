@@ -1,0 +1,48 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/mushroom_growth.gd" id="1_nd7b0"]
+[ext_resource type="Script" path="res://scripts/components/pickup_component.gd" id="2_pickup"]
+[ext_resource type="Resource" path="res://resources/items/mushroom.tres" id="3_item"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xlqkh"]
+albedo_color = Color(0.92, 0.89, 0.79, 1)
+roughness = 0.9
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_gakg2"]
+material = SubResource("StandardMaterial3D_xlqkh")
+top_radius = 0.022
+bottom_radius = 0.032
+height = 0.14
+radial_segments = 10
+rings = 1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vl4go"]
+albedo_color = Color(0.78, 0.21, 0.18, 1)
+roughness = 0.65
+
+[sub_resource type="SphereMesh" id="SphereMesh_jh7nc"]
+material = SubResource("StandardMaterial3D_vl4go")
+radius = 0.075
+height = 0.09
+radial_segments = 12
+rings = 6
+
+[node name="Mushroom" type="Node3D" node_paths=PackedStringArray("model")]
+script = ExtResource("1_nd7b0")
+model = NodePath("Model")
+
+[node name="Model" type="Node3D" parent="."]
+
+[node name="Stem" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.07, 0)
+mesh = SubResource("CylinderMesh_gakg2")
+
+[node name="Cap" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.145, 0)
+mesh = SubResource("SphereMesh_jh7nc")
+
+[node name="Pickup" type="Node" parent="." node_paths=PackedStringArray("actor")]
+script = ExtResource("2_pickup")
+definition = ExtResource("3_item")
+amount = 1
+actor = NodePath("..")

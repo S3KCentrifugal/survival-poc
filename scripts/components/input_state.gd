@@ -25,6 +25,10 @@ var attack: bool = false
 ## read twice, recorded, or eventually arrive from a network peer.
 var jump: bool = false
 
+## Whether the interact key is *held*. A state like the rest; picking a
+## mushroom up once per press is the collector's business, not this object's.
+var interact: bool = false
+
 ## Point on the ground the actor wants to face.
 var aim_point: Vector3 = Vector3.ZERO
 
@@ -50,6 +54,7 @@ func copy() -> InputState:
 	other.sprint = sprint
 	other.jump = jump
 	other.attack = attack
+	other.interact = interact
 	other.aim_point = aim_point
 	other.has_aim = has_aim
 	return other
@@ -60,6 +65,7 @@ func clear() -> void:
 	sprint = false
 	jump = false
 	attack = false
+	interact = false
 	aim_point = Vector3.ZERO
 	has_aim = false
 

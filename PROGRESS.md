@@ -3,7 +3,7 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 30 — The sky**. The planned
+Last updated after **Feature 31 — Mushrooms and an inventory**. The planned
 vertical slice (features 1–11) was completed long ago; everything since is
 built on top of it.
 
@@ -123,7 +123,8 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 27 | Entity replication, interpolation, tuning export | done | `831fdaf` |
 | 28 | Title screen, scene routing, shared settings panel | done | `c82922a` |
 | 29 | Double jump, and a companion that dies | done | `cd68c74` |
-| 30 | A sky: gradient, sun disc, halo and stars | done | — |
+| 30 | A sky: gradient, sun disc, halo and stars | done | `63376d3` |
+| 31 | Mushrooms, pickup on F, and an inventory on I | done | — |
 
 **The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
@@ -132,9 +133,11 @@ Playable now: `./run.sh`. You start in a room inside a two-room base, seen from
 over the character's shoulder. WASD moves relative to the camera, the mouse
 turns it, the wheel zooms. Shift sprints until the bar runs out. Go through the
 internal doorway, out of the building and across to the tower. F3 for the
-readout, backtick for the console, Escape for the menu. Space jumps, left
-click punches — hit a wanderer enough and it blows up. Health and stamina are
-on screen, and both come back on their own if you leave them alone.
+readout, backtick for the console, Escape for the menu. Space jumps twice, left
+click punches — hit a wanderer enough and it blows up. Red mushrooms grow in
+the grass: walk up to one, press **F** to pick it up, **I** to see what you are
+carrying. Health and stamina are on screen, and both come back on their own if
+you leave them alone.
 
 ### 1. Bootstrap
 
@@ -985,6 +988,45 @@ same sky material and one world's clock recolours the other's sky. The
 material, the `Sky` and the `Environment` all carry the flag now, and a test
 mounts two worlds at opposite times of day and asserts their skies differ.
 
+### 31. Mushrooms, and somewhere to put them
+
+Mushrooms grow across the world, F picks one up, I opens a bag, and they stack.
+The scope note said "no inventory" from the first commit; that was right for a
+slice about movement and stopped being right once there was something worth
+bending down for.
+
+**The stacking rules are a `RefCounted`.** `Inventory` has no nodes and no
+signals, so the edge cases that are miserable to check by hand are numbers:
+twelve picked one at a time are one slot, partial stacks are topped up before a
+new one is opened, a full stack overflows into the next. `add()` returns how
+many did **not** fit, because a bool cannot say "two of your three went in" and
+would have quietly deleted the third.
+
+**Reach is a group and a distance check, not an `Area3D`.**
+`PickupCollector.nearest()` is static and takes its candidates as an argument,
+so choosing between two mushrooms is a test with three positions in it and no
+physics frame. At fourteen mushrooms the scan costs nothing; thousands of loose
+items would want a spatial index, and that is the day it becomes an `Area3D`.
+
+**F is intent like any other.** One bool on `InputState`, one line in each
+source, and one spare bit in the protocol's existing button byte — the packet
+is the same ten bytes, so `VERSION` did not move and an older peer simply reads
+as a player not pressing F. The first time feature 26's spare-bit budget got
+spent.
+
+Two bugs the tests found while *setting up* other scenarios: `collect()` used a
+target some earlier `step()` had found, so calling it directly picked up
+nothing and reported success; and `capacity` was read once in `_ready`, so
+setting it afterwards did nothing silently. Both are fixed.
+
+`MushroomPatch` copies `WandererSpawner`'s shape deliberately, including the
+`_waiting` flag — a fresh `Cooldown` is ready, not waiting, so without it the
+first mushroom picked is replaced on the spot. Fifth caller of `Cooldown`.
+
+The bag does **not** pause the game: the pause menu is a menu about the game,
+this is a screen about your character, and in multiplayer a bag that stops the
+world cannot exist.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -1016,6 +1058,13 @@ needs and this repo does not have:
   with holes in them, which is all a top-down camera needs to see into.
 - **A character of our own.** The player is a CC0 robot standing in for one. It
   animates and it is the right height; it is not the art direction.
+- **Dropping, using or eating items.** The bag takes things in and the code can
+  take them out; nothing in the game does. Eating a mushroom is the obvious
+  next thing and was deliberately not built.
+- **Item art.** Inventory cells are coloured swatches, which is honest about
+  there being no icons rather than pretending with a placeholder.
+- **A bag that survives a restart.** Objects can be addressed and items have
+  stable ids, but nothing serialises them -- still waiting on the save system.
 - **Clouds, a moon, and weather.** The sky has a sun, a gradient and stars.
   Everything else in the sky is still nothing.
 - **A companion that comes back.** Killing it is permanent until relaunch;

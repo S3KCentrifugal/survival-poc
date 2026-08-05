@@ -130,4 +130,5 @@ above was checked without waiting ten minutes per look.
 
 ---
 
-Next: nothing scheduled. Posts 002–011 and 025–027 are still owed.
+Next: [031 — Mushrooms, and somewhere to put them](031-mushrooms-and-a-bag.md).
+Posts 002–011 and 025–027 are still owed.

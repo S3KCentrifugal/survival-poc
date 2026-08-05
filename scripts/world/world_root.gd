@@ -16,6 +16,12 @@ extends Node3D
 ## Shares the player's input source, so a click means the same thing to the
 ## swing as W does to the legs.
 @export var player_attack: AttackComponent
+
+## The same source again. Reaching for a mushroom is intent like any other, so
+## it arrives the same way -- which is what lets a remote player pick things up
+## without a second path through the code.
+@export var player_collector: PickupCollector
+
 @export var camera: CameraController
 
 ## Where the player starts, on the ground plane. Height comes from the terrain.
@@ -106,6 +112,8 @@ func _wire_input() -> void:
 		player_movement.input_source = _player_input
 	if player_attack != null:
 		player_attack.input_source = _player_input
+	if player_collector != null:
+		player_collector.input_source = _player_input
 	if companion_follow != null:
 		companion_follow.target = player
 
