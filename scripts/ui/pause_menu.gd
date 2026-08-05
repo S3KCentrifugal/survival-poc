@@ -27,10 +27,12 @@ signal resumed
 @export var settings_menu: SettingsMenu
 @export var resume_button: Button
 @export var settings_button: Button
+@export var main_menu_button: Button
 @export var quit_button: Button
 
-var _store: SettingsStore
-var _settings: GameSettings
+## Loads, applies and saves settings. The same node the title screen uses, so a
+## graphics option is added in one place.
+@export var settings_controller: SettingsController
 
 
 func _ready() -> void:
@@ -38,14 +40,20 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
 
-	_store = SettingsStore.new(settings_path)
-	_settings = _store.load_settings(maxi(DisplayServer.get_screen_count(), 1))
-	apply_settings(_settings)
+	if settings_controller != null:
+		# Configured here rather than in the scene: a child is ready before its
+		# parent, so a controller that loaded itself would have used the default
+		# path before a test could override it.
+		settings_controller.settings_path = settings_path
+		settings_controller.camera = camera
+		settings_controller.load_and_apply()
 
 	if resume_button != null:
 		resume_button.pressed.connect(func() -> void: set_open(false))
 	if settings_button != null:
 		settings_button.pressed.connect(_show_settings)
+	if main_menu_button != null:
+		main_menu_button.pressed.connect(return_to_title)
 	if quit_button != null:
 		quit_button.pressed.connect(func() -> void: get_tree().quit())
 	if settings_menu != null:
@@ -81,27 +89,34 @@ func set_open(open: bool) -> void:
 		resumed.emit()
 
 
+## Leaves the world and goes back to the title.
+##
+## Unpausing and closing any socket are the router's job -- returning to the
+## title while still connected leaves a ghost standing in someone else's world.
+func return_to_title() -> void:
+	visible = false
+	SceneRouter.to_title(get_tree())
+
+
 ## The settings in force. Saved copy, not what the panel currently shows.
 func settings() -> GameSettings:
-	return _settings
+	return GameSettings.new() if settings_controller == null else settings_controller.settings()
 
 
-## Pushes [param new_settings] onto the machine and remembers them.
+## Pushes [param new_settings] onto the machine and writes them out.
 func apply_settings(new_settings: GameSettings) -> void:
-	_settings = new_settings
-	SettingsApplier.apply(_settings, get_window())
-	SettingsApplier.apply_to_camera(_settings, camera)
+	if settings_controller != null:
+		settings_controller.apply(new_settings)
 
 
 func _on_settings_applied(new_settings: GameSettings) -> void:
 	apply_settings(new_settings)
-	_store.save_settings(new_settings)
 
 
 func _show_settings() -> void:
 	if settings_menu == null:
 		return
-	settings_menu.show_settings(_settings)
+	settings_menu.show_settings(settings())
 	settings_menu.visible = true
 	if root_panel != null:
 		root_panel.visible = false

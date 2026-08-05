@@ -1,0 +1,177 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/title_screen.gd" id="1_title"]
+[ext_resource type="Script" path="res://scripts/ui/settings_controller.gd" id="2_settings_controller"]
+[ext_resource type="PackedScene" path="res://ui/settings_menu.tscn" id="3_settings"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_background"]
+bg_color = Color(0.09, 0.11, 0.12, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.13, 0.15, 0.17, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.34, 0.38, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+content_margin_left = 28.0
+content_margin_top = 24.0
+content_margin_right = 28.0
+content_margin_bottom = 24.0
+
+[sub_resource type="SystemFont" id="SystemFont_title"]
+font_names = PackedStringArray("sans-serif", "Sans", "DejaVu Sans")
+
+[node name="TitleScreen" type="PanelContainer" node_paths=PackedStringArray("settings_controller", "settings_menu", "main_panel", "multiplayer_panel", "single_player_button", "multiplayer_button", "settings_button", "exit_button", "host_button", "join_button", "multiplayer_back_button", "address_field", "port_field", "status_label")]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_background")
+script = ExtResource("1_title")
+settings_controller = NodePath("Settings")
+settings_menu = NodePath("Centre/SettingsMenu")
+main_panel = NodePath("Centre/Main")
+multiplayer_panel = NodePath("Centre/Multiplayer")
+single_player_button = NodePath("Centre/Main/Rows/SinglePlayer")
+multiplayer_button = NodePath("Centre/Main/Rows/Multiplayer")
+settings_button = NodePath("Centre/Main/Rows/Settings")
+exit_button = NodePath("Centre/Main/Rows/Exit")
+host_button = NodePath("Centre/Multiplayer/Rows/Buttons/Host")
+join_button = NodePath("Centre/Multiplayer/Rows/Buttons/Join")
+multiplayer_back_button = NodePath("Centre/Multiplayer/Rows/Buttons/Back")
+address_field = NodePath("Centre/Multiplayer/Rows/Address/Field")
+port_field = NodePath("Centre/Multiplayer/Rows/Port/Field")
+status_label = NodePath("Centre/Multiplayer/Rows/Status")
+
+[node name="Settings" type="Node" parent="."]
+script = ExtResource("2_settings_controller")
+
+[node name="Centre" type="CenterContainer" parent="."]
+layout_mode = 2
+
+[node name="Main" type="PanelContainer" parent="Centre"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Rows" type="VBoxContainer" parent="Centre/Main"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Centre/Main/Rows"]
+layout_mode = 2
+theme_override_fonts/font = SubResource("SystemFont_title")
+theme_override_font_sizes/font_size = 40
+text = "survival-poc"
+horizontal_alignment = 1
+
+[node name="Tagline" type="Label" parent="Centre/Main/Rows"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.65, 0.7, 1)
+text = "a prototype"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="Centre/Main/Rows"]
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+
+[node name="SinglePlayer" type="Button" parent="Centre/Main/Rows"]
+custom_minimum_size = Vector2(300, 44)
+layout_mode = 2
+text = "Single player"
+
+[node name="Multiplayer" type="Button" parent="Centre/Main/Rows"]
+custom_minimum_size = Vector2(300, 44)
+layout_mode = 2
+text = "Multiplayer"
+
+[node name="Settings" type="Button" parent="Centre/Main/Rows"]
+custom_minimum_size = Vector2(300, 44)
+layout_mode = 2
+text = "Settings"
+
+[node name="Exit" type="Button" parent="Centre/Main/Rows"]
+custom_minimum_size = Vector2(300, 44)
+layout_mode = 2
+text = "Exit"
+
+[node name="Multiplayer" type="PanelContainer" parent="Centre"]
+visible = false
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Rows" type="VBoxContainer" parent="Centre/Multiplayer"]
+custom_minimum_size = Vector2(380, 0)
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Centre/Multiplayer/Rows"]
+layout_mode = 2
+theme_override_fonts/font = SubResource("SystemFont_title")
+theme_override_font_sizes/font_size = 26
+text = "Multiplayer"
+horizontal_alignment = 1
+
+[node name="Address" type="HBoxContainer" parent="Centre/Multiplayer/Rows"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Centre/Multiplayer/Rows/Address"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+text = "Address"
+
+[node name="Field" type="LineEdit" parent="Centre/Multiplayer/Rows/Address"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "127.0.0.1"
+placeholder_text = "server address"
+
+[node name="Port" type="HBoxContainer" parent="Centre/Multiplayer/Rows"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Centre/Multiplayer/Rows/Port"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+text = "Port"
+
+[node name="Field" type="LineEdit" parent="Centre/Multiplayer/Rows/Port"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "27015"
+placeholder_text = "27015"
+
+[node name="Status" type="Label" parent="Centre/Multiplayer/Rows"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.65, 0.7, 1)
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Buttons" type="HBoxContainer" parent="Centre/Multiplayer/Rows"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 10
+
+[node name="Back" type="Button" parent="Centre/Multiplayer/Rows/Buttons"]
+custom_minimum_size = Vector2(110, 40)
+layout_mode = 2
+text = "Back"
+
+[node name="Join" type="Button" parent="Centre/Multiplayer/Rows/Buttons"]
+custom_minimum_size = Vector2(110, 40)
+layout_mode = 2
+text = "Join"
+
+[node name="Host" type="Button" parent="Centre/Multiplayer/Rows/Buttons"]
+custom_minimum_size = Vector2(110, 40)
+layout_mode = 2
+text = "Host"
+
+[node name="SettingsMenu" parent="Centre" instance=ExtResource("3_settings")]
+visible = false
+layout_mode = 2

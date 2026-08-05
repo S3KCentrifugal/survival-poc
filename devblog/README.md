@@ -37,9 +37,12 @@ rather than an edit to the old one.
 | 022 | [Two bars, one delay, and a puff of sparks](022-regen-hud-explosions.md) | Regeneration, why the HUD is not the overlay, and a guard that cleared itself |
 | 023 | [Telling the player what happened](023-feedback-and-respawning.md) | Respawning, damage numbers, and a shared resource caught a third time |
 | 024 | [A friend, and two numbers that broke pathfinding](024-companion-and-navigation.md) | Following, runtime navmesh baking, and voxel rounding |
+| 028 | [A front door](028-title-screen.md) | Why the scene swap is hand-rolled, and a child that was ready too early |
 
 Numbers follow the **feature** order, not the order posts get written — 012 is
-the twelfth feature, and 002–011 below are still owed.
+the twelfth feature, and 002–011 and 025–027 below are still owed. The three
+multiplayer features shipped without their posts, against the rule in
+`CLAUDE.md` that a post lands in the same commit as its feature.
 
 ### Planned
 
@@ -58,3 +61,6 @@ arrears. In order:
 | 009 | `009-day-night-cycle.md` | One light, a whole atmosphere |
 | 010 | `010-debug-overlay.md` | The project's only UI |
 | 011 | `011-save-identifiers.md` | Addressing objects a save file has never met |
+| 025 | `025-multiplayer-foundation.md` | The authority seam, and single-player as a host of one |
+| 026 | `026-wire-protocol.md` | A language-neutral protocol, sized for 100 players |
+| 027 | `027-replication.md` | Snapshots, rendering in the past, and eight actors sharing one id |

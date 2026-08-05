@@ -1,7 +1,8 @@
 [gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/pause_menu.gd" id="1_pause"]
-[ext_resource type="Script" path="res://scripts/ui/settings_menu.gd" id="2_settings"]
+[ext_resource type="PackedScene" path="res://ui/settings_menu.tscn" id="2_settings"]
+[ext_resource type="Script" path="res://scripts/ui/settings_controller.gd" id="4_settings_controller"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dim"]
 bg_color = Color(0, 0, 0, 0.55)
@@ -22,14 +23,19 @@ content_margin_top = 16.0
 content_margin_right = 20.0
 content_margin_bottom = 16.0
 
-[node name="PauseMenu" type="CanvasLayer" node_paths=PackedStringArray("root_panel", "settings_menu", "resume_button", "settings_button", "quit_button")]
+[node name="PauseMenu" type="CanvasLayer" node_paths=PackedStringArray("root_panel", "settings_menu", "resume_button", "settings_button", "main_menu_button", "quit_button", "settings_controller")]
 layer = 3
 script = ExtResource("1_pause")
 root_panel = NodePath("Dim/Root")
 settings_menu = NodePath("Dim/Settings")
 resume_button = NodePath("Dim/Root/Buttons/Resume")
 settings_button = NodePath("Dim/Root/Buttons/Settings")
+main_menu_button = NodePath("Dim/Root/Buttons/MainMenu")
+settings_controller = NodePath("SettingsController")
 quit_button = NodePath("Dim/Root/Buttons/Quit")
+
+[node name="SettingsController" type="Node" parent="."]
+script = ExtResource("4_settings_controller")
 
 [node name="Dim" type="PanelContainer" parent="."]
 anchor_right = 1.0
@@ -63,57 +69,16 @@ custom_minimum_size = Vector2(220, 38)
 layout_mode = 2
 text = "Settings"
 
+[node name="MainMenu" type="Button" parent="Dim/Root/Buttons"]
+custom_minimum_size = Vector2(220, 38)
+layout_mode = 2
+text = "Main menu"
+
 [node name="Quit" type="Button" parent="Dim/Root/Buttons"]
 custom_minimum_size = Vector2(220, 38)
 layout_mode = 2
-text = "Quit"
+text = "Exit game"
 
-[node name="Settings" type="PanelContainer" parent="Dim" node_paths=PackedStringArray("rows", "apply_button", "defaults_button", "back_button")]
+[node name="Settings" parent="Dim" instance=ExtResource("2_settings")]
+visible = false
 layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
-script = ExtResource("2_settings")
-rows = NodePath("Layout/Scroll/Rows")
-apply_button = NodePath("Layout/Buttons/Apply")
-defaults_button = NodePath("Layout/Buttons/Defaults")
-back_button = NodePath("Layout/Buttons/Back")
-
-[node name="Layout" type="VBoxContainer" parent="Dim/Settings"]
-custom_minimum_size = Vector2(580, 540)
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="Title" type="Label" parent="Dim/Settings/Layout"]
-layout_mode = 2
-text = "Settings"
-horizontal_alignment = 1
-
-[node name="Scroll" type="ScrollContainer" parent="Dim/Settings/Layout"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="Rows" type="VBoxContainer" parent="Dim/Settings/Layout/Scroll"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 8
-
-[node name="Buttons" type="HBoxContainer" parent="Dim/Settings/Layout"]
-layout_mode = 2
-alignment = 2
-theme_override_constants/separation = 10
-
-[node name="Defaults" type="Button" parent="Dim/Settings/Layout/Buttons"]
-custom_minimum_size = Vector2(150, 34)
-layout_mode = 2
-text = "Reset defaults"
-
-[node name="Back" type="Button" parent="Dim/Settings/Layout/Buttons"]
-custom_minimum_size = Vector2(110, 34)
-layout_mode = 2
-text = "Back"
-
-[node name="Apply" type="Button" parent="Dim/Settings/Layout/Buttons"]
-custom_minimum_size = Vector2(110, 34)
-layout_mode = 2
-text = "Apply"

@@ -3,8 +3,9 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 11 — Save identifiers**, which completes the
-planned vertical slice.
+Last updated after **Feature 28 — Title screen and scene routing**. The planned
+vertical slice (features 1–11) was completed long ago; everything since is
+built on top of it.
 
 ## What this is
 
@@ -120,6 +121,7 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 25 | Multiplayer foundation: session and authority seam | done | `bf555d5` |
 | 26 | Wire protocol and transport, sized for 100 players | done | `d29a428` |
 | 27 | Entity replication, interpolation, tuning export | done | `831fdaf` |
+| 28 | Title screen, scene routing, shared settings panel | done | — |
 
 **The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
@@ -890,6 +892,35 @@ so a Rust server can read the same numbers from the same source of truth. Godot
 types are unwrapped on the way out — nothing should have to parse
 `"(1600, 900)"`.
 
+### 28. A front door
+
+The game no longer starts in the world. `project.godot` points at
+`res://scenes/title.tscn`, and `SceneRouter` moves between the title and the
+game — single player, host, or join — and back again from the pause menu.
+
+The swap is hand-rolled rather than `change_scene_to_file()`, because that call
+is deferred and returns nothing: there is no moment at which the new world
+exists and can be told to host. Doing it by hand gives back the new scene, so
+"build the world, then open a socket in it" is two ordinary lines instead of a
+global holding what the player picked.
+
+**Leaving is not arriving in reverse.** `to_title()` closes the connection
+first — a player who returns to the title while connected is a ghost the server
+is still simulating — and unpauses, because the only route to that button is
+through the pause menu and a paused title screen has buttons that do nothing.
+
+The settings panel came out of `ui/pause_menu.tscn` into `ui/settings_menu.tscn`
+and is instanced by both screens, with `SettingsController` owning
+load-apply-save. It deliberately does **nothing** in `_ready`: a child is ready
+before its parent, so a controller that loaded itself read the default settings
+path before the pause menu could pass down the test override. That failed as
+`expected 144, got 0` and looked like a persistence bug.
+
+The scene swap frees the current scene, which during a test run is the test
+runner — so the suite covers everything up to that call and the round trip was
+verified with a throwaway probe: title → `Main` with a `Player` and no socket,
+then back to `TitleScreen`, unpaused.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -921,6 +952,8 @@ needs and this repo does not have:
   with holes in them, which is all a top-down camera needs to see into.
 - **A character of our own.** The player is a CC0 robot standing in for one. It
   animates and it is the right height; it is not the art direction.
+- **Devblog posts 025–027.** The three multiplayer features shipped without
+  them, against the rule that a post lands in the same commit as its feature.
 - Crafting, inventory, combat, enemies, and real UI — all deliberately out of
   scope for the slice.
 

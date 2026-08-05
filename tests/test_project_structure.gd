@@ -29,6 +29,7 @@ const REQUIRED_DIRS: PackedStringArray = [
 ]
 
 const MAIN_SCENE_PATH: String = "res://scenes/main.tscn"
+const TITLE_SCENE_PATH: String = "res://scenes/title.tscn"
 
 
 func test_every_required_directory_exists() -> void:
@@ -36,9 +37,10 @@ func test_every_required_directory_exists() -> void:
 		assert_true(DirAccess.dir_exists_absolute(path), "missing directory %s" % path)
 
 
-func test_main_scene_is_the_configured_entry_point() -> void:
+## Launching drops you at the title, not into a world.
+func test_the_title_screen_is_the_configured_entry_point() -> void:
 	var configured: String = ProjectSettings.get_setting("application/run/main_scene", "")
-	assert_eq(configured, MAIN_SCENE_PATH, "project.godot does not point at the main scene")
+	assert_eq(configured, TITLE_SCENE_PATH, "project.godot does not point at the title screen")
 
 
 func test_main_scene_loads_and_is_a_3d_world() -> void:
