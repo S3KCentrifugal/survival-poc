@@ -66,6 +66,10 @@ func _process(delta: float) -> void:
 func explode() -> void:
 	if _exploded or actor == null:
 		return
+	# Removing an actor has to happen everywhere at once, so the decision is the
+	# server's. Clients will play the burst on a replicated event instead.
+	if not NetworkAuthority.is_server(self):
+		return
 	_exploded = true
 	_pending = true
 	_countdown = remove_after

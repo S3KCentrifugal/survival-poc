@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" path="res://characters/wanderer.tscn" id="13_wanderer"]
 [ext_resource type="PackedScene" path="res://ui/player_hud.tscn" id="14_hud"]
 [ext_resource type="PackedScene" path="res://characters/companion.tscn" id="15_companion"]
+[ext_resource type="Script" path="res://scripts/systems/game_session.gd" id="16_session"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sgp6g"]
 
@@ -59,6 +60,12 @@ spawn_point = Vector2(-3, 0)
 companion = NodePath("Companion")
 companion_spawn = Vector2(-4.5, 1.5)
 companion_follow = NodePath("Companion/Follow")
+
+; Single-player is a host with one local player and no socket, not a separate
+; mode. See MULTIPLAYER.md.
+[node name="Session" type="Node" parent="."]
+script = ExtResource("16_session")
+mode = 0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=159123357]
 environment = SubResource("Environment_0wfyh")

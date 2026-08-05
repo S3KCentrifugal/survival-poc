@@ -73,6 +73,11 @@ func punch() -> bool:
 	if not _cooldown.use():
 		return false
 	attacked.emit()
+	# The swing is local -- you see your own punch immediately. Whether it *hit*
+	# is the server's to say, and today this process is always the server. See
+	# MULTIPLAYER.md: the client will eventually ask rather than decide.
+	if not NetworkAuthority.may_simulate(self):
+		return true
 	for target: Node3D in reachable_targets():
 		hit.emit(target, config.damage)
 		var health := MeleeSolver.health_of(target)

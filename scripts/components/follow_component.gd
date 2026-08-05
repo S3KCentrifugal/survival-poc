@@ -56,6 +56,9 @@ func step(delta: float) -> void:
 	if body == null or not is_instance_valid(target):
 		_source.stop()
 		return
+	# Simulated by its owner only, like any other AI.
+	if not NetworkAuthority.may_simulate(self):
+		return
 
 	if hurt != null and (hurt.is_reacting() or not hurt.is_alive()):
 		_source.stop()

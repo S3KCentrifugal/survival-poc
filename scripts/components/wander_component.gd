@@ -52,6 +52,10 @@ func step(delta: float) -> void:
 	_ensure_wander()
 	if body == null:
 		return
+	# Wanderers are simulated by whoever owns them. Run everywhere and each peer
+	# gets its own population walking different routes.
+	if not NetworkAuthority.may_simulate(self):
+		return
 
 	# Reeling from a hit, or dead. Either way it is not going anywhere, and the
 	# wander clock keeps running so it does not resume mid-stride.

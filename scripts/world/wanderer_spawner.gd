@@ -66,11 +66,14 @@ var _waiting: bool = false
 
 
 func _ready() -> void:
+	# Run on every peer and each client invents its own population.
+	if not NetworkAuthority.is_server(self):
+		return
 	spawn_all()
 
 
 func _process(delta: float) -> void:
-	if not respawn:
+	if not respawn or not NetworkAuthority.is_server(self):
 		return
 	_ensure_ready()
 	_delay.advance(delta)

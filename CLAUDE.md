@@ -162,6 +162,12 @@ then left alone.
   Variants, which *are* strong references, so binding an object into a callable
   it is reachable from makes a cycle GDScript never collects. Hold the owner in
   a member; do not bind a collection into the things it collects.
+- **Godot installs an `OfflineMultiplayerPeer` by default.** In single-player
+  `multiplayer_peer` is not null and `has_multiplayer_peer()` returns true, so
+  a "is anyone connected?" check written either way is always true and never
+  fires. Test `multiplayer_peer is OfflineMultiplayerPeer` instead. The offline
+  peer reports id 1 and `is_server() == true`, which is correct for authority
+  questions and wrong for connectivity ones.
 - **Navmesh bakes round `agent_radius` up to whole cells, silently.** Ask for
   0.55 with 0.25 m cells and you get 0.75, eroded from every surface -- which
   can close a doorway entirely and leave the inside of a building an island

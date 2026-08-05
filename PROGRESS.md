@@ -42,6 +42,8 @@ grow. Do not over-engineer.
 - Static typing everywhere, including typed collections
 
 `CLAUDE.md` holds the enforceable version of this plus the engine traps.
+**`MULTIPLAYER.md`** holds the networking architecture: the authority model, the
+replication plan, the path to an MMO, and the order the work should happen in.
 
 ## Working process
 
@@ -115,8 +117,9 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 22 | Health regen, player HUD, and death by explosion | done | `669a517` |
 | 23 | Respawning, damage numbers, health bars over heads | done | `d8f8f4c` |
 | 24 | Companion that follows you, with pathfinding | done | `563e75b` |
+| 25 | Multiplayer foundation: session and authority seam | done | |
 
-**The planned slice is complete.** 598 tests passing across 44 suites.
+**The planned slice is complete.** 611 tests passing across 45 suites.
 `./run_tests.sh` exits non-zero on failure.
 
 Playable now: `./run.sh`. You start in a room inside a two-room base, seen from
@@ -780,6 +783,42 @@ The symptom of both was identical and misleading: the companion set off, walked
 confidently into an internal wall, and stayed there. `is_pathfinding()` exists
 so that "walks into walls" and "has no navmesh" can be told apart.
 
+### 25. Multiplayer foundation
+
+Priority 4 of this project has always been "multiplayer-friendly architecture —
+authoritative server later, single-player now". This is the first instalment,
+and it is a *seam* rather than a feature: nothing about playing the game changes.
+
+**`MULTIPLAYER.md` is the design.** Read it before touching networking. The
+short version:
+
+- **Single-player is a host with one local player and no socket**, never a
+  separate code path. Two paths diverge and every multiplayer bug becomes one
+  that only reproduces in multiplayer.
+- **Server-authoritative.** Clients send intent and render; the server decides.
+- Sized for **100 players**, with an honest account of what an MMO additionally
+  needs (zone servers, a database, a gateway, and probably not Godot's
+  high-level multiplayer).
+
+`GameSession` says what kind of session this process is. `NetworkAuthority`
+answers "may I simulate this?" and is built on Godot's own per-node authority
+rather than a scheme of our own — with no peer connected it answers yes
+everywhere, so the checks cost nothing today.
+
+The five systems that mutate shared state now ask before acting: damage, the two
+AI drivers, the spawner and death. A test asserts all five still ask, because a
+seam nobody uses is not a seam.
+
+Feature 4's `InputSource` turns out to be the load-bearing piece: a
+`RemoteInputSource` fed from client packets is a fourth driver, and movement
+will not know. Three drivers already exist and none needed movement to change.
+
+**A trap came out of it.** Godot installs an `OfflineMultiplayerPeer` by
+default, so `multiplayer_peer != null` and `has_multiplayer_peer()` are both
+*true* in single-player — a connectivity check written either way never fires.
+The offline peer reports id 1 and `is_server() == true`, which is right for
+authority and wrong for "is anyone there".
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -787,7 +826,11 @@ needs and this repo does not have:
 
 - **Interaction** — the one component from the brief's list that is missing. It
   was not in the numbered plan, and nothing yet has anything to interact with.
-- **A save system.** Objects can be addressed; nothing serialises them.
+- **A save system.** Objects can be addressed; nothing serialises them. Worth
+  building *after* the networking decisions rather than before: an MMO's
+  persistence is a database on the server, not a file on a client.
+- **Any actual networking.** Feature 25 laid the seam; there is no transport, no
+  replication and no prediction. `MULTIPLAYER.md` has the order of work.
 - **Terrain streaming.** One 64 m tile. Chunking means many `Heightfield`s
   rather than a rewrite, which was the point of keeping it node-free.
 - **A level format.** The prototype layout is constants in
