@@ -13,6 +13,10 @@ var move: Vector2 = Vector2.ZERO
 
 var sprint: bool = false
 
+## Whether the attack button is *held*. Like [member jump], a state rather than
+## an event -- the rising edge belongs to whoever swings.
+var attack: bool = false
+
 ## Whether the jump key is *held*, not whether it was just pressed.
 ##
 ## A state like [member sprint], not an event: the rising edge is spotted by
@@ -45,6 +49,7 @@ func copy() -> InputState:
 	other.move = move
 	other.sprint = sprint
 	other.jump = jump
+	other.attack = attack
 	other.aim_point = aim_point
 	other.has_aim = has_aim
 	return other
@@ -54,6 +59,7 @@ func clear() -> void:
 	move = Vector2.ZERO
 	sprint = false
 	jump = false
+	attack = false
 	aim_point = Vector3.ZERO
 	has_aim = false
 

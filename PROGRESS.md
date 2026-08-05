@@ -109,15 +109,17 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 16 | Third-person camera: mouse look, wheel zoom | done | `a9ebd09` |
 | 17 | Jump | done | `4b13064` |
 | 18 | Escape menu and graphics settings | done | `6ec1535` |
+| 19 | Punch on left click | done | |
 
-**The planned slice is complete.** 427 tests passing across 32 suites.
+**The planned slice is complete.** 455 tests passing across 34 suites.
 `./run_tests.sh` exits non-zero on failure.
 
 Playable now: `./run.sh`. You start in a room inside a two-room base, seen from
 over the character's shoulder. WASD moves relative to the camera, the mouse
 turns it, the wheel zooms. Shift sprints until the bar runs out. Go through the
 internal doorway, out of the building and across to the tower. F3 for the
-readout, backtick for the console, Escape for the menu. Space jumps.
+readout, backtick for the console, Escape for the menu. Space jumps, left
+click punches.
 
 ### 1. Bootstrap
 
@@ -569,6 +571,39 @@ Two things to know when running the suite:
   error line means something is actually wrong.
 - `PauseMenu.settings_path` is overridable so tests write somewhere harmless. It
   is not: the suite rewrote the real settings file once before that was noticed.
+
+### 19. Punch
+
+Left click throws a punch, rate-limited to one every 0.35 s.
+
+**It hits nothing.** No hit detection, no damage, no target — that is combat,
+which the brief keeps out of this slice. This is the swing: an intent, a rate
+limit, and something for the animation to show. Whatever eventually deals damage
+listens to `AttackComponent.attacked` rather than replacing it.
+
+`Cooldown` is a small reusable [RefCounted] rather than a float in the
+component, because eating, crafting and anything else unspammable will want the
+same thing, and getting the frame-rate independence and the edges right once
+beats five slightly different countdowns. `use()` checks and starts the wait in
+one call, so nothing can ask permission, act, and forget to say so.
+
+The cooldown doubles as how long the punch shows. The rig's swing is 1.21 s; at
+0.35 s that is deliberately cut into a jab, because a punch you have to wait out
+is not one you would click twice.
+
+Two seams worth knowing:
+
+- **Punching beats locomotion** in the animation state machine. Crude —
+  punching while running replaces the run rather than blending over it — but a
+  state machine cannot express two things at once, and an upper-body overlay
+  needs an `AnimationTree`.
+- **The click that recaptures the cursor does not punch.** After the menu or an
+  alt-tab, the first click is aimed at the window, not at whatever is in front
+  of you. `PlayerInputSource` swallows attack until the button comes back up.
+
+Holding the button throws one punch, not one per cooldown — releasing arms the
+next, the same rule as jump. Auto-repeat while held would be a one-line change
+in `AttackComponent.step`.
 
 ## What is not built
 

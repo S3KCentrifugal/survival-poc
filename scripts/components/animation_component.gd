@@ -18,6 +18,10 @@ signal state_changed(state: int)
 ## purely on speed, which is all a rigless placeholder needs.
 @export var movement: MovementComponent
 
+## Where a swing is read from. Optional -- without it an actor never punches,
+## which is all a deer needs.
+@export var attack: AttackComponent
+
 ## The rig to drive. Optional, and absent until there is a character model.
 @export var animation_player: AnimationPlayer
 
@@ -49,7 +53,9 @@ func step() -> void:
 		return
 
 	var previous := _machine.state()
-	var next := _machine.update(ground_speed(), is_sprinting(), on_floor(), vertical_speed())
+	var next := _machine.update(
+		ground_speed(), is_sprinting(), on_floor(), vertical_speed(), is_punching()
+	)
 	if next == previous:
 		return
 
@@ -89,6 +95,10 @@ func state_name() -> StringName:
 
 func is_sprinting() -> bool:
 	return movement != null and movement.is_sprinting()
+
+
+func is_punching() -> bool:
+	return attack != null and attack.is_attacking()
 
 
 ## Starts the clip for [param state_value], if there is a rig and it has one.

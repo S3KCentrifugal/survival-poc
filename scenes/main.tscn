@@ -23,11 +23,12 @@ sky = SubResource("Sky_o5qli")
 ambient_light_source = 3
 tonemap_mode = 2
 
-[node name="Main" type="Node3D" unique_id=159748148 node_paths=PackedStringArray("terrain", "player", "player_movement", "camera")]
+[node name="Main" type="Node3D" unique_id=159748148 node_paths=PackedStringArray("terrain", "player", "player_movement", "player_attack", "camera")]
 script = ExtResource("3_root")
 terrain = NodePath("Terrain")
 player = NodePath("Player")
 player_movement = NodePath("Player/Movement")
+player_attack = NodePath("Player/Attack")
 camera = NodePath("PlayerCamera")
 spawn_point = Vector2(-3, 0)
 

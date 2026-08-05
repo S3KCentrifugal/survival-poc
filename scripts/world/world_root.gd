@@ -12,6 +12,10 @@ extends Node3D
 @export var terrain: Terrain
 @export var player: CharacterBody3D
 @export var player_movement: MovementComponent
+
+## Shares the player's input source, so a click means the same thing to the
+## swing as W does to the legs.
+@export var player_attack: AttackComponent
 @export var camera: CameraController
 
 ## Where the player starts, on the ground plane. Height comes from the terrain.
@@ -84,6 +88,8 @@ func _wire_input() -> void:
 	_player_input.aim_plane_height = player.global_position.y if player != null else 0.0
 	if player_movement != null:
 		player_movement.input_source = _player_input
+	if player_attack != null:
+		player_attack.input_source = _player_input
 
 
 func _wire_camera() -> void:

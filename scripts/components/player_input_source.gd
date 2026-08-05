@@ -11,6 +11,7 @@ const ACTION_MOVE_FORWARD: StringName = &"move_forward"
 const ACTION_MOVE_BACK: StringName = &"move_back"
 const ACTION_SPRINT: StringName = &"sprint"
 const ACTION_JUMP: StringName = &"jump"
+const ACTION_ATTACK: StringName = &"attack"
 
 ## Every action this source depends on, so a test can assert the InputMap
 ## actually defines them.
@@ -21,6 +22,7 @@ const REQUIRED_ACTIONS: Array[StringName] = [
 	ACTION_MOVE_BACK,
 	ACTION_SPRINT,
 	ACTION_JUMP,
+	ACTION_ATTACK,
 ]
 
 ## Used to turn screen input into world directions. Without one, movement falls
@@ -44,6 +46,11 @@ var mouse_captured: bool = false
 var _look: Vector2 = Vector2.ZERO
 var _zoom: float = 0.0
 
+## Set when the cursor is captured, cleared when the attack button next comes
+## up. The click that takes the cursor back after a menu or an alt-tab is aimed
+## at the window, not at whatever is standing in front of you.
+var _swallow_attack: bool = false
+
 
 func _init(p_camera: Camera3D = null) -> void:
 	camera = p_camera
@@ -58,6 +65,7 @@ func poll() -> InputState:
 	state.move = to_world_direction(raw, camera_yaw())
 	state.sprint = Input.is_action_pressed(ACTION_SPRINT)
 	state.jump = Input.is_action_pressed(ACTION_JUMP)
+	state.attack = _attack_intent()
 
 	var aim: Variant = resolve_aim()
 	if aim != null:
@@ -65,6 +73,15 @@ func poll() -> InputState:
 		state.has_aim = true
 
 	return state
+
+
+## Whether the player is asking to swing, ignoring the click that recaptured
+## the cursor.
+func _attack_intent() -> bool:
+	var pressed := Input.is_action_pressed(ACTION_ATTACK)
+	if not pressed:
+		_swallow_attack = false
+	return pressed and not _swallow_attack
 
 
 func consume_look() -> Vector2:
@@ -106,6 +123,8 @@ func handle_event(event: InputEvent) -> void:
 ## afternoon.
 func capture_mouse(captured: bool) -> void:
 	mouse_captured = captured
+	if captured:
+		_swallow_attack = true
 	Input.mouse_mode = (
 		Input.MOUSE_MODE_CAPTURED if captured else Input.MOUSE_MODE_VISIBLE
 	)

@@ -38,6 +38,11 @@ func jump(held: bool) -> void:
 	state.jump = held
 
 
+## Holds or releases the attack button.
+func attack(held: bool) -> void:
+	state.attack = held
+
+
 ## Queues a mouse movement in pixels for the camera to consume.
 var pending_look: Vector2 = Vector2.ZERO
 
