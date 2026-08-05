@@ -602,12 +602,14 @@ Nothing here is blocking; all are judgement calls left to the owner.
   `library/` are deliberately excluded from git, so art masters would have **no
   backup path**. Harmless while both are empty; wire it before the first real
   `.blend` lands.
-- **Camera distance** (18m in `resources/camera/default_camera.tres`) frames the
-  character small. ~12–14m reads better. Now the strongest candidate for the
-  next change: with a capsule there was nothing to look at, but there is a
-  character down there and at 18 m you cannot tell which way it is facing.
-- **Terrain noise frequency** (0.015) gives ~66m features on a 64m tile, so it
-  reads nearly flat at gameplay distance. Raise toward 0.04 for local relief.
+- **Terrain noise frequency** (0.015) gives ~66m features on a 64m tile. This
+  was raised when the camera was 18 m up and the ground read as flat; at
+  third-person distance the same terrain has 3.4 m of relief across a building
+  footprint, which is plenty. **Re-judge it from the new camera before
+  changing it** — the original complaint was about a view that no longer exists.
+
+Resolved: camera distance, by feature 16 replacing the fixed 18 m isometric
+camera with a 5 m third-person one.
 
 ## Environment notes
 
