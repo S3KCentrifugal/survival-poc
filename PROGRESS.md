@@ -114,8 +114,9 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 21 | Punches connect; wanderers react | done | `c222edb` |
 | 22 | Health regen, player HUD, and death by explosion | done | `669a517` |
 | 23 | Respawning, damage numbers, health bars over heads | done | `d8f8f4c` |
+| 24 | Companion that follows you, with pathfinding | done | |
 
-**The planned slice is complete.** 568 tests passing across 42 suites.
+**The planned slice is complete.** 598 tests passing across 44 suites.
 `./run_tests.sh` exits non-zero on failure.
 
 Playable now: `./run.sh`. You start in a room inside a two-room base, seen from
@@ -740,6 +741,44 @@ one recolours every one in the world — post 013's trap, now met three times.
 Both the number and the burst are parented to the victim's **parent**. Anything
 attached to the thing being freed is freed with it, and the killing blow is
 exactly the feedback you most want to see.
+
+### 24. A companion, and navigation
+
+A friend spawns beside you and follows you around, going **round** walls rather
+than into them.
+
+`FollowConfig` → `Follow` → `FollowComponent`. `Follow` is distances and a
+clock: whether to set off, keep going, or stop. The route comes from a
+`NavigationAgent3D`; movement is still the player's own `MovementComponent`,
+which now has three different things driving it and cannot tell any of them
+apart.
+
+- **A short delay before setting off** (0.6 s). A companion that moves on the
+  same frame you do is glued to you rather than following you.
+- **Hysteresis on the distances** — stops at 2.2 m, sets off again at 3.2 m.
+  With one threshold it starts and stops every frame while you stand still.
+- **It sprints when it falls more than 9 m behind**, spending stamina like
+  anyone else, through the same sprint the player uses.
+
+**Navigation is baked at runtime**, after the pads are flattened and the walls
+are up — a mesh baked over the original hillside would route through walls and
+up slopes that no longer exist. Terrain and structures join a
+`navigation_source` group, because they are siblings in the scene rather than
+children of the region.
+
+Two numbers that had to be right, and the reason the whole thing looked broken
+until they were:
+
+- **`agent_radius` is ceiled to whole cells by the bake.** At 0.55 with 0.25
+  cells it became 0.75, eroding 0.75 m from every surface — which leaves a 1.6 m
+  doorway with a tenth of a metre of navigable width.
+- **Cell size had to drop to 0.1.** Even at a correct radius, a 1.6 m opening
+  in a 0.3 m wall does not survive rasterisation at 0.25. The project's default
+  navigation cell size matches, or every region added warns.
+
+The symptom of both was identical and misleading: the companion set off, walked
+confidently into an internal wall, and stayed there. `is_pathfinding()` exists
+so that "walks into walls" and "has no navmesh" can be told apart.
 
 ## What is not built
 

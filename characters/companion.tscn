@@ -1,0 +1,73 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://scripts/components/movement_component.gd" id="1_movement"]
+[ext_resource type="Resource" path="res://resources/movement/companion_movement.tres" id="2_config"]
+[ext_resource type="PackedScene" path="res://assets/characters/godot_robot/3DGodotRobot.glb" id="3_model"]
+[ext_resource type="Script" path="res://scripts/components/health_component.gd" id="4_health"]
+[ext_resource type="Resource" path="res://resources/health/player_health.tres" id="5_health_config"]
+[ext_resource type="Script" path="res://scripts/components/animation_component.gd" id="6_animation"]
+[ext_resource type="Resource" path="res://resources/animation/player_animation.tres" id="7_animation_config"]
+[ext_resource type="Script" path="res://scripts/components/stamina_component.gd" id="8_stamina"]
+[ext_resource type="Resource" path="res://resources/stamina/player_stamina.tres" id="9_stamina_config"]
+[ext_resource type="Script" path="res://scripts/components/follow_component.gd" id="10_follow"]
+[ext_resource type="Resource" path="res://resources/follow/companion_follow.tres" id="11_follow_config"]
+[ext_resource type="Script" path="res://scripts/components/hurt_reaction.gd" id="12_hurt"]
+[ext_resource type="PackedScene" path="res://ui/health_bar_3d.tscn" id="13_healthbar"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
+radius = 0.4
+height = 1.8
+
+[node name="Companion" type="CharacterBody3D"]
+floor_snap_length = 0.5
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_body")
+
+[node name="Model" parent="." instance=ExtResource("3_model")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
+
+[node name="Agent" type="NavigationAgent3D" parent="."]
+path_desired_distance = 0.6
+target_desired_distance = 1.2
+path_max_distance = 6.0
+avoidance_enabled = false
+
+[node name="Movement" type="Node" parent="." node_paths=PackedStringArray("body", "stamina")]
+script = ExtResource("1_movement")
+body = NodePath("..")
+config = ExtResource("2_config")
+stamina = NodePath("../Stamina")
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("4_health")
+config = ExtResource("5_health_config")
+
+[node name="Stamina" type="Node" parent="."]
+script = ExtResource("8_stamina")
+config = ExtResource("9_stamina_config")
+
+[node name="Hurt" type="Node" parent="." node_paths=PackedStringArray("health")]
+script = ExtResource("12_hurt")
+health = NodePath("../Health")
+stagger_seconds = 0.5
+
+[node name="HealthBar" parent="." instance=ExtResource("13_healthbar") node_paths=PackedStringArray("health")]
+health = NodePath("../Health")
+
+[node name="Follow" type="Node" parent="." node_paths=PackedStringArray("body", "movement", "agent", "hurt")]
+script = ExtResource("10_follow")
+config = ExtResource("11_follow_config")
+body = NodePath("..")
+movement = NodePath("../Movement")
+agent = NodePath("../Agent")
+hurt = NodePath("../Hurt")
+
+[node name="Animation" type="Node" parent="." node_paths=PackedStringArray("body", "movement", "hurt", "animation_player")]
+script = ExtResource("6_animation")
+body = NodePath("..")
+movement = NodePath("../Movement")
+hurt = NodePath("../Hurt")
+animation_player = NodePath("../Model/AnimationPlayer")
+config = ExtResource("7_animation_config")

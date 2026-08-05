@@ -18,6 +18,7 @@ var _segments: Array[WallSegment] = []
 
 
 func _ready() -> void:
+	add_to_group(Terrain.NAVIGATION_GROUP)
 	if config == null:
 		push_warning("Structure has no config; falling back to defaults")
 		config = StructureConfig.new()

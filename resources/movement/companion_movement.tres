@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MovementConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/components/movement_config.gd" id="1_config"]
+
+[resource]
+script = ExtResource("1_config")
+facing_mode = 0
+walk_speed = 4.6
+acceleration = 26.0
+deceleration = 38.0
+sprint_multiplier = 1.7
+turn_speed_degrees = 520.0
+gravity = 20.0
+jump_height = 0.0

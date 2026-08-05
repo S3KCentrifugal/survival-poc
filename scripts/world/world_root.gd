@@ -21,6 +21,16 @@ extends Node3D
 ## Where the player starts, on the ground plane. Height comes from the terrain.
 @export var spawn_point: Vector2 = Vector2.ZERO
 
+## Placed the same way as the player, a few metres off so it does not start
+## standing inside them.
+@export var companion: CharacterBody3D
+
+@export var companion_spawn: Vector2 = Vector2.ZERO
+
+## Told who to follow here rather than in the companion scene, so the companion
+## is not a thing that only works in a world with a node called "Player".
+@export var companion_follow: FollowComponent
+
 ## The human's input, built here and shared by movement and the camera.
 var _player_input: PlayerInputSource
 
@@ -68,12 +78,18 @@ func set_mouse_captured(captured: bool) -> void:
 ## Drops the player onto the terrain surface rather than guessing a height or
 ## letting them fall from the sky on every load.
 func _place_player() -> void:
-	if player == null:
+	_place(player, spawn_point)
+	_place(companion, companion_spawn)
+
+
+## Drops [param actor] onto the terrain at [param where].
+func _place(actor: Node3D, where: Vector2) -> void:
+	if actor == null:
 		return
-	var position := Vector3(spawn_point.x, 0.0, spawn_point.y)
+	var position := Vector3(where.x, 0.0, where.y)
 	if terrain != null:
 		position.y = terrain.height_at_world(position)
-	player.global_position = position
+	actor.global_position = position
 
 
 ## Builds the human's input and hands it to everything that reads intent.
@@ -90,6 +106,8 @@ func _wire_input() -> void:
 		player_movement.input_source = _player_input
 	if player_attack != null:
 		player_attack.input_source = _player_input
+	if companion_follow != null:
+		companion_follow.target = player
 
 
 func _wire_camera() -> void:

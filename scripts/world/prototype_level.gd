@@ -39,6 +39,11 @@ const FLOOR_LIP: float = 0.05
 
 @export var structure_config: StructureConfig
 
+## Baked once the ground is levelled and the walls are up. Optional -- without
+## it the world simply has no navigation and anything that wanted a route walks
+## in a straight line instead.
+@export var navigation_region: NavigationRegion3D
+
 var _ground_height: float = 0.0
 
 
@@ -53,6 +58,23 @@ func build() -> void:
 	_ground_height = _level_the_ground()
 	_build_base()
 	_build_tower()
+	bake_navigation()
+
+
+## Bakes the navigation mesh over whatever has been built.
+##
+## Has to happen *after* the pads are flattened and the walls exist: a mesh
+## baked over the original hillside would route companions through the walls
+## and up slopes that are no longer there.
+func bake_navigation() -> void:
+	if navigation_region == null:
+		return
+	if navigation_region.navigation_mesh == null:
+		push_warning("PrototypeLevel has a navigation region with no mesh to bake")
+		return
+	# Synchronous. Threaded baking finishes some frames later, and anything
+	# spawned in between would ask an empty map for a route.
+	navigation_region.bake_navigation_mesh(false)
 
 
 ## Height everything is built at. Zero until [method build] has run.

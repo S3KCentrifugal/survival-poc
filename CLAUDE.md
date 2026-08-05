@@ -162,6 +162,13 @@ then left alone.
   Variants, which *are* strong references, so binding an object into a callable
   it is reachable from makes a cycle GDScript never collects. Hold the owner in
   a member; do not bind a collection into the things it collects.
+- **Navmesh bakes round `agent_radius` up to whole cells, silently.** Ask for
+  0.55 with 0.25 m cells and you get 0.75, eroded from every surface -- which
+  can close a doorway entirely and leave the inside of a building an island
+  nothing can path out of. The failure looks exactly like a working agent that
+  chose not to go that way: valid map, reachable nearby targets, confident
+  straight-line steering, no error. Godot warns, so do not filter navigation
+  warnings; fix the cell-size mismatch that makes them noisy instead.
 - **`Vector2`/`Vector3` hold 32-bit floats, so trig on them is 32-bit.**
   `Vector2(0, -1).angle_to(Vector2(0, 1))` returns `3.14159274`, which is
   *larger* than double-precision `PI` — so `angle <= PI` is false and a

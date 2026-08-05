@@ -36,6 +36,7 @@ rather than an edit to the old one.
 | 021 | [Punches connect, and π is not π](021-punches-connect.md) | Hit detection, flinching, and 32-bit trigonometry |
 | 022 | [Two bars, one delay, and a puff of sparks](022-regen-hud-explosions.md) | Regeneration, why the HUD is not the overlay, and a guard that cleared itself |
 | 023 | [Telling the player what happened](023-feedback-and-respawning.md) | Respawning, damage numbers, and a shared resource caught a third time |
+| 024 | [A friend, and two numbers that broke pathfinding](024-companion-and-navigation.md) | Following, runtime navmesh baking, and voxel rounding |
 
 Numbers follow the **feature** order, not the order posts get written — 012 is
 the twelfth feature, and 002–011 below are still owed.

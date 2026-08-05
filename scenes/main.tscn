@@ -14,11 +14,33 @@
 [ext_resource type="Script" path="res://scripts/world/wanderer_spawner.gd" id="12_spawner"]
 [ext_resource type="PackedScene" path="res://characters/wanderer.tscn" id="13_wanderer"]
 [ext_resource type="PackedScene" path="res://ui/player_hud.tscn" id="14_hud"]
+[ext_resource type="PackedScene" path="res://characters/companion.tscn" id="15_companion"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sgp6g"]
 
 [sub_resource type="Sky" id="Sky_o5qli"]
 sky_material = SubResource("ProceduralSkyMaterial_sgp6g")
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_world"]
+geometry_parsed_geometry_type = 2
+geometry_source_geometry_mode = 2
+geometry_source_group_name = &"navigation_source"
+; Matches the navigation map's own defaults. A mismatch warns on every
+; region added and quietly degrades the bake.
+cell_size = 0.1
+cell_height = 0.1
+agent_height = 1.8
+; Exactly two cells. The bake ceils this to whole voxels, so 0.55 became 0.75
+; -- which erodes 0.75 m from every wall and leaves a 1.6 m doorway with a
+; tenth of a metre of navigable width. Companions then cannot path indoors at
+; all, which looks exactly like pathfinding being broken.
+agent_radius = 0.4
+agent_max_climb = 0.3
+agent_max_slope = 45.0
+region_min_size = 0.5
+filter_low_hanging_obstacles = true
+filter_ledge_spans = true
+filter_walkable_low_height_spans = true
 
 [sub_resource type="Environment" id="Environment_0wfyh"]
 background_mode = 2
@@ -26,7 +48,7 @@ sky = SubResource("Sky_o5qli")
 ambient_light_source = 3
 tonemap_mode = 2
 
-[node name="Main" type="Node3D" unique_id=159748148 node_paths=PackedStringArray("terrain", "player", "player_movement", "player_attack", "camera")]
+[node name="Main" type="Node3D" unique_id=159748148 node_paths=PackedStringArray("terrain", "player", "player_movement", "player_attack", "camera", "companion", "companion_follow")]
 script = ExtResource("3_root")
 terrain = NodePath("Terrain")
 player = NodePath("Player")
@@ -34,6 +56,9 @@ player_movement = NodePath("Player/Movement")
 player_attack = NodePath("Player/Attack")
 camera = NodePath("PlayerCamera")
 spawn_point = Vector2(-3, 0)
+companion = NodePath("Companion")
+companion_spawn = Vector2(-4.5, 1.5)
+companion_follow = NodePath("Companion/Follow")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=159123357]
 environment = SubResource("Environment_0wfyh")
@@ -49,10 +74,14 @@ sun = NodePath("../Sun")
 
 [node name="Terrain" parent="." instance=ExtResource("1_terrain")]
 
-[node name="Level" type="Node3D" parent="." node_paths=PackedStringArray("terrain")]
+[node name="Navigation" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("NavigationMesh_world")
+
+[node name="Level" type="Node3D" parent="." node_paths=PackedStringArray("terrain", "navigation_region")]
 script = ExtResource("8_level")
 terrain = NodePath("../Terrain")
 structure_config = ExtResource("9_structure_config")
+navigation_region = NodePath("../Navigation")
 
 [node name="Wanderers" type="Node3D" parent="." node_paths=PackedStringArray("terrain", "keep_away_from")]
 script = ExtResource("12_spawner")
@@ -65,6 +94,8 @@ keep_away = 14.0
 keep_away_from = NodePath("../Player")
 
 [node name="Player" parent="." instance=ExtResource("4_player")]
+
+[node name="Companion" parent="." instance=ExtResource("15_companion")]
 
 [node name="PlayerCamera" parent="." instance=ExtResource("2_camera")]
 

@@ -16,7 +16,14 @@ signal rebuilt(field: Heightfield)
 var _field: Heightfield
 
 
+## Anything the navmesh should be baked from joins this group. A group rather
+## than "everything under the region" because terrain and buildings are
+## siblings in the scene, not children of it.
+const NAVIGATION_GROUP: StringName = &"navigation_source"
+
+
 func _ready() -> void:
+	add_to_group(NAVIGATION_GROUP)
 	rebuild()
 
 
