@@ -1,7 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="PackedScene" path="res://world/terrain.tscn" id="1_terrain"]
-[ext_resource type="PackedScene" path="res://prefabs/isometric_camera.tscn" id="2_camera"]
+[ext_resource type="PackedScene" path="res://prefabs/third_person_camera.tscn" id="2_camera"]
 [ext_resource type="Script" path="res://scripts/world/world_root.gd" id="3_root"]
 [ext_resource type="PackedScene" path="res://characters/player.tscn" id="4_player"]
 [ext_resource type="Script" path="res://scripts/systems/day_night_component.gd" id="5_day_night"]
@@ -27,7 +27,7 @@ script = ExtResource("3_root")
 terrain = NodePath("Terrain")
 player = NodePath("Player")
 player_movement = NodePath("Player/Movement")
-camera = NodePath("IsometricCamera")
+camera = NodePath("PlayerCamera")
 spawn_point = Vector2(-3, 0)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=159123357]
@@ -51,7 +51,7 @@ structure_config = ExtResource("9_structure_config")
 
 [node name="Player" parent="." instance=ExtResource("4_player")]
 
-[node name="IsometricCamera" parent="." instance=ExtResource("2_camera")]
+[node name="PlayerCamera" parent="." instance=ExtResource("2_camera")]
 
 [node name="DebugOverlay" parent="." instance=ExtResource("7_overlay") node_paths=PackedStringArray("body", "movement", "health", "stamina", "animation", "day_night")]
 body = NodePath("../Player")
@@ -61,7 +61,8 @@ stamina = NodePath("../Player/Stamina")
 animation = NodePath("../Player/Animation")
 day_night = NodePath("../DayNight")
 
-[node name="DevConsole" parent="." instance=ExtResource("10_console") node_paths=PackedStringArray("player", "health", "stamina", "movement", "day_night", "terrain")]
+[node name="DevConsole" parent="." instance=ExtResource("10_console") node_paths=PackedStringArray("world_root", "player", "health", "stamina", "movement", "day_night", "terrain")]
+world_root = NodePath("..")
 player = NodePath("../Player")
 health = NodePath("../Player/Health")
 stamina = NodePath("../Player/Stamina")

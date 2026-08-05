@@ -17,11 +17,49 @@ extends Node3D
 ## Where the player starts, on the ground plane. Height comes from the terrain.
 @export var spawn_point: Vector2 = Vector2.ZERO
 
+## The human's input, built here and shared by movement and the camera.
+var _player_input: PlayerInputSource
+
 
 func _ready() -> void:
 	_place_player()
 	_wire_input()
 	_wire_camera()
+
+
+## Mouse events reach the input source through here.
+##
+## A [RefCounted] cannot receive input on its own, and the rule that only
+## [PlayerInputSource] may read a device is worth more than the convenience of
+## letting the camera listen for itself -- so the composition root forwards, and
+## the source still owns every decision about what an event means.
+func _unhandled_input(event: InputEvent) -> void:
+	if _player_input == null:
+		return
+	_player_input.handle_event(event)
+
+	# Escape lets go of the cursor and a click takes it back. Without both, a
+	# captured mouse is a window you cannot leave.
+	var key := event as InputEventKey
+	if key != null and key.pressed and not key.echo and key.keycode == KEY_ESCAPE:
+		set_mouse_captured(false)
+		return
+	var button := event as InputEventMouseButton
+	if button != null and button.pressed and button.button_index == MOUSE_BUTTON_LEFT:
+		set_mouse_captured(true)
+
+
+## Captures or releases the cursor, if the camera is configured to want it.
+##
+## Public because the dev console has to be able to release it: a console you
+## cannot click into is not much of a console.
+func set_mouse_captured(captured: bool) -> void:
+	if _player_input == null:
+		return
+	if camera != null and camera.config != null:
+		if camera.config.mouse_look != CameraConfig.MouseLook.CAPTURED:
+			return
+	_player_input.capture_mouse(captured)
 
 
 ## Drops the player onto the terrain surface rather than guessing a height or
@@ -35,20 +73,26 @@ func _place_player() -> void:
 	player.global_position = position
 
 
+## Builds the human's input and hands it to everything that reads intent.
+##
+## One source, shared: movement asks it what is being held, the camera drains
+## the mouse deltas out of it. Two sources would mean two sets of key state
+## disagreeing about whether W is down.
 func _wire_input() -> void:
-	if player_movement == null:
-		return
-	var source := PlayerInputSource.new(camera)
+	_player_input = PlayerInputSource.new(camera)
 	# Aim on the plane the player stands on, so the cursor and the character
 	# agree about where the ground is.
-	source.aim_plane_height = player.global_position.y if player != null else 0.0
-	player_movement.input_source = source
+	_player_input.aim_plane_height = player.global_position.y if player != null else 0.0
+	if player_movement != null:
+		player_movement.input_source = _player_input
 
 
 func _wire_camera() -> void:
 	if camera == null:
 		return
 	camera.set_target(player)
+	camera.input_source = _player_input
 	# Snap rather than ease, or the view sweeps in from the world origin on
-	# every load.
+	# every load -- and swing round behind the player while we are at it.
 	camera.snap_to_target()
+	set_mouse_captured(true)

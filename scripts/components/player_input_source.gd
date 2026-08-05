@@ -29,6 +29,19 @@ var camera: Camera3D
 ## foot height so aim stays level with them.
 var aim_plane_height: float = 0.0
 
+## Whether the mouse turns the camera without a button held. Set from
+## [member CameraConfig.mouse_look]; the source owns it because the mouse mode
+## is part of how this device behaves, and this is the only file allowed to
+## care about that.
+var mouse_captured: bool = false
+
+## Mouse movement and wheel notches since the last [method poll].
+##
+## Accumulated rather than sampled: motion arrives as events between frames, and
+## reading "where is the mouse now" would drop everything but the last one.
+var _look: Vector2 = Vector2.ZERO
+var _zoom: float = 0.0
+
 
 func _init(p_camera: Camera3D = null) -> void:
 	camera = p_camera
@@ -49,6 +62,50 @@ func poll() -> InputState:
 		state.has_aim = true
 
 	return state
+
+
+func consume_look() -> Vector2:
+	var accumulated := _look
+	_look = Vector2.ZERO
+	return accumulated
+
+
+func consume_zoom() -> float:
+	var accumulated := _zoom
+	_zoom = 0.0
+	return accumulated
+
+
+## Takes a raw event and remembers anything the camera will want.
+##
+## Called by whoever owns this source -- a [RefCounted] cannot receive input on
+## its own. Everything device-shaped still happens in this file.
+func handle_event(event: InputEvent) -> void:
+	var motion := event as InputEventMouseMotion
+	if motion != null:
+		if mouse_captured or Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+			_look += motion.relative
+		return
+
+	var button := event as InputEventMouseButton
+	if button == null or not button.pressed:
+		return
+	if button.button_index == MOUSE_BUTTON_WHEEL_UP:
+		_zoom -= 1.0
+	elif button.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+		_zoom += 1.0
+
+
+## Captures the cursor, or lets it go.
+##
+## Releasing has to be possible from outside -- a console you cannot click into
+## and a window you cannot leave are the two ways mouse capture ruins an
+## afternoon.
+func capture_mouse(captured: bool) -> void:
+	mouse_captured = captured
+	Input.mouse_mode = (
+		Input.MOUSE_MODE_CAPTURED if captured else Input.MOUSE_MODE_VISIBLE
+	)
 
 
 ## Yaw the movement axes are rotated by. Zero (world-aligned) with no camera.

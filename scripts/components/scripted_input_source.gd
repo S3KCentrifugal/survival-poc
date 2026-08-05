@@ -32,6 +32,35 @@ func sprint(enabled: bool) -> void:
 	state.sprint = enabled
 
 
+## Queues a mouse movement in pixels for the camera to consume.
+var pending_look: Vector2 = Vector2.ZERO
+
+## Queues wheel notches for the camera to consume. Positive pulls it out.
+var pending_zoom: float = 0.0
+
+
+func look(movement: Vector2) -> void:
+	pending_look += movement
+
+
+func zoom(notches: float) -> void:
+	pending_zoom += notches
+
+
+## Drained like the real thing, so a test cannot accidentally turn the camera
+## every frame from one scripted flick.
+func consume_look() -> Vector2:
+	var queued := pending_look
+	pending_look = Vector2.ZERO
+	return queued
+
+
+func consume_zoom() -> float:
+	var queued := pending_zoom
+	pending_zoom = 0.0
+	return queued
+
+
 func aim_at(point: Vector3) -> void:
 	state.aim_point = point
 	state.has_aim = true

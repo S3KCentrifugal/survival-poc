@@ -4,11 +4,23 @@
 
 [resource]
 script = ExtResource("1_config")
-yaw_degrees = 45.0
-pitch_degrees = 50.0
-distance = 18.0
-focus_height = 1.0
-follow_speed = 8.0
+yaw_degrees = 0.0
+pitch_degrees = 20.0
+distance = 5.0
+focus_height = 1.5
+follow_speed = 10.0
+mouse_look = 0
+look_sensitivity = 0.22
+invert_pitch = false
+min_pitch_degrees = 3.0
+max_pitch_degrees = 75.0
+min_distance = 1.5
+max_distance = 14.0
+zoom_step = 0.8
+zoom_speed = 14.0
+avoid_obstructions = true
+obstruction_margin = 0.25
+obstruction_mask = 1
 orthographic = false
-fov = 45.0
+fov = 60.0
 orthographic_size = 20.0

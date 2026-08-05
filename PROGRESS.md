@@ -106,13 +106,16 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 13 | Facing mode: face your travel, not the cursor | done | `6367ad9` |
 | 14 | Prototype level: a base to walk out of | done | `e7ddd7d` |
 | 15 | Dev console | done | `41647fc` |
+| 16 | Third-person camera: mouse look, wheel zoom | done | |
 
-**The planned slice is complete.** 345 tests passing across 27 suites.
+**The planned slice is complete.** 369 tests passing across 28 suites.
 `./run_tests.sh` exits non-zero on failure.
 
-Playable now: `./run.sh`. You start in a room inside a two-room base. Walk with
-WASD, hold shift to sprint until the bar runs out, go through the internal
-doorway, out of the building and across to the tower. F3 for the readout.
+Playable now: `./run.sh`. You start in a room inside a two-room base, seen from
+over the character's shoulder. WASD moves relative to the camera, the mouse
+turns it, the wheel zooms. Shift sprints until the bar runs out. Go through the
+internal doorway, out of the building and across to the tower. F3 for the
+readout, backtick for the console, Escape to release the cursor.
 
 ### 1. Bootstrap
 
@@ -451,6 +454,44 @@ asymmetry in `Callable`:
 The second was found by the test suite's exit warning, not by a failing
 assertion. `./run_tests.sh` is now clean of leak warnings, which makes it worth
 watching as a signal.
+
+### 16. Third-person camera
+
+The fixed isometric camera is gone. The camera now sits behind and above the
+character at **5 m and 20°**, turns with the mouse, and zooms on the wheel
+between 1.5 m and 14 m. `prefabs/isometric_camera.tscn` is renamed
+`third_person_camera.tscn` — feature 3's write-up above describes what it was,
+not what it is.
+
+`CameraConfig` → `CameraOrbit` → `CameraFraming` → `CameraController`.
+`CameraOrbit` is new and holds the state a fixed camera never needed: yaw and
+pitch the player turns by hand, and a distance the wheel changes. `CameraFraming`
+now takes angles as arguments instead of reading them off the config, which is
+what made the fixed camera fixed.
+
+**Yaw is not automatic.** A camera that swings itself behind the character, with
+movement relative to that camera, chases its own tail: hold a sideways key, the
+character turns, the camera follows, the key now means a different direction,
+and you walk in circles. Mouse control is what every third-person game uses and
+is the reason it works.
+
+`InputState` deliberately does **not** carry look and zoom.
+`InputSource.consume_look()` / `consume_zoom()` drain them instead, because
+`move` and `sprint` are *states* two components can read in the same tick
+without harm, while look and zoom are *deltas* — read one twice and the camera
+turns twice for one flick of the wrist. Movement and the camera share one
+source, so this distinction is load-bearing rather than tidy.
+
+The camera pulls in when something solid is between it and the player. Not
+optional: the player starts indoors, and 5 m behind them is 5 m inside a wall.
+
+Mouse capture is on by default (`CameraConfig.mouse_look`), with Escape
+releasing the cursor, a click taking it back, and the dev console releasing it
+while open. `HOLD_RIGHT` is the fallback if capture misbehaves.
+
+**It also found a bug in feature 12.** The character model was facing backwards
+the whole time — the mesh is authored facing +Z, and the top-down camera could
+never show it. Post 016 has the correction; post 012 stands as written.
 
 ## What is not built
 

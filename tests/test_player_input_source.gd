@@ -81,10 +81,10 @@ func test_no_input_produces_no_movement_at_any_yaw() -> void:
 
 func test_yaw_is_recovered_from_a_camera_basis() -> void:
 	# Round-trip: frame from a known yaw, read it back off the basis.
-	var config := CameraConfig.new()
 	for yaw_degrees: float in [0.0, 45.0, 120.0, 300.0]:
-		config.yaw_degrees = yaw_degrees
-		var transform := CameraFraming.transform_for(Vector3.ZERO, config)
+		var transform := CameraFraming.transform_for(
+			Vector3.ZERO, 0.0, deg_to_rad(yaw_degrees), deg_to_rad(45.0), 10.0
+		)
 		var recovered := PlayerInputSource.yaw_from_basis(transform.basis)
 		var expected := deg_to_rad(yaw_degrees)
 		assert_true(

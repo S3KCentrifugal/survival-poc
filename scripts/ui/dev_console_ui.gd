@@ -29,6 +29,10 @@ signal line_run(line: String, output: String)
 @export var output: RichTextLabel
 @export var entry: LineEdit
 
+## Asked to release the cursor while the console is open. A console you cannot
+## click into is not much of a console.
+@export var world_root: WorldRoot
+
 @export_group("Watching")
 @export var player: CharacterBody3D
 @export var health: HealthComponent
@@ -97,6 +101,8 @@ func set_open(open: bool) -> void:
 	visible = open
 	if pause_while_open:
 		get_tree().paused = open
+	if world_root != null:
+		world_root.set_mouse_captured(not open)
 	if entry == null:
 		return
 	if open:
