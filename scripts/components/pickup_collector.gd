@@ -86,7 +86,9 @@ func collect() -> int:
 func find_target() -> PickupComponent:
 	if body == null or not is_inside_tree():
 		return null
-	return nearest(body.global_position, get_tree().get_nodes_in_group(PickupComponent.GROUP), reach)
+	return Proximity.nearest(
+		body.global_position, get_tree().get_nodes_in_group(PickupComponent.GROUP), reach
+	) as PickupComponent
 
 
 ## What the player is about to pick up, for a prompt.
@@ -96,22 +98,11 @@ func target() -> PickupComponent:
 
 ## The closest available pickup within [param reach] of [param from], or null.
 ##
-## Static and taking its candidates as an argument, so the choosing can be
-## tested with three positions and no scene at all.
+## Kept as a named entry point after the search itself moved to [Proximity] --
+## the workbench wanted the same search, and two of them is how one of them ends
+## up with a different reach.
 static func nearest(from: Vector3, candidates: Array, reach: float) -> PickupComponent:
-	var best: PickupComponent = null
-	var best_distance := reach * reach
-	for candidate: Variant in candidates:
-		var pickup := candidate as PickupComponent
-		if pickup == null or not pickup.is_available():
-			continue
-		# Squared throughout: the comparison is the same and there is no square
-		# root per item per frame.
-		var distance := from.distance_squared_to(pickup.world_position())
-		if distance <= best_distance:
-			best_distance = distance
-			best = pickup
-	return best
+	return Proximity.nearest(from, candidates, reach) as PickupComponent
 
 
 func _set_target(pickup: PickupComponent) -> void:

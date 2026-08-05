@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/recipe.gd" id="1_recipe"]
+[ext_resource type="Script" path="res://scripts/items/recipe_ingredient.gd" id="2_ingredient"]
+[ext_resource type="Resource" path="res://resources/items/mushroom.tres" id="3_mushroom"]
+[ext_resource type="Resource" path="res://resources/items/soup.tres" id="4_soup"]
+
+[sub_resource type="Resource" id="Resource_mushrooms"]
+script = ExtResource("2_ingredient")
+item = ExtResource("3_mushroom")
+count = 3
+
+[resource]
+script = ExtResource("1_recipe")
+id = &"mushroom_soup"
+display_name = "Mushroom Soup"
+ingredients = Array[Resource]([SubResource("Resource_mushrooms")])
+output = ExtResource("4_soup")
+output_count = 1

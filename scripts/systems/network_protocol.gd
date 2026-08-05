@@ -81,6 +81,9 @@ const BUTTON_ATTACK: int = 1 << 2
 ## never sets it, which reads as a player who is not pressing F.
 const BUTTON_INTERACT: int = 1 << 3
 
+## Bit 4. Four bits still spare after this one.
+const BUTTON_USE: int = 1 << 4
+
 ## Flag bits on a snapshot entity.
 const FLAG_ON_FLOOR: int = 1 << 0
 const FLAG_SPRINTING: int = 1 << 1
@@ -253,6 +256,8 @@ static func buttons_of(state: InputState) -> int:
 		buttons |= BUTTON_ATTACK
 	if state.interact:
 		buttons |= BUTTON_INTERACT
+	if state.use:
+		buttons |= BUTTON_USE
 	return buttons
 
 
@@ -268,6 +273,7 @@ static func input_state_from(decoded: Dictionary) -> InputState:
 	state.jump = (buttons & BUTTON_JUMP) != 0
 	state.attack = (buttons & BUTTON_ATTACK) != 0
 	state.interact = (buttons & BUTTON_INTERACT) != 0
+	state.use = (buttons & BUTTON_USE) != 0
 	return state
 
 

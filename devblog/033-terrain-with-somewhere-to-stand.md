@@ -132,4 +132,5 @@ took to re-read the post that established it.
 
 ---
 
-Next: nothing scheduled. Posts 002–011 and 025–027 are still owed.
+Next: [034 — Music nobody wrote, and soup](034-music-and-soup.md). Posts
+002–011 and 025–027 are still owed.

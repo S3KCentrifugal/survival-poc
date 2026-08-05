@@ -29,6 +29,11 @@ var jump: bool = false
 ## mushroom up once per press is the collector's business, not this object's.
 var interact: bool = false
 
+## Whether the use key is *held*. Separate from [member interact] because they
+## are separate verbs: interact takes a thing away, use operates a thing that
+## stays where it is.
+var use: bool = false
+
 ## Point on the ground the actor wants to face.
 var aim_point: Vector3 = Vector3.ZERO
 
@@ -55,6 +60,7 @@ func copy() -> InputState:
 	other.jump = jump
 	other.attack = attack
 	other.interact = interact
+	other.use = use
 	other.aim_point = aim_point
 	other.has_aim = has_aim
 	return other
@@ -66,6 +72,7 @@ func clear() -> void:
 	jump = false
 	attack = false
 	interact = false
+	use = false
 	aim_point = Vector3.ZERO
 	has_aim = false
 

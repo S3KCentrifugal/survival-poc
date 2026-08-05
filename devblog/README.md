@@ -43,6 +43,7 @@ rather than an edit to the old one.
 | 031 | [Mushrooms, and somewhere to put them](031-mushrooms-and-a-bag.md) | Stacking as pure logic, a group instead of an Area3D, and the first spare protocol bit spent |
 | 032 | [Dragging things out, and three ways to leak](032-dragging-things-out.md) | Drag logic outside the mouse, a resource cycle, and two error messages that name the wrong file |
 | 033 | [Terrain with somewhere to stand](033-terrain-with-somewhere-to-stand.md) | Four noise layers, tuning against numbers, and a navmesh conclusion remembered wrong |
+| 034 | [Music nobody wrote, and soup](034-music-and-soup.md) | Synthesised music, testing a loop seam, and a bench buried under its own floor |
 
 Numbers follow the **feature** order, not the order posts get written — 012 is
 the twelfth feature, and 002–011 and 025–027 below are still owed. The three

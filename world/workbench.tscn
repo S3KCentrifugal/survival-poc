@@ -1,0 +1,56 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/components/workbench_component.gd" id="1_bench"]
+[ext_resource type="Resource" path="res://resources/recipes/mushroom_soup.tres" id="2_recipe"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_top"]
+albedo_color = Color(0.42, 0.3, 0.2, 1)
+roughness = 0.85
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_legs"]
+albedo_color = Color(0.31, 0.22, 0.15, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="BoxMesh_top"]
+material = SubResource("StandardMaterial3D_top")
+size = Vector3(1.6, 0.08, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_leg"]
+material = SubResource("StandardMaterial3D_legs")
+size = Vector3(0.1, 0.86, 0.1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_bench"]
+size = Vector3(1.6, 0.9, 0.8)
+
+[node name="Workbench" type="StaticBody3D"]
+
+[node name="Top" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("BoxMesh_top")
+
+[node name="LegA" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7, 0.43, -0.3)
+mesh = SubResource("BoxMesh_leg")
+
+[node name="LegB" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 0.43, -0.3)
+mesh = SubResource("BoxMesh_leg")
+
+[node name="LegC" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7, 0.43, 0.3)
+mesh = SubResource("BoxMesh_leg")
+
+[node name="LegD" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 0.43, 0.3)
+mesh = SubResource("BoxMesh_leg")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+shape = SubResource("BoxShape3D_bench")
+
+[node name="Bench" type="Node" parent="." node_paths=PackedStringArray("actor")]
+script = ExtResource("1_bench")
+recipes = Array[Resource]([ExtResource("2_recipe")])
+actor = NodePath("..")
+display_name = "Workbench"
+verb = "Use"

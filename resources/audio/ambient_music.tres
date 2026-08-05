@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="MusicConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/audio/music_config.gd" id="1_config"]
+
+[resource]
+script = ExtResource("1_config")
+sample_rate = 22050
+bars = 8
+beats_per_bar = 4
+tempo_bpm = 56.0
+root_note = 45
+scale = PackedInt32Array(0, 3, 5, 7, 10)
+note_density = 0.55
+drone_level = 0.16
+pad_level = 0.13
+melody_level = 0.1
+gain = 0.7
+attack_seconds = 0.09
+release_seconds = 1.4
+noise_seed = 8172

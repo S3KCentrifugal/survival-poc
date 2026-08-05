@@ -3,7 +3,7 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 33 — Larger, layered terrain**. The planned
+Last updated after **Feature 34 — Music and crafting**. The planned
 vertical slice (features 1–11) was completed long ago; everything since is
 built on top of it.
 
@@ -126,7 +126,8 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 30 | A sky: gradient, sun disc, halo and stars | done | `63376d3` |
 | 31 | Mushrooms, pickup on F, and an inventory on I | done | `4748172` |
 | 32 | Dropping items, item icons, and stack counts | done | `b45e62d` |
-| 33 | Larger, layered terrain with slope-blended textures | done | — |
+| 33 | Larger, layered terrain with slope-blended textures | done | `e4daf04` |
+| 34 | Generated background music, and a bench that crafts soup | done | — |
 
 **The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
@@ -140,7 +141,9 @@ readout, backtick for the console, Escape for the menu. Space jumps twice, left
 click punches — hit a wanderer enough and it blows up. Red mushrooms grow in
 the grass: walk up to one, press **F** to pick it up, **I** to see what you are
 carrying — drag a stack onto another slot to move it, or out of the panel to
-put it back on the ground. Health and stamina are on screen, and both come back on their own if
+put it back on the ground. There is a workbench in the second room: stand at it,
+press **E**, and three mushrooms become soup. Something is playing in the
+background. Health and stamina are on screen, and both come back on their own if
 you leave them alone.
 
 ### 1. Bootstrap
@@ -1112,6 +1115,51 @@ bake is a sixteenth of the size, the suite is under three minutes and the
 companion still walks through the doorway. `agent_max_climb` and
 `region_min_size` were being silently rounded too; both are whole cells now.
 
+### 34. Music nobody wrote, and soup
+
+**The music is synthesised at runtime**, not shipped. Nothing in git but the
+numbers, no licence to check, and no unexplainable file in a year.
+`MusicComposer` is a `RefCounted` producing 16-bit PCM from a `MusicConfig`:
+a drone, a pad chord per bar, and a sparse melody, all on a minor pentatonic
+scale -- which has no semitones, so any two notes sounding together are
+consonant and most of the ways generated music goes wrong are unavailable.
+
+Note tails wrap past the end of the buffer into the beginning, so the loop has
+no click in its seam; the test compares the step at the seam against the
+largest ordinary sample-to-sample step rather than against a magic number. The
+tests prove it is not silent, does not clip, stays on its scale and loops
+cleanly. They cannot prove it is pleasant, and it is a placeholder that knows
+it is one.
+
+Rendering takes ~1.2 s, so it is cached on the config's *values* -- holding the
+bytes rather than the stream, because a static variable holding a `Resource` is
+reported as a leak on the way out. It also does not play with no display:
+Godot's headless audio server takes a playback and never returns it, and a run
+with no speakers has nothing to gain from thirty seconds of DSP.
+
+**A workbench in the second room crafts soup from three mushrooms.** The
+nearest-thing-in-reach search moved out of `PickupCollector` into `Proximity`,
+duck-typed on `world_position()` and `is_available()` -- no base class needed,
+and one search instead of two that drift apart.
+
+F and E are separate keys on purpose: F takes a thing away, E operates a thing
+that stays, and folding them together means deciding what a press means when a
+mushroom is growing next to the bench. The HUD shows both prompts when both are
+in reach.
+
+Crafting checks room for the output *after* notionally removing the
+ingredients, because the ingredients usually free the room the output needs --
+three mushrooms in a one-slot bag can become one soup. And it is all or
+nothing: the ingredients are only removed once the whole craft is known to
+work.
+
+**A hard-coded height, buried.** The bench went in at `y = 0`; the building
+floor is wherever the terrain puts it, which after feature 33 was several
+metres up. Nothing errored -- the player spawned inside the buried bench and
+fell to y = -255, and the only tell was the overlay reading `state fall`.
+`WorldRoot` now drops the bench onto the floor from a `Vector2`, exactly as it
+already did for the player and companion, with a test that says so.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -1148,9 +1196,14 @@ needs and this repo does not have:
   with holes in them, which is all a top-down camera needs to see into.
 - **A character of our own.** The player is a CC0 robot standing in for one. It
   animates and it is the right height; it is not the art direction.
-- **Using or eating items.** They can be picked up, carried, rearranged and
-  dropped; nothing consumes them. Eating a mushroom is the obvious next thing
-  and was deliberately not built.
+- **Eating anything.** Soup can be made, carried and dropped; nothing consumes
+  it and it restores nothing. That is the obvious next thing and was
+  deliberately not built.
+- **A second recipe, or a bench that is not the only one.** `Recipe` takes a
+  list of ingredients and `WorkbenchComponent` a list of recipes, so both are
+  ready; there is one of each.
+- **Music that anyone would choose to listen to.** What is there is
+  synthesised, correct, and a placeholder.
 - **Splitting a stack.** A drag moves the whole thing. Half-stack drags want a
   modifier key and a decision about what the UI does with the remainder.
 - **Item art beyond one mushroom.** Everything else falls back to a coloured

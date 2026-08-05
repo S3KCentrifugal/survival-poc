@@ -24,6 +24,10 @@
 [ext_resource type="Script" path="res://scripts/world/mushroom_patch.gd" id="22_patch"]
 [ext_resource type="PackedScene" path="res://items/mushroom.tscn" id="23_mushroom"]
 [ext_resource type="PackedScene" path="res://ui/inventory_screen.tscn" id="24_inventory_screen"]
+[ext_resource type="PackedScene" path="res://ui/crafting_screen.tscn" id="25_crafting_screen"]
+[ext_resource type="PackedScene" path="res://world/workbench.tscn" id="26_workbench"]
+[ext_resource type="Script" path="res://scripts/audio/music_player.gd" id="27_music"]
+[ext_resource type="Resource" path="res://resources/audio/ambient_music.tres" id="28_music_config"]
 
 ; local_to_scene on all three, and it is load-bearing. Sub-resources are
 ; SHARED between instantiations of a scene by default, so without it two
@@ -74,7 +78,7 @@ sky = SubResource("Sky_o5qli")
 ambient_light_source = 3
 tonemap_mode = 2
 
-[node name="Main" type="Node3D" unique_id=159748148 node_paths=PackedStringArray("terrain", "player", "player_movement", "player_attack", "player_collector", "player_dropper", "camera", "companion", "companion_follow")]
+[node name="Main" type="Node3D" unique_id=159748148 node_paths=PackedStringArray("terrain", "player", "player_movement", "player_attack", "player_collector", "player_dropper", "player_interactor", "camera", "companion", "companion_follow", "workbench")]
 script = ExtResource("3_root")
 terrain = NodePath("Terrain")
 player = NodePath("Player")
@@ -82,11 +86,14 @@ player_movement = NodePath("Player/Movement")
 player_attack = NodePath("Player/Attack")
 player_collector = NodePath("Player/Collector")
 player_dropper = NodePath("Player/Dropper")
+player_interactor = NodePath("Player/Interactor")
 camera = NodePath("PlayerCamera")
 spawn_point = Vector2(-3, 0)
 companion = NodePath("Companion")
 companion_spawn = Vector2(-4.5, 1.5)
 companion_follow = NodePath("Companion/Follow")
+workbench = NodePath("Workbench")
+workbench_spawn = Vector2(3.4, -3.4)
 
 ; Single-player is a host with one local player and no socket, not a separate
 ; mode. See MULTIPLAYER.md.
@@ -148,6 +155,17 @@ respawn_delay = 8.0
 keep_away = 14.0
 keep_away_from = NodePath("../Player")
 
+; Position comes from WorldRoot, which drops it onto the floor. Only the
+; rotation is authored here.
+[node name="Workbench" parent="." instance=ExtResource("26_workbench")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, 0, 0)
+
+[node name="Music" type="Node" parent="."]
+script = ExtResource("27_music")
+config = ExtResource("28_music_config")
+autoplay = true
+volume_db = -6.0
+
 [node name="Mushrooms" type="Node3D" parent="." node_paths=PackedStringArray("terrain")]
 script = ExtResource("22_patch")
 scene = ExtResource("23_mushroom")
@@ -167,8 +185,14 @@ inventory = NodePath("../Player/Inventory")
 dropper = NodePath("../Player/Dropper")
 world_root = NodePath("..")
 
-[node name="PlayerHud" parent="." instance=ExtResource("14_hud") node_paths=PackedStringArray("health", "stamina", "collector")]
+[node name="CraftingScreen" parent="." instance=ExtResource("25_crafting_screen") node_paths=PackedStringArray("inventory", "interactor", "world_root")]
+inventory = NodePath("../Player/Inventory")
+interactor = NodePath("../Player/Interactor")
+world_root = NodePath("..")
+
+[node name="PlayerHud" parent="." instance=ExtResource("14_hud") node_paths=PackedStringArray("health", "stamina", "collector", "interactor")]
 collector = NodePath("../Player/Collector")
+interactor = NodePath("../Player/Interactor")
 health = NodePath("../Player/Health")
 stamina = NodePath("../Player/Stamina")
 

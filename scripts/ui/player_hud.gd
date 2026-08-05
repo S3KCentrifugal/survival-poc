@@ -16,6 +16,9 @@ extends CanvasLayer
 ## What is in reach, so the HUD can say what F would do. Optional.
 @export var collector: PickupCollector
 
+## What can be used, so the HUD can say what E would do. Optional.
+@export var interactor: Interactor
+
 @export var health_bar: ProgressBar
 @export var stamina_bar: ProgressBar
 @export var health_label: Label
@@ -38,8 +41,10 @@ func _ready() -> void:
 	if health != null:
 		health.changed.connect(_on_health_changed)
 	if collector != null:
-		collector.target_changed.connect(_on_target_changed)
-		_on_target_changed(collector.target())
+		collector.target_changed.connect(_on_pickup_target_changed)
+	if interactor != null:
+		interactor.target_changed.connect(_on_use_target_changed)
+	_refresh_prompt()
 	if stamina != null:
 		stamina.changed.connect(_on_stamina_changed)
 		stamina.exhausted.connect(_refresh_stamina_colour)
@@ -115,11 +120,31 @@ func _tint(bar: ProgressBar, colour: Color) -> void:
 	bar.add_theme_stylebox_override(&"fill", own)
 
 
-## Shows what the interact key would do, or hides the prompt when nothing is in
-## reach.
-func _on_target_changed(pickup: PickupComponent) -> void:
+## Shows what each key would do right now, or hides the prompt when there is
+## nothing in reach.
+##
+## Both at once when both are in reach, on separate lines. Showing only the
+## nearer one means standing at a bench with a mushroom by your foot hides the
+## bench, and a prompt that comes and goes as you shuffle is worse than two
+## lines of text.
+func _refresh_prompt() -> void:
 	if prompt_label == null:
 		return
-	prompt_label.visible = pickup != null
+	var lines: Array[String] = []
+	var pickup := collector.target() if collector != null else null
 	if pickup != null:
-		prompt_label.text = "[F]  %s" % pickup.prompt_text()
+		lines.append("[F]  %s" % pickup.prompt_text())
+	var usable := interactor.target() if interactor != null else null
+	if usable != null:
+		lines.append("[E]  %s" % usable.prompt_text())
+
+	prompt_label.visible = not lines.is_empty()
+	prompt_label.text = "\n".join(lines)
+
+
+func _on_pickup_target_changed(_pickup: PickupComponent) -> void:
+	_refresh_prompt()
+
+
+func _on_use_target_changed(_usable: WorkbenchComponent) -> void:
+	_refresh_prompt()

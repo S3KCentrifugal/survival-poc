@@ -22,6 +22,10 @@ extends Node3D
 ## without a second path through the code.
 @export var player_collector: PickupCollector
 
+## Uses whatever the player is standing next to. The same source again -- a
+## workbench is operated by intent like anything else.
+@export var player_interactor: Interactor
+
 ## Given the terrain and somewhere to parent dropped items. Both are the
 ## world's to know: a player prefab that names a terrain only works in a world
 ## that happens to have one.
@@ -41,6 +45,16 @@ extends Node3D
 ## Told who to follow here rather than in the companion scene, so the companion
 ## is not a thing that only works in a world with a node called "Player".
 @export var companion_follow: FollowComponent
+
+## Dropped onto the floor like everything else.
+##
+## Placed here rather than by a y in the scene file, because the floor is
+## wherever the terrain and the building pad put it -- a hard-coded height was
+## correct for exactly as long as the terrain did not change, and then the bench
+## was buried under the floor with nothing to say so.
+@export var workbench: Node3D
+
+@export var workbench_spawn: Vector2 = Vector2.ZERO
 
 ## The human's input, built here and shared by movement and the camera.
 var _player_input: PlayerInputSource
@@ -91,6 +105,7 @@ func set_mouse_captured(captured: bool) -> void:
 func _place_player() -> void:
 	_place(player, spawn_point)
 	_place(companion, companion_spawn)
+	_place(workbench, workbench_spawn)
 
 
 ## Drops [param actor] onto the terrain at [param where].
@@ -119,6 +134,8 @@ func _wire_input() -> void:
 		player_attack.input_source = _player_input
 	if player_collector != null:
 		player_collector.input_source = _player_input
+	if player_interactor != null:
+		player_interactor.input_source = _player_input
 	if player_dropper != null:
 		player_dropper.terrain = terrain
 		player_dropper.container = self

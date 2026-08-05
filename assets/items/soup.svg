@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- A bowl seen slightly from above, so the contents are visible: an icon of
+       a bowl from the side is a grey semicircle and nothing else. -->
+  <ellipse cx="32" cy="26" rx="24" ry="10" fill="#8d8f96"/>
+  <ellipse cx="32" cy="26" rx="20" ry="7.5" fill="#c8783a"/>
+  <path d="M8 26 a24 10 0 0 0 48 0 v2 a24 24 0 0 1 -48 0 z" fill="#a8aab2"/>
+  <path d="M32 26 a24 10 0 0 0 24 0 v2 a24 24 0 0 1 -24 22 z" fill="#8d8f96"/>
+  <ellipse cx="24" cy="25" rx="4" ry="1.8" fill="#b4452f"/>
+  <ellipse cx="38" cy="27" rx="3.4" ry="1.5" fill="#b4452f"/>
+  <ellipse cx="31" cy="23" rx="2.6" ry="1.2" fill="#e0a35c"/>
+  <path d="M24 14 q3 -4 0 -8" stroke="#cfd3da" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.75"/>
+  <path d="M32 12 q3 -4 0 -8" stroke="#cfd3da" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6"/>
+  <path d="M40 14 q3 -4 0 -8" stroke="#cfd3da" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.75"/>
+</svg>
