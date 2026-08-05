@@ -1,6 +1,6 @@
 # 021 — Punches connect, and π is not π
 
-*2026-08-04 · commit pending*
+*2026-08-04 · commit `c222edb`*
 
 Post 019 built a punch that hit nothing, and argued that was the right place to
 stop. Two features later there is something worth hitting, so now it connects:

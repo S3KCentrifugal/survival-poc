@@ -111,7 +111,7 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 18 | Escape menu and graphics settings | done | `6ec1535` |
 | 19 | Punch on left click | done | `eeaef61` |
 | 20 | Wandering characters | done | `a3b1062` |
-| 21 | Punches connect; wanderers react | done | |
+| 21 | Punches connect; wanderers react | done | `c222edb` |
 
 **The planned slice is complete.** 506 tests passing across 37 suites.
 `./run_tests.sh` exits non-zero on failure.
