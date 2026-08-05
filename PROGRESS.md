@@ -107,7 +107,7 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 14 | Prototype level: a base to walk out of | done | `e7ddd7d` |
 | 15 | Dev console | done | `41647fc` |
 | 16 | Third-person camera: mouse look, wheel zoom | done | `a9ebd09` |
-| 17 | Jump | done | |
+| 17 | Jump | done | `4b13064` |
 
 **The planned slice is complete.** 386 tests passing across 29 suites.
 `./run_tests.sh` exits non-zero on failure.
