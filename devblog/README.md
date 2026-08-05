@@ -29,6 +29,7 @@ rather than an edit to the old one.
 | 014 | [A base to walk out of](014-prototype-level.md) | Levelling ground, subtracting doorways, a 5 cm floor |
 | 015 | [A console, and two ways to lose an object](015-dev-console.md) | Callables, bound arguments, and a leak with no failing test |
 | 016 | [Over the shoulder, and a correction](016-third-person-camera.md) | Mouse look, why the camera must not follow itself, and a backwards character |
+| 017 | [Jump](017-jump.md) | Height not speed, held not pressed, and a 0.04-second animation |
 
 Numbers follow the **feature** order, not the order posts get written — 012 is
 the twelfth feature, and 002–011 below are still owed.

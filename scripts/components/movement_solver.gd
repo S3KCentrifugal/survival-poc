@@ -46,6 +46,17 @@ static func apply_gravity(
 	return vertical_velocity - gravity * delta
 
 
+## Upward speed that reaches [param height] under [param gravity].
+##
+## From v² = 2gh. Solving for the speed rather than exposing it directly means a
+## change to gravity keeps the jump clearing the same ledge, which is what a
+## designer means by "jump height".
+static func jump_velocity(height: float, gravity: float) -> float:
+	if height <= 0.0 or gravity <= 0.0:
+		return 0.0
+	return sqrt(2.0 * gravity * height)
+
+
 ## Rotates [param current_yaw] toward [param target_yaw] by at most
 ## [param max_step] radians.
 ##

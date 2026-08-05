@@ -32,6 +32,12 @@ func sprint(enabled: bool) -> void:
 	state.sprint = enabled
 
 
+## Holds or releases jump. Held, not tapped -- releasing is what arms the next
+## jump, exactly as it is for a human.
+func jump(held: bool) -> void:
+	state.jump = held
+
+
 ## Queues a mouse movement in pixels for the camera to consume.
 var pending_look: Vector2 = Vector2.ZERO
 

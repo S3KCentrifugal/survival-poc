@@ -107,15 +107,16 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 14 | Prototype level: a base to walk out of | done | `e7ddd7d` |
 | 15 | Dev console | done | `41647fc` |
 | 16 | Third-person camera: mouse look, wheel zoom | done | `a9ebd09` |
+| 17 | Jump | done | |
 
-**The planned slice is complete.** 369 tests passing across 28 suites.
+**The planned slice is complete.** 386 tests passing across 29 suites.
 `./run_tests.sh` exits non-zero on failure.
 
 Playable now: `./run.sh`. You start in a room inside a two-room base, seen from
 over the character's shoulder. WASD moves relative to the camera, the mouse
 turns it, the wheel zooms. Shift sprints until the bar runs out. Go through the
 internal doorway, out of the building and across to the tower. F3 for the
-readout, backtick for the console, Escape to release the cursor.
+readout, backtick for the console, Escape to release the cursor. Space jumps.
 
 ### 1. Bootstrap
 
@@ -492,6 +493,34 @@ while open. `HOLD_RIGHT` is the fallback if capture misbehaves.
 **It also found a bug in feature 12.** The character model was facing backwards
 the whole time — the mesh is authored facing +Z, and the top-down camera could
 never show it. Post 016 has the correction; post 012 stands as written.
+
+### 17. Jump
+
+Space jumps 1.1 m. `MovementConfig.jump_height` is a **height, not a launch
+speed**: height is the thing anyone needs to know — whether you clear that ledge
+— and `MovementSolver.jump_velocity()` derives the speed from it and gravity, so
+retuning gravity does not silently change what the character can climb.
+
+`InputState.jump` is *held*, like `sprint`, not "just pressed". The rising edge
+is spotted by `MovementComponent`, which keeps `InputState` a description of
+what the player is doing rather than a list of events — the same reasoning that
+kept look and zoom out of it in feature 16, arriving at the opposite answer
+because jump genuinely is a held key. Holding space jumps once; you have to
+release to jump again.
+
+The launch is written **after** velocity is solved and **before**
+`move_and_slide`, or gravity cancels it in the tick it happens. There is no air
+control and no double jump: those are decisions this game has not made, and
+defaulting to "yes" would make them for it.
+
+The animation state machine gained `JUMP`, chosen by vertical speed, with a
+0.5 m/s threshold rather than zero — the velocity crosses zero at the top of the
+arc, and a zero threshold flips to the falling clip for one frame on the way up.
+
+One rig lesson: **a clip name tells you nothing about its length.** The robot's
+`Jump` is a 0.04 second single-frame pose that ends in two frames and leaves the
+`AnimationPlayer` reporting nothing playing. `Jump2` is 0.21 s of actual launch
+motion, and is what the config names.
 
 ## What is not built
 

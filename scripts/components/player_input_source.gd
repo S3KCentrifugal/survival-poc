@@ -10,6 +10,7 @@ const ACTION_MOVE_RIGHT: StringName = &"move_right"
 const ACTION_MOVE_FORWARD: StringName = &"move_forward"
 const ACTION_MOVE_BACK: StringName = &"move_back"
 const ACTION_SPRINT: StringName = &"sprint"
+const ACTION_JUMP: StringName = &"jump"
 
 ## Every action this source depends on, so a test can assert the InputMap
 ## actually defines them.
@@ -19,6 +20,7 @@ const REQUIRED_ACTIONS: Array[StringName] = [
 	ACTION_MOVE_FORWARD,
 	ACTION_MOVE_BACK,
 	ACTION_SPRINT,
+	ACTION_JUMP,
 ]
 
 ## Used to turn screen input into world directions. Without one, movement falls
@@ -55,6 +57,7 @@ func poll() -> InputState:
 	)
 	state.move = to_world_direction(raw, camera_yaw())
 	state.sprint = Input.is_action_pressed(ACTION_SPRINT)
+	state.jump = Input.is_action_pressed(ACTION_JUMP)
 
 	var aim: Variant = resolve_aim()
 	if aim != null:

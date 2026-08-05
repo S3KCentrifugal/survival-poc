@@ -13,6 +13,14 @@ var move: Vector2 = Vector2.ZERO
 
 var sprint: bool = false
 
+## Whether the jump key is *held*, not whether it was just pressed.
+##
+## A state like [member sprint], not an event: the rising edge is spotted by
+## whoever acts on it. That keeps this object a description of what the player
+## is doing rather than a list of things that happened, which is what lets it be
+## read twice, recorded, or eventually arrive from a network peer.
+var jump: bool = false
+
 ## Point on the ground the actor wants to face.
 var aim_point: Vector3 = Vector3.ZERO
 
@@ -36,6 +44,7 @@ func copy() -> InputState:
 	var other := InputState.new()
 	other.move = move
 	other.sprint = sprint
+	other.jump = jump
 	other.aim_point = aim_point
 	other.has_aim = has_aim
 	return other
@@ -44,11 +53,12 @@ func copy() -> InputState:
 func clear() -> void:
 	move = Vector2.ZERO
 	sprint = false
+	jump = false
 	aim_point = Vector3.ZERO
 	has_aim = false
 
 
 func _to_string() -> String:
-	return "<InputState move=%v sprint=%s aim=%s>" % [
-		move, sprint, aim_point if has_aim else "none"
+	return "<InputState move=%v sprint=%s jump=%s aim=%s>" % [
+		move, sprint, jump, aim_point if has_aim else "none"
 	]

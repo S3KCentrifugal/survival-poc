@@ -47,6 +47,14 @@ enum FacingMode {
 ## gravity feels floaty in a game at this scale.
 @export_range(1.0, 60.0, 0.5) var gravity: float = 20.0
 
+## How high a standing jump clears, in metres.
+##
+## A height rather than a launch speed, because height is the thing anyone
+## actually needs to know: whether you can get onto that ledge. The speed that
+## produces it depends on [member gravity], and retuning gravity should not
+## silently change what the character can climb.
+@export_range(0.0, 5.0, 0.05) var jump_height: float = 1.1
+
 
 func turn_speed_radians() -> float:
 	return deg_to_rad(turn_speed_degrees)

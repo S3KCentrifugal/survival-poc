@@ -10,6 +10,10 @@ extends Node
 
 signal moved(velocity: Vector3)
 
+## Emitted the moment the actor leaves the ground under its own power, for a
+## sound or a puff of dust later. Not emitted for walking off a ledge.
+signal jumped
+
 ## The body this component walks. Assign in the scene.
 @export var body: CharacterBody3D
 
@@ -26,6 +30,10 @@ var input_source: InputSource
 ## Whether the last tick sprinted. Read by animation and the debug overlay;
 ## nothing here acts on it.
 var _sprinting: bool = false
+
+## Whether jump was held on the previous tick, so a held key is not a jump on
+## every frame. Releasing is what arms the next one.
+var _jump_held: bool = false
 
 
 func _ready() -> void:
@@ -51,9 +59,18 @@ func step(delta: float) -> void:
 	var state := input_source.poll()
 	_sprinting = consume_sprint(state)
 	body.velocity = solve_velocity(state, delta, _sprinting)
+
+	# After the velocity is solved, so gravity does not immediately undo the
+	# launch, and before move_and_slide, so the actor leaves this same tick.
+	var launching := consume_jump(state)
+	if launching:
+		body.velocity.y = MovementSolver.jump_velocity(config.jump_height, config.gravity)
+
 	body.move_and_slide()
 	apply_facing(state, delta)
 	moved.emit(body.velocity)
+	if launching:
+		jumped.emit()
 
 
 ## Whether the actor sprinted on the last tick.
@@ -79,6 +96,22 @@ func consume_sprint(state: InputState) -> bool:
 		return false
 	stamina.request_drain()
 	return true
+
+
+## Whether this tick launches a jump, and remembers the key for the next one.
+##
+## The rising edge is spotted here rather than in the input source, because
+## "the key went down" is an event and [InputState] describes what is *held*.
+## Holding the key therefore jumps once: you have to let go to jump again, which
+## is what stops a held spacebar becoming a hover.
+func consume_jump(state: InputState) -> bool:
+	var pressed := state.jump and not _jump_held
+	_jump_held = state.jump
+	if not pressed or body == null:
+		return false
+	# Feet on the ground only. Air control and double jumps are decisions this
+	# game has not made yet, and defaulting to "yes" would make them for it.
+	return body.is_on_floor()
 
 
 ## The velocity the actor should have after [param delta], given [param state].

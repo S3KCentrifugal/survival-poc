@@ -11,7 +11,13 @@ extends RefCounted
 ## starting to move is higher than the threshold for stopping, so an actor
 ## drifting near the boundary settles instead of flickering.
 
-enum State { IDLE, WALK, RUN, FALL }
+enum State { IDLE, WALK, RUN, JUMP, FALL }
+
+## Upward speed above which an airborne actor is rising rather than falling.
+##
+## Not zero: at the top of an arc the velocity crosses zero, and a threshold
+## there would flip to the falling clip for one frame on the way up.
+const RISING_SPEED: float = 0.5
 
 var _config: AnimationConfig
 var _state: State = State.IDLE
@@ -24,10 +30,14 @@ func _init(config: AnimationConfig) -> void:
 ## Recomputes the state from one tick of motion and returns it.
 ##
 ## [param ground_speed] is horizontal only: an actor falling straight down is
-## not walking, and a lift is not a sprint.
-func update(ground_speed: float, sprinting: bool, on_floor: bool) -> State:
+## not walking, and a lift is not a sprint. [param vertical_speed] separates
+## going up from coming down, which is the whole difference between a jump and
+## a fall.
+func update(
+	ground_speed: float, sprinting: bool, on_floor: bool, vertical_speed: float = 0.0
+) -> State:
 	if not on_floor:
-		_state = State.FALL
+		_state = State.JUMP if vertical_speed > RISING_SPEED else State.FALL
 	elif not _is_moving(ground_speed):
 		_state = State.IDLE
 	elif sprinting:
@@ -48,6 +58,8 @@ func animation_for(state_value: State) -> StringName:
 			return _config.walk_animation
 		State.RUN:
 			return _config.run_animation
+		State.JUMP:
+			return _config.jump_animation
 		State.FALL:
 			return _config.fall_animation
 		_:
@@ -62,6 +74,8 @@ static func state_name(state_value: State) -> StringName:
 			return &"walk"
 		State.RUN:
 			return &"run"
+		State.JUMP:
+			return &"jump"
 		State.FALL:
 			return &"fall"
 		_:

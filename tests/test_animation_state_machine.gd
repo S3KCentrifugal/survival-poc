@@ -52,8 +52,38 @@ func test_sprinting_on_the_spot_is_still_idle() -> void:
 func test_leaving_the_ground_falls() -> void:
 	var machine := _machine()
 	machine.update(5.0, false, true)
-	var state := machine.update(5.0, false, false)
+	var state := machine.update(5.0, false, false, -8.0)
 	assert_eq(state, AnimationStateMachine.State.FALL, "got %s" % _name_of(state))
+
+
+## Going up and coming down are the whole difference between a jump and a fall.
+func test_rising_off_the_ground_jumps() -> void:
+	var machine := _machine()
+	var state := machine.update(0.0, false, false, 6.0)
+	assert_eq(state, AnimationStateMachine.State.JUMP, "got %s" % _name_of(state))
+
+
+func test_a_jump_becomes_a_fall_on_the_way_down() -> void:
+	var machine := _machine()
+	machine.update(0.0, false, false, 6.0)
+	var state := machine.update(0.0, false, false, -3.0)
+	assert_eq(state, AnimationStateMachine.State.FALL, "got %s" % _name_of(state))
+
+
+## At the top of an arc the velocity crosses zero. A threshold there would flip
+## to the falling clip for a frame on the way up.
+func test_the_top_of_the_arc_does_not_flicker() -> void:
+	var machine := _machine()
+	var transitions := 0
+	var previous := machine.update(0.0, false, false, 8.0)
+	for frame in 40:
+		# Decelerating through zero and out the other side.
+		var vertical := 8.0 - frame * 0.4
+		var state := machine.update(0.0, false, false, vertical)
+		if state != previous:
+			transitions += 1
+			previous = state
+	assert_eq(transitions, 1, "jump/fall swapped %d times over one arc" % transitions)
 
 
 func test_landing_returns_to_the_ground_states() -> void:

@@ -49,7 +49,7 @@ func step() -> void:
 		return
 
 	var previous := _machine.state()
-	var next := _machine.update(ground_speed(), is_sprinting(), on_floor())
+	var next := _machine.update(ground_speed(), is_sprinting(), on_floor(), vertical_speed())
 	if next == previous:
 		return
 
@@ -61,6 +61,11 @@ func step() -> void:
 ## actor falling straight down is not walking.
 func ground_speed() -> float:
 	return 0.0 if body == null else Vector2(body.velocity.x, body.velocity.z).length()
+
+
+## Vertical speed of the body, positive upwards. Separates a jump from a fall.
+func vertical_speed() -> float:
+	return 0.0 if body == null else body.velocity.y
 
 
 ## Whether the body is standing on something.
