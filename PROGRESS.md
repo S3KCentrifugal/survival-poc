@@ -113,7 +113,7 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 20 | Wandering characters | done | `a3b1062` |
 | 21 | Punches connect; wanderers react | done | `c222edb` |
 | 22 | Health regen, player HUD, and death by explosion | done | `669a517` |
-| 23 | Respawning, damage numbers, health bars over heads | done | |
+| 23 | Respawning, damage numbers, health bars over heads | done | `d8f8f4c` |
 
 **The planned slice is complete.** 568 tests passing across 42 suites.
 `./run_tests.sh` exits non-zero on failure.

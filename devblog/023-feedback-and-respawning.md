@@ -1,6 +1,6 @@
 # 023 — Telling the player what happened
 
-*2026-08-05 · commit pending*
+*2026-08-05 · commit `d8f8f4c`*
 
 Three things that all answer the same question in different places: a number
 that floats off whatever you hit, a bar over its head, and a world that fills
