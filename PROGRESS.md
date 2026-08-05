@@ -110,8 +110,9 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 17 | Jump | done | `4b13064` |
 | 18 | Escape menu and graphics settings | done | `6ec1535` |
 | 19 | Punch on left click | done | `eeaef61` |
+| 20 | Wandering characters | done | |
 
-**The planned slice is complete.** 455 tests passing across 34 suites.
+**The planned slice is complete.** 484 tests passing across 36 suites.
 `./run_tests.sh` exits non-zero on failure.
 
 Playable now: `./run.sh`. You start in a room inside a two-room base, seen from
@@ -604,6 +605,41 @@ Two seams worth knowing:
 Holding the button throws one punch, not one per cooldown — releasing arms the
 next, the same rule as jump. Auto-repeat while held would be a one-line change
 in `AttackComponent.step`.
+
+### 20. Wandering characters
+
+Six actors amble about the world at 1.3 m/s, pausing for a few seconds between
+short walks, each straying no more than 9 m from where it spawned.
+
+**This is what the input abstraction was for.** A wanderer runs the *player's*
+`MovementComponent` — same acceleration, same turning, same collision, same
+animation state machine — and movement cannot tell that the intent came from a
+state machine rather than a keyboard. Feature 4 claimed that would work; this is
+the first time anything proved it.
+
+`WanderConfig` → `Wander` → `WanderComponent`. `Wander` is pure: hand it a
+position and a delta, get back a direction. No nodes, no navigation, no physics.
+
+The rules worth having:
+
+- **A give-up timer.** An actor wedged against a wall, or aiming at a spot
+  inside a building, walks into it for the rest of the session without one.
+- **Seeded per actor.** Wanderers sharing a generator walk in step, which reads
+  as choreography rather than life. Each gets its own seed from the spawner, and
+  the spawner's own seed is fixed so a world looks the same twice.
+- **Destinations spread evenly over the circle**, by square-rooting the random
+  radius. Without it they bunch toward the middle and a group reads as a huddle.
+- **Ticked by the component, not by `poll()`.** Polling reports what the last
+  tick decided and advances nothing — the states-versus-deltas rule from feature
+  16, applied before it could bite.
+
+`WandererSpawner` places them, keeps them out of the base so nobody is standing
+in the room you wake up in, and gives each a `random_id()` because a tree path
+is not an identity for something spawned (feature 11's rule).
+
+**These are not enemies.** No aggression, no targeting, no combat — the brief
+keeps those out and this does not smuggle them in. They are characters that
+exist and move. They will happily wander into the tower.
 
 ## What is not built
 

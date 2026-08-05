@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="WanderConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/components/wander_config.gd" id="1_config"]
+
+[resource]
+script = ExtResource("1_config")
+pause_min = 2.0
+pause_max = 6.0
+radius = 9.0
+arrival_distance = 0.7
+give_up_seconds = 10.0

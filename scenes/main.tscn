@@ -11,6 +11,8 @@
 [ext_resource type="Resource" path="res://resources/structures/prototype_structure.tres" id="9_structure_config"]
 [ext_resource type="PackedScene" path="res://ui/dev_console.tscn" id="10_console"]
 [ext_resource type="PackedScene" path="res://ui/pause_menu.tscn" id="11_pause"]
+[ext_resource type="Script" path="res://scripts/world/wanderer_spawner.gd" id="12_spawner"]
+[ext_resource type="PackedScene" path="res://characters/wanderer.tscn" id="13_wanderer"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sgp6g"]
 
@@ -50,6 +52,12 @@ sun = NodePath("../Sun")
 script = ExtResource("8_level")
 terrain = NodePath("../Terrain")
 structure_config = ExtResource("9_structure_config")
+
+[node name="Wanderers" type="Node3D" parent="." node_paths=PackedStringArray("terrain")]
+script = ExtResource("12_spawner")
+scene = ExtResource("13_wanderer")
+terrain = NodePath("../Terrain")
+count = 6
 
 [node name="Player" parent="." instance=ExtResource("4_player")]
 

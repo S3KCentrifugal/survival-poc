@@ -1,0 +1,49 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/components/movement_component.gd" id="1_movement"]
+[ext_resource type="Resource" path="res://resources/movement/wanderer_movement.tres" id="2_config"]
+[ext_resource type="PackedScene" path="res://assets/characters/godot_robot/3DGodotRobot.glb" id="3_model"]
+[ext_resource type="Script" path="res://scripts/components/health_component.gd" id="4_health"]
+[ext_resource type="Resource" path="res://resources/health/player_health.tres" id="5_health_config"]
+[ext_resource type="Script" path="res://scripts/components/animation_component.gd" id="6_animation"]
+[ext_resource type="Resource" path="res://resources/animation/player_animation.tres" id="7_animation_config"]
+[ext_resource type="Script" path="res://scripts/components/wander_component.gd" id="8_wander"]
+[ext_resource type="Resource" path="res://resources/wander/default_wander.tres" id="9_wander_config"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
+radius = 0.4
+height = 1.8
+
+[node name="Wanderer" type="CharacterBody3D"]
+floor_snap_length = 0.5
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_body")
+
+; Turned to face the body's -Z, same as the player: the mesh is authored
+; facing +Z. See devblog 016.
+[node name="Model" parent="." instance=ExtResource("3_model")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
+
+[node name="Movement" type="Node" parent="." node_paths=PackedStringArray("body")]
+script = ExtResource("1_movement")
+body = NodePath("..")
+config = ExtResource("2_config")
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("4_health")
+config = ExtResource("5_health_config")
+
+[node name="Wander" type="Node" parent="." node_paths=PackedStringArray("body", "movement")]
+script = ExtResource("8_wander")
+config = ExtResource("9_wander_config")
+body = NodePath("..")
+movement = NodePath("../Movement")
+
+[node name="Animation" type="Node" parent="." node_paths=PackedStringArray("body", "movement", "animation_player")]
+script = ExtResource("6_animation")
+body = NodePath("..")
+movement = NodePath("../Movement")
+animation_player = NodePath("../Model/AnimationPlayer")
+config = ExtResource("7_animation_config")
