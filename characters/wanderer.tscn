@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/components/movement_component.gd" id="1_movement"]
 [ext_resource type="Resource" path="res://resources/movement/wanderer_movement.tres" id="2_config"]
@@ -9,6 +9,7 @@
 [ext_resource type="Resource" path="res://resources/animation/player_animation.tres" id="7_animation_config"]
 [ext_resource type="Script" path="res://scripts/components/wander_component.gd" id="8_wander"]
 [ext_resource type="Resource" path="res://resources/wander/default_wander.tres" id="9_wander_config"]
+[ext_resource type="Script" path="res://scripts/components/hurt_reaction.gd" id="10_hurt"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -35,15 +36,22 @@ config = ExtResource("2_config")
 script = ExtResource("4_health")
 config = ExtResource("5_health_config")
 
-[node name="Wander" type="Node" parent="." node_paths=PackedStringArray("body", "movement")]
+[node name="Hurt" type="Node" parent="." node_paths=PackedStringArray("health")]
+script = ExtResource("10_hurt")
+health = NodePath("../Health")
+stagger_seconds = 0.6
+
+[node name="Wander" type="Node" parent="." node_paths=PackedStringArray("body", "movement", "hurt")]
 script = ExtResource("8_wander")
 config = ExtResource("9_wander_config")
 body = NodePath("..")
 movement = NodePath("../Movement")
+hurt = NodePath("../Hurt")
 
-[node name="Animation" type="Node" parent="." node_paths=PackedStringArray("body", "movement", "animation_player")]
+[node name="Animation" type="Node" parent="." node_paths=PackedStringArray("body", "movement", "hurt", "animation_player")]
 script = ExtResource("6_animation")
 body = NodePath("..")
 movement = NodePath("../Movement")
+hurt = NodePath("../Hurt")
 animation_player = NodePath("../Model/AnimationPlayer")
 config = ExtResource("7_animation_config")

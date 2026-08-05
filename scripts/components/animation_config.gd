@@ -24,4 +24,5 @@ extends Resource
 @export var run_animation: StringName = &"run"
 @export var jump_animation: StringName = &"jump"
 @export var punch_animation: StringName = &"punch"
+@export var hurt_animation: StringName = &"hurt"
 @export var fall_animation: StringName = &"fall"

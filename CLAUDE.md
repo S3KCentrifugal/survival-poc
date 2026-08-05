@@ -162,6 +162,12 @@ then left alone.
   Variants, which *are* strong references, so binding an object into a callable
   it is reachable from makes a cycle GDScript never collects. Hold the owner in
   a member; do not bind a collection into the things it collects.
+- **`Vector2`/`Vector3` hold 32-bit floats, so trig on them is 32-bit.**
+  `Vector2(0, -1).angle_to(Vector2(0, 1))` returns `3.14159274`, which is
+  *larger* than double-precision `PI` — so `angle <= PI` is false and a
+  180-degree half-arc misses the thing directly behind. Compare angles with a
+  small tolerance, never exactly. The symptom is a check that works everywhere
+  except at the boundary, which is exactly where the test is.
 - **`StringName` comparison sorts by interned pointer, not by text.** `<`, `>`
   and therefore `Array.sort()` return allocation order, which is stable within a
   run and changes the moment an unrelated system interns a new name — so a test

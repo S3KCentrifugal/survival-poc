@@ -15,7 +15,14 @@ signal attacked
 ## Emitted when the cooldown expires and another punch is available.
 signal ready_again
 
+## Emitted once per body a swing lands on, before the damage is applied.
+signal hit(target: Node3D, damage: float)
+
 @export var config: AttackConfig
+
+## Where the swing comes from and which way it points. Without one the punch is
+## a gesture -- it still animates and still rate-limits, it just cannot connect.
+@export var body: CharacterBody3D
 
 ## Where intent comes from. Shared with movement -- one source, so the key
 ## state cannot disagree with itself.
@@ -66,7 +73,49 @@ func punch() -> bool:
 	if not _cooldown.use():
 		return false
 	attacked.emit()
+	for target: Node3D in reachable_targets():
+		hit.emit(target, config.damage)
+		var health := MeleeSolver.health_of(target)
+		if health != null:
+			health.take_damage(config.damage)
 	return true
+
+
+## Everything within reach and inside the arc, right now.
+##
+## A shape query rather than a list of every actor in the world: the physics
+## server already knows what is near, and asking it scales with the crowd rather
+## than with the map.
+func reachable_targets() -> Array[Node3D]:
+	var found: Array[Node3D] = []
+	if body == null or not body.is_inside_tree():
+		return found
+
+	var shape := SphereShape3D.new()
+	shape.radius = config.reach
+
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = shape
+	query.transform = Transform3D(Basis.IDENTITY, body.global_position + Vector3.UP)
+	query.collision_mask = config.hit_mask
+	query.exclude = [body.get_rid()]
+
+	var forward := -body.global_transform.basis.z
+	for contact: Dictionary in body.get_world_3d().direct_space_state.intersect_shape(
+		query, config.max_targets
+	):
+		var collider := contact.get("collider") as Node3D
+		if collider == null or found.has(collider):
+			continue
+		if MeleeSolver.can_reach(
+			body.global_position,
+			forward,
+			collider.global_position,
+			config.reach,
+			config.arc_radians()
+		):
+			found.append(collider)
+	return found
 
 
 ## Whether a punch is currently being thrown.

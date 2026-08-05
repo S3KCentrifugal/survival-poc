@@ -33,6 +33,7 @@ rather than an edit to the old one.
 | 018 | [A menu, and the file a player can edit](018-settings-menu.md) | Validating settings, Escape's second job, and a test that wrote real data |
 | 019 | [A punch that hits nothing](019-punch.md) | Why the swing is not the combat, and a reusable cooldown |
 | 020 | [Six characters, and the promise from feature 4](020-wanderers.md) | The input abstraction paying off, and a give-up timer |
+| 021 | [Punches connect, and π is not π](021-punches-connect.md) | Hit detection, flinching, and 32-bit trigonometry |
 
 Numbers follow the **feature** order, not the order posts get written — 012 is
 the twelfth feature, and 002–011 below are still owed.

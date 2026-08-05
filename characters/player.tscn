@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/components/movement_component.gd" id="1_movement"]
 [ext_resource type="Resource" path="res://resources/movement/player_movement.tres" id="2_config"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://scripts/components/save_id_component.gd" id="11_save_id"]
 [ext_resource type="Script" path="res://scripts/components/attack_component.gd" id="12_attack"]
 [ext_resource type="Resource" path="res://resources/attack/player_attack.tres" id="13_attack_config"]
+[ext_resource type="Script" path="res://scripts/components/hurt_reaction.gd" id="14_hurt"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -43,15 +44,22 @@ config = ExtResource("6_health_config")
 script = ExtResource("7_stamina")
 config = ExtResource("8_stamina_config")
 
-[node name="Attack" type="Node" parent="."]
+[node name="Hurt" type="Node" parent="." node_paths=PackedStringArray("health")]
+script = ExtResource("14_hurt")
+health = NodePath("../Health")
+stagger_seconds = 0.4
+
+[node name="Attack" type="Node" parent="." node_paths=PackedStringArray("body")]
 script = ExtResource("12_attack")
 config = ExtResource("13_attack_config")
+body = NodePath("..")
 
-[node name="Animation" type="Node" parent="." node_paths=PackedStringArray("body", "movement", "attack", "animation_player")]
+[node name="Animation" type="Node" parent="." node_paths=PackedStringArray("body", "movement", "attack", "hurt", "animation_player")]
 script = ExtResource("9_animation")
 body = NodePath("..")
 movement = NodePath("../Movement")
 attack = NodePath("../Attack")
+hurt = NodePath("../Hurt")
 animation_player = NodePath("../Model/AnimationPlayer")
 config = ExtResource("10_animation_config")
 

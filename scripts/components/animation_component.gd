@@ -22,6 +22,9 @@ signal state_changed(state: int)
 ## which is all a deer needs.
 @export var attack: AttackComponent
 
+## Where a flinch is read from. Optional -- an actor with none never reacts.
+@export var hurt: HurtReaction
+
 ## The rig to drive. Optional, and absent until there is a character model.
 @export var animation_player: AnimationPlayer
 
@@ -54,7 +57,12 @@ func step() -> void:
 
 	var previous := _machine.state()
 	var next := _machine.update(
-		ground_speed(), is_sprinting(), on_floor(), vertical_speed(), is_punching()
+		ground_speed(),
+		is_sprinting(),
+		on_floor(),
+		vertical_speed(),
+		is_punching(),
+		is_hurt()
 	)
 	if next == previous:
 		return
@@ -99,6 +107,10 @@ func is_sprinting() -> bool:
 
 func is_punching() -> bool:
 	return attack != null and attack.is_attacking()
+
+
+func is_hurt() -> bool:
+	return hurt != null and hurt.is_reacting()
 
 
 ## Starts the clip for [param state_value], if there is a rig and it has one.

@@ -111,8 +111,9 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 18 | Escape menu and graphics settings | done | `6ec1535` |
 | 19 | Punch on left click | done | `eeaef61` |
 | 20 | Wandering characters | done | `a3b1062` |
+| 21 | Punches connect; wanderers react | done | |
 
-**The planned slice is complete.** 484 tests passing across 36 suites.
+**The planned slice is complete.** 506 tests passing across 37 suites.
 `./run_tests.sh` exits non-zero on failure.
 
 Playable now: `./run.sh`. You start in a room inside a two-room base, seen from
@@ -640,6 +641,38 @@ is not an identity for something spawned (feature 11's rule).
 **These are not enemies.** No aggression, no targeting, no combat — the brief
 keeps those out and this does not smuggle them in. They are characters that
 exist and move. They will happily wander into the tower.
+
+### 21. Punches connect
+
+The swing from feature 19 now lands. `MeleeSolver` answers whether a target is
+within reach and inside the arc; `AttackComponent` asks the physics server what
+is near, filters by that, and damages what it finds.
+
+A shape query rather than a walk of every actor: the physics server already
+knows what is nearby, and asking it scales with the crowd rather than with the
+map. Height is deliberately ignored — a punch that misses because the target
+stands slightly downhill is worse than one that is generous about height.
+
+`HurtReaction` is the receiving end. It listens to `HealthComponent.damaged`,
+holds a short reeling window, and that window does two things: the animation
+shows the flinch, and whatever drives the actor stops driving it. Kept out of
+`HealthComponent` because health owns a number and how long a character reels is
+presentation. A second hit **restarts** the reel rather than being swallowed by
+the first, which is the difference between a punch that lands and one that does
+nothing.
+
+In the state machine, being hit beats everything including your own swing: a
+punch landing on someone mid-punch has to interrupt them or it did not land.
+
+A new trap in `CLAUDE.md` came out of this. **`Vector2` holds 32-bit floats**, so
+`angle_to` on an exact half-turn returns `3.14159274` — larger than
+double-precision `PI`. A 360-degree arc therefore failed to reach the thing
+directly behind. Angles need a tolerance, never an exact comparison.
+
+**Death is only half-handled.** A wanderer at zero health stops moving for good
+and that is all: the rig has no death clip, and nothing despawns or loots it. It
+stands there. Deliberate — a death *system* is its own feature, and inventing
+one here would decide respawning, bodies and loot on the game's behalf.
 
 ## What is not built
 

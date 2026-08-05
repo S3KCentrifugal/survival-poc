@@ -20,6 +20,10 @@ extends Node
 ## Told what to do. Assign in the scene; without it this decides in private.
 @export var movement: MovementComponent
 
+## Stops the actor while it reels from a hit, and for good once it is dead.
+## Optional -- without one it wanders through anything that happens to it.
+@export var hurt: HurtReaction
+
 ## Different per actor, or every wanderer in the world walks in step.
 @export var seed_value: int = 0
 
@@ -48,6 +52,13 @@ func step(delta: float) -> void:
 	_ensure_wander()
 	if body == null:
 		return
+
+	# Reeling from a hit, or dead. Either way it is not going anywhere, and the
+	# wander clock keeps running so it does not resume mid-stride.
+	if hurt != null and (hurt.is_reacting() or not hurt.is_alive()):
+		_source.stop()
+		return
+
 	var here := Vector2(body.global_position.x, body.global_position.z)
 	_source.move_towards_direction(_wander.tick(here, delta))
 

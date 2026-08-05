@@ -11,7 +11,7 @@ extends RefCounted
 ## starting to move is higher than the threshold for stopping, so an actor
 ## drifting near the boundary settles instead of flickering.
 
-enum State { IDLE, WALK, RUN, JUMP, FALL, PUNCH }
+enum State { IDLE, WALK, RUN, JUMP, FALL, PUNCH, HURT }
 
 ## Upward speed above which an airborne actor is rising rather than falling.
 ##
@@ -38,12 +38,17 @@ func update(
 	sprinting: bool,
 	on_floor: bool,
 	vertical_speed: float = 0.0,
-	punching: bool = false
+	punching: bool = false,
+	hurt: bool = false
 ) -> State:
+	# Being hit beats everything, including your own swing. A punch that lands
+	# on someone mid-punch has to interrupt them or it did not land.
+	if hurt:
+		_state = State.HURT
 	# An action beats locomotion. Crude -- punching while running replaces the
 	# run rather than blending over it -- but a state machine cannot express two
 	# things at once, and an upper-body blend needs an AnimationTree.
-	if punching:
+	elif punching:
 		_state = State.PUNCH
 	elif not on_floor:
 		_state = State.JUMP if vertical_speed > RISING_SPEED else State.FALL
@@ -71,6 +76,8 @@ func animation_for(state_value: State) -> StringName:
 			return _config.jump_animation
 		State.PUNCH:
 			return _config.punch_animation
+		State.HURT:
+			return _config.hurt_animation
 		State.FALL:
 			return _config.fall_animation
 		_:
@@ -89,6 +96,8 @@ static func state_name(state_value: State) -> StringName:
 			return &"jump"
 		State.PUNCH:
 			return &"punch"
+		State.HURT:
+			return &"hurt"
 		State.FALL:
 			return &"fall"
 		_:
