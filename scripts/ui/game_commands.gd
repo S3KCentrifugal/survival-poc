@@ -15,6 +15,10 @@ var day_night: DayNightComponent
 var terrain: Terrain
 var tree: SceneTree
 
+## Optional -- without one the networking commands say so rather than crash.
+var network: NetworkService
+var session: GameSession
+
 
 ## Registers everything into [param console].
 func install(console: DevConsole) -> void:
@@ -43,6 +47,15 @@ func install(console: DevConsole) -> void:
 		DevCommand.new(&"speed", "speed <m/s>", "set walk speed", 1, 1, _set_speed)
 	)
 	console.register(DevCommand.new(&"quit", "quit", "close the game", 0, 0, _quit))
+	console.register(
+		DevCommand.new(&"host", "host [port]", "open a server on this machine", 0, 1, _host)
+	)
+	console.register(
+		DevCommand.new(&"join", "join <address> [port]", "connect to a server", 1, 2, _join)
+	)
+	console.register(
+		DevCommand.new(&"net", "net", "who is connected, and as what", 0, 0, _net)
+	)
 
 
 func _where(_arguments: PackedStringArray) -> String:
@@ -133,6 +146,45 @@ func _set_speed(arguments: PackedStringArray) -> String:
 	movement.config.walk_speed = speed
 	return "walk speed %.2f m/s (sprint %.2f)" % [
 		speed, speed * movement.config.sprint_multiplier
+	]
+
+
+func _host(arguments: PackedStringArray) -> String:
+	if network == null:
+		return "no network service"
+	var port := (
+		int(DevConsole.number(arguments[0], NetworkService.DEFAULT_PORT))
+		if not arguments.is_empty()
+		else NetworkService.DEFAULT_PORT
+	)
+	var error := network.host(port)
+	if error != OK:
+		return "could not host on %d: %s" % [port, error_string(error)]
+	return "hosting on %d for up to %d players" % [port, NetworkService.MAX_PLAYERS]
+
+
+func _join(arguments: PackedStringArray) -> String:
+	if network == null:
+		return "no network service"
+	var port := (
+		int(DevConsole.number(arguments[1], NetworkService.DEFAULT_PORT))
+		if arguments.size() > 1
+		else NetworkService.DEFAULT_PORT
+	)
+	var error := network.join(arguments[0], port)
+	if error != OK:
+		return "could not reach %s:%d: %s" % [arguments[0], port, error_string(error)]
+	return "connecting to %s:%d" % [arguments[0], port]
+
+
+func _net(_arguments: PackedStringArray) -> String:
+	if session == null and network == null:
+		return "no networking"
+	var mode := "?" if session == null else GameSession.mode_name(session.mode)
+	if network == null:
+		return "mode %s" % mode
+	return "mode %s  players %d/%d  peers %s" % [
+		mode, network.player_count(), NetworkService.MAX_PLAYERS, network.peers()
 	]
 
 

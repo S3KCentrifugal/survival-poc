@@ -16,6 +16,7 @@
 [ext_resource type="PackedScene" path="res://ui/player_hud.tscn" id="14_hud"]
 [ext_resource type="PackedScene" path="res://characters/companion.tscn" id="15_companion"]
 [ext_resource type="Script" path="res://scripts/systems/game_session.gd" id="16_session"]
+[ext_resource type="Script" path="res://scripts/systems/network_service.gd" id="17_network"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sgp6g"]
 
@@ -66,6 +67,10 @@ companion_follow = NodePath("Companion/Follow")
 [node name="Session" type="Node" parent="."]
 script = ExtResource("16_session")
 mode = 0
+
+[node name="Network" type="Node" parent="." node_paths=PackedStringArray("session")]
+script = ExtResource("17_network")
+session = NodePath("../Session")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=159123357]
 environment = SubResource("Environment_0wfyh")
@@ -118,7 +123,7 @@ stamina = NodePath("../Player/Stamina")
 animation = NodePath("../Player/Animation")
 day_night = NodePath("../DayNight")
 
-[node name="DevConsole" parent="." instance=ExtResource("10_console") node_paths=PackedStringArray("world_root", "player", "health", "stamina", "movement", "day_night", "terrain")]
+[node name="DevConsole" parent="." instance=ExtResource("10_console") node_paths=PackedStringArray("world_root", "player", "health", "stamina", "movement", "day_night", "terrain", "network", "session")]
 world_root = NodePath("..")
 player = NodePath("../Player")
 health = NodePath("../Player/Health")
@@ -126,6 +131,8 @@ stamina = NodePath("../Player/Stamina")
 movement = NodePath("../Player/Movement")
 day_night = NodePath("../DayNight")
 terrain = NodePath("../Terrain")
+network = NodePath("../Network")
+session = NodePath("../Session")
 
 [node name="PauseMenu" parent="." instance=ExtResource("11_pause") node_paths=PackedStringArray("world_root", "camera")]
 world_root = NodePath("..")

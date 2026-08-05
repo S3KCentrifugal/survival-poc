@@ -124,16 +124,69 @@ the same":
   database, not a file. This is the strongest argument for building the save
   system *after* this document rather than before it.
 - **A gateway.** Login, character selection, and routing to the right zone.
-- **Probably not Godot's high-level multiplayer.** `MultiplayerSynchronizer` and
-  `@rpc` are convenient and are built for tens of peers, not thousands. Expect to
-  replace them with a custom binary protocol over ENet, and to write the server
-  simulation as a headless Godot build — or eventually as a separate service.
 - **Ops.** Deployment, monitoring, rollback, and a backend team's worth of work
   that has nothing to do with the game.
 
 An MMO is not a networking feature; it is a different product with a different
 cost structure. What this architecture buys is that the *game code* does not have
 to be thrown away to get there.
+
+## Not closing the door on a Rust server
+
+The plan of record is that if this becomes an MMO, **the server is written in
+Rust**, not Godot. That is out of scope for now, but it decides what may be
+built today. Three things would make it hard, and each is avoided deliberately.
+
+**1. Godot's serialisation.** `@rpc`, `MultiplayerSynchronizer` and
+`var_to_bytes` all encode Godot's `Variant` type system. Anything reading them
+has to reimplement `Variant` first.
+
+*Avoided by:* `NetworkProtocol`. Every byte on the wire is a plain integer or an
+IEEE-754 float in a documented little-endian layout, with the message table and
+quantisation error bounds written down and asserted by tests. That file is a
+specification a Rust implementation follows. No Godot type ever goes on the wire.
+
+**2. A transport tangled through the codebase.** If sending were scattered
+across components, swapping it would mean touching all of them.
+
+*Avoided by:* `NetworkService` being the only file that knows a socket exists.
+It carries opaque bytes and reports who joined. Godot wraps `send_bytes`
+payloads in a small framing byte of its own — the one Godot-specific detail left
+— so a Rust server either matches that framing or replaces this single file.
+Everything above it speaks `NetworkProtocol` and does not care.
+
+**3. Tuning the server cannot read.** Thirteen `.tres` files hold the numbers
+that decide how fast a player moves and how hard a punch hits. A Rust server
+must agree with the client on every one of them, and cannot parse `.tres`.
+
+*Not yet solved, and the next thing to do about it:* export the tuning to JSON
+from a single source of truth, so both implementations read the same numbers.
+Until then, the risk is small — thirteen files, none large — but it grows with
+every new config.
+
+### The one that is genuinely hard: physics
+
+The server has to decide where players actually end up, and today that is
+`CharacterBody3D.move_and_slide` — Godot's physics engine, which a Rust server
+cannot reproduce and should not try to.
+
+There is no clean dodge, so the honest positions are:
+
+- The *decisions* are already portable. `MovementSolver`, `Stamina`,
+  `VitalPool`, `Cooldown`, `Wander`, `Follow` and `MeleeSolver` are pure maths
+  over plain numbers, with no engine in them. Porting them to Rust is
+  transcription, not redesign — and that is most of the rules.
+- What is left is **collision resolution**, which is a capsule against static
+  world geometry. That is a well-understood problem with Rust crates for it, and
+  the world is boxes and a heightfield rather than arbitrary meshes.
+- Until that day, a headless Godot build *is* the server. That is what supports
+  100 players and it is a perfectly good answer for a long time.
+
+The rule this implies for new gameplay code: **keep authoritative decisions in
+the pure logic layer, and let Godot physics only move things.** A rule that says
+"you cannot punch more than once every 0.35 s" belongs in a `Cooldown`; a rule
+that says "you stopped because a wall is there" is the engine's. The first must
+be portable; the second is allowed not to be.
 
 ## Order of work
 
@@ -146,8 +199,9 @@ independently useful. Nothing below is built yet except step 1.
    behaviour is unchanged. *(Done — see `PROGRESS.md` feature 25.)*
 2. **Move mutation behind authority.** Damage validated server-side; AI and
    spawners server-only. Still single-player, still identical to play.
-3. **A transport.** Host and join over ENet. Two processes, one player each,
-   both seeing the same world. This is where it stops being theoretical.
+3. **A transport.** Host and join over ENet, carrying `NetworkProtocol` bytes.
+   *(Done — see `PROGRESS.md` feature 26. Two processes exchange handshake,
+   intent and snapshots; entity replication is step 4.)*
 4. **State replication with interpolation.** Remote players and AI move
    smoothly at 20 Hz.
 5. **Client prediction and reconciliation** for the local player, so your own

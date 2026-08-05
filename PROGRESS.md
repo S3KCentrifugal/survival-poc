@@ -118,8 +118,9 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 23 | Respawning, damage numbers, health bars over heads | done | `d8f8f4c` |
 | 24 | Companion that follows you, with pathfinding | done | `563e75b` |
 | 25 | Multiplayer foundation: session and authority seam | done | `bf555d5` |
+| 26 | Wire protocol and transport, sized for 100 players | done | |
 
-**The planned slice is complete.** 611 tests passing across 45 suites.
+**The planned slice is complete.** 632 tests passing across 46 suites.
 `./run_tests.sh` exits non-zero on failure.
 
 Playable now: `./run.sh`. You start in a room inside a two-room base, seen from
@@ -819,6 +820,42 @@ default, so `multiplayer_peer != null` and `has_multiplayer_peer()` are both
 The offline peer reports id 1 and `is_server() == true`, which is right for
 authority and wrong for "is anyone there".
 
+### 26. Protocol and transport
+
+Host and join work. Two processes exchange a handshake, intent and snapshots
+over ENet, sized for **100 players**. `./run.sh` is still single-player: nothing
+opens a socket until you ask it to, with `host` or `join` in the dev console.
+
+**The server may one day be Rust**, so `NetworkProtocol` is an explicit
+byte-level specification rather than Godot serialisation — plain integers and
+IEEE-754 floats, little-endian, fixed layouts, with the message table and
+quantisation error bounds documented and asserted by tests. Godot's `@rpc` and
+`MultiplayerSynchronizer` encode `Variant`, which nothing outside Godot can read
+without reimplementing it, so neither is used for anything crossing the wire.
+
+An entity is **20 bytes**. At 20 Hz and 50 entities in interest that is 20 kB/s
+per client and 2 MB/s out of a full server — a test asserts the budget, because
+that number is the whole argument for interest management.
+
+`RemoteInputSource` is the fourth driver of `MovementComponent`, and the one
+feature 4 was actually built for. Verified end to end: a client's `InputState`
+went over the wire as ten bytes and came back out of a `RemoteInputSource` on
+the server as `move (0.50, -1.00) sprint=true`.
+
+Two things learned doing it:
+
+- **Reading the ENet peer directly does not work.** Assigning a peer to
+  `multiplayer.multiplayer_peer` hands it to `SceneMultiplayer`, which drains
+  every packet before anything else sees them. `send_bytes` / `peer_packet` is
+  the supported side channel — and keeping the peer attached is what makes
+  `is_multiplayer_authority()`, and therefore feature 25's seam, work at all.
+- **`NetworkService` is the one file a Rust server replaces.** Godot adds a
+  small framing byte to `send_bytes` payloads; that is the only Godot-specific
+  thing left below the protocol, and it is isolated in one file by design.
+
+`MULTIPLAYER.md` now has a section on what would make a Rust server hard and how
+each is avoided — including the one that genuinely is hard, which is physics.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -829,8 +866,13 @@ needs and this repo does not have:
 - **A save system.** Objects can be addressed; nothing serialises them. Worth
   building *after* the networking decisions rather than before: an MMO's
   persistence is a database on the server, not a file on a client.
-- **Any actual networking.** Feature 25 laid the seam; there is no transport, no
-  replication and no prediction. `MULTIPLAYER.md` has the order of work.
+- **Entity replication.** Features 25 and 26 laid the seam and the transport;
+  players connect and can exchange messages, but nobody is spawned for a remote
+  peer and no world state is broadcast yet. That is step 4 in `MULTIPLAYER.md`,
+  followed by client prediction and interest management.
+- **Tuning a Rust server could read.** Thirteen `.tres` files hold the numbers
+  both implementations must agree on. Exporting them to JSON is the next
+  Rust-facing job.
 - **Terrain streaming.** One 64 m tile. Chunking means many `Heightfield`s
   rather than a rewrite, which was the point of keeping it node-free.
 - **A level format.** The prototype layout is constants in

@@ -40,6 +40,8 @@ signal line_run(line: String, output: String)
 @export var movement: MovementComponent
 @export var day_night: DayNightComponent
 @export var terrain: Terrain
+@export var network: NetworkService
+@export var session: GameSession
 
 var _console: DevConsole
 
@@ -152,6 +154,8 @@ func _build_console() -> void:
 	_commands.day_night = day_night
 	_commands.terrain = terrain
 	_commands.tree = get_tree()
+	_commands.network = network
+	_commands.session = session
 	_commands.install(_console)
 
 	# Owned here rather than by GameCommands: clearing the scrollback is the
