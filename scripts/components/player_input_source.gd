@@ -50,6 +50,14 @@ var mouse_captured: bool = false
 var _look: Vector2 = Vector2.ZERO
 var _zoom: float = 0.0
 
+## While true, [method poll] reports a player doing nothing at all.
+##
+## Set while a text field has focus. Every consumer reads intent through this
+## object, so suspending it here suspends movement, jumping, punching, picking
+## up and using in one place -- rather than each of them separately learning
+## what a chat box is.
+var suspended: bool = false
+
 ## Set when the cursor is captured, cleared when the attack button next comes
 ## up. The click that takes the cursor back after a menu or an alt-tab is aimed
 ## at the window, not at whatever is standing in front of you.
@@ -62,6 +70,10 @@ func _init(p_camera: Camera3D = null) -> void:
 
 func poll() -> InputState:
 	var state := InputState.new()
+	# Typing is not playing. Returned before anything is read, so a key held
+	# when the box opened is not still held when it closes.
+	if suspended:
+		return state
 
 	var raw := Input.get_vector(
 		ACTION_MOVE_LEFT, ACTION_MOVE_RIGHT, ACTION_MOVE_FORWARD, ACTION_MOVE_BACK

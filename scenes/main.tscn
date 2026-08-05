@@ -28,6 +28,8 @@
 [ext_resource type="PackedScene" path="res://world/workbench.tscn" id="26_workbench"]
 [ext_resource type="Script" path="res://scripts/audio/music_player.gd" id="27_music"]
 [ext_resource type="Resource" path="res://resources/audio/ambient_music.tres" id="28_music_config"]
+[ext_resource type="Script" path="res://scripts/chat/chat_service.gd" id="29_chat_service"]
+[ext_resource type="PackedScene" path="res://ui/chat_box.tscn" id="30_chat_box"]
 
 ; local_to_scene on all three, and it is load-bearing. Sub-resources are
 ; SHARED between instantiations of a scene by default, so without it two
@@ -160,6 +162,13 @@ keep_away_from = NodePath("../Player")
 [node name="Workbench" parent="." instance=ExtResource("26_workbench")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, 0, 0)
 
+[node name="Chat" type="Node" parent="." node_paths=PackedStringArray("session", "network")]
+script = ExtResource("29_chat_service")
+session = NodePath("../Session")
+network = NodePath("../Network")
+player_name = "You"
+history = 100
+
 [node name="Music" type="Node" parent="."]
 script = ExtResource("27_music")
 config = ExtResource("28_music_config")
@@ -188,6 +197,10 @@ world_root = NodePath("..")
 [node name="CraftingScreen" parent="." instance=ExtResource("25_crafting_screen") node_paths=PackedStringArray("inventory", "interactor", "world_root")]
 inventory = NodePath("../Player/Inventory")
 interactor = NodePath("../Player/Interactor")
+world_root = NodePath("..")
+
+[node name="ChatBox" parent="." instance=ExtResource("30_chat_box") node_paths=PackedStringArray("service", "world_root")]
+service = NodePath("../Chat")
 world_root = NodePath("..")
 
 [node name="PlayerHud" parent="." instance=ExtResource("14_hud") node_paths=PackedStringArray("health", "stamina", "collector", "interactor")]

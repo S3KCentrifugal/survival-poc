@@ -144,4 +144,5 @@ change says so out loud.
 
 ---
 
-Next: nothing scheduled. Posts 002–011 and 025–027 are still owed.
+Next: [035 — A chat box, and a range check that aged badly](035-a-chat-box.md).
+Posts 002–011 and 025–027 are still owed.

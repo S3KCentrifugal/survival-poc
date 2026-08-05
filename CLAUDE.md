@@ -181,6 +181,12 @@ then left alone.
   180-degree half-arc misses the thing directly behind. Compare angles with a
   small tolerance, never exactly. The symptom is a check that works everywhere
   except at the boundary, which is exactly where the test is.
+- **Never bound a check with "whichever enum value is currently last".**
+  `if kind > Kind.DESPAWN: return NONE` was correct the day it was written and
+  silently dropped every message of the next kind added -- with no error,
+  because ignoring an unrecognised kind is the intended behaviour. Test
+  membership (`Kind.values().has(x)`) and assert over every value of the enum,
+  so growing the list cannot break the check.
 - **A script that fails to compile is reported at its caller.** The message is
   `Invalid call. Nonexistent function 'new' in base 'GDScript'` and it names
   the file doing `Foo.new()`, not the broken file `Foo` lives in — an

@@ -3,7 +3,7 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 34 — Music and crafting**. The planned
+Last updated after **Feature 35 — A chat box**. The planned
 vertical slice (features 1–11) was completed long ago; everything since is
 built on top of it.
 
@@ -127,7 +127,8 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 31 | Mushrooms, pickup on F, and an inventory on I | done | `4748172` |
 | 32 | Dropping items, item icons, and stack counts | done | `b45e62d` |
 | 33 | Larger, layered terrain with slope-blended textures | done | `e4daf04` |
-| 34 | Generated background music, and a bench that crafts soup | done | — |
+| 34 | Generated background music, and a bench that crafts soup | done | `31a71dd` |
+| 35 | A chat box on F12, networked | done | — |
 
 **The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
@@ -142,8 +143,8 @@ click punches — hit a wanderer enough and it blows up. Red mushrooms grow in
 the grass: walk up to one, press **F** to pick it up, **I** to see what you are
 carrying — drag a stack onto another slot to move it, or out of the panel to
 put it back on the ground. There is a workbench in the second room: stand at it,
-press **E**, and three mushrooms become soup. Something is playing in the
-background. Health and stamina are on screen, and both come back on their own if
+press **E**, and three mushrooms become soup. **F12** opens a chat box.
+Something is playing in the background. Health and stamina are on screen, and both come back on their own if
 you leave them alone.
 
 ### 1. Bootstrap
@@ -1160,6 +1161,43 @@ fell to y = -255, and the only tell was the overlay reading `state fall`.
 `WorldRoot` now drops the bench onto the floor from a `Vector2`, exactly as it
 already did for the player and companion, with a test that says so.
 
+### 35. A chat box
+
+F12 shows and hides it. Type, press Enter, and the line appears -- on your
+screen and on everyone else's, because a chat that cannot reach anyone is not a
+usable chat and the networking has existed since feature 26. In single-player
+it is the same path with the send skipped.
+
+Your own message appears immediately rather than waiting for the server to echo
+it, because a round trip's delay on your own words reads as the chat being
+broken. The display name comes from the peer id the packet arrived on, never
+from inside it -- a sender who picks their own name picks everyone else's.
+
+**`ChatLog` is where other people's text is made safe**, and it is a
+`RefCounted` so hostile input is a test rather than something someone types.
+Newlines become spaces (a message that can contain one can draw a fake line
+attributed to somebody else; a message that can contain many can push the log
+off the screen), other control characters are removed, and the length cap is
+enforced there rather than on the text box -- because the box is not the only
+way a message arrives.
+
+CHAT is the protocol's first variable-length message. The length is one byte so
+the ceiling is unmissable, and it is checked against the bytes actually present
+rather than trusted. Truncation cuts on a character boundary; cutting UTF-8
+mid-sequence sends an empty message rather than a short one.
+
+**Adding the kind broke every chat packet**, silently. `kind_of` range-checked
+against `Kind.DESPAWN` -- whichever kind was last when the check was written --
+so a new kind fell outside and was ignored, which is exactly what an
+unrecognised kind is supposed to do. It is a membership test now, with a test
+that walks every enum value.
+
+**Typing must not walk the character.** `PlayerInputSource.suspended` makes
+`poll()` report a player doing nothing, which suspends movement, jumping,
+punching, picking up and using at once rather than each learning what a chat
+box is. The test that matters most is the one asserting that hiding the box
+while typing gives the keyboard back.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -1196,6 +1234,11 @@ needs and this repo does not have:
   with holes in them, which is all a top-down camera needs to see into.
 - **A character of our own.** The player is a CC0 robot standing in for one. It
   animates and it is the right height; it is not the art direction.
+- **Player names.** Chat shows "Player 2" and your own line says "You". Real
+  names want accounts, and accounts want a server that is not this one.
+- **Chat moderation of any kind.** Text is sanitised so it cannot break the
+  log or impersonate a system line; there is no muting, no rate limit and no
+  filter. A rate limit is the first thing a public server would need.
 - **Eating anything.** Soup can be made, carried and dropped; nothing consumes
   it and it restores nothing. That is the obvious next thing and was
   deliberately not built.

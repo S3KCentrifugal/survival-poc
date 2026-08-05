@@ -30,6 +30,18 @@ extends RefCounted
 ## | 3 | INPUT | client → server | 10 | `u32` tick, `i8` move x, `i8` move z, `u16` yaw, `u8` buttons |
 ## | 4 | SNAPSHOT | server → client | 7 + 21n | `u32` tick, `u16` count, then n entities |
 ## | 5 | DESPAWN | server → client | 5 | `u32` entity id |
+## | 6 | CHAT | both ways | 6 + n | `u32` sender id, `u8` length, n bytes UTF-8 |
+##
+## CHAT is the first variable-length message, and the only one. Everything else
+## is a fixed layout a Rust server can read with a struct cast; this one needs a
+## length prefix and a bounds check, which is why the length is a single byte --
+## a message cannot be longer than 255 bytes, so the check is unmissable and the
+## buffer it lands in has a known ceiling.
+##
+## Adding a kind does **not** move VERSION. The kinds already in use keep their
+## numbers, and a peer that has never heard of kind 6 falls through the match
+## and ignores it, which is exactly the right thing to do with a message you
+## cannot read.
 ##
 ## An entity inside a snapshot is 21 bytes: `u32` id, `u8` kind, three `f32`
 ## position, `u16` yaw, `u8` flags, `u8` health.
@@ -69,7 +81,11 @@ enum Kind {
 	INPUT = 3,
 	SNAPSHOT = 4,
 	DESPAWN = 5,
+	CHAT = 6,
 }
+
+## Longest chat payload, in bytes of UTF-8. The length rides in one byte.
+const MAX_CHAT_BYTES: int = 255
 
 ## Button bits in an INPUT message.
 const BUTTON_SPRINT: int = 1 << 0
@@ -234,13 +250,57 @@ static func decode_despawn(bytes: PackedByteArray) -> Dictionary:
 	return {"id": bytes.decode_u32(1)}
 
 
+## One chat message from [param sender].
+##
+## Truncated on a **byte** boundary that is also a character boundary: cutting
+## UTF-8 mid-sequence produces a string Godot cannot decode, and the far end
+## sees an empty message rather than a shortened one.
+static func encode_chat(sender: int, text: String) -> PackedByteArray:
+	var payload := text.to_utf8_buffer()
+	while payload.size() > MAX_CHAT_BYTES:
+		text = text.left(text.length() - 1)
+		payload = text.to_utf8_buffer()
+
+	var bytes := PackedByteArray()
+	bytes.resize(6 + payload.size())
+	bytes.encode_u8(0, Kind.CHAT)
+	bytes.encode_u32(1, sender)
+	bytes.encode_u8(5, payload.size())
+	for index in payload.size():
+		bytes.encode_u8(6 + index, payload[index])
+	return bytes
+
+
+## Reads a CHAT back. Returns an empty dictionary if the bytes are not one.
+##
+## The length byte is checked against the bytes actually present, not trusted.
+## This is the one message whose size a stranger chooses, so it is the one place
+## a lie about length would be read past the end of the buffer.
+static func decode_chat(bytes: PackedByteArray) -> Dictionary:
+	if bytes.size() < 6 or bytes.decode_u8(0) != Kind.CHAT:
+		return {}
+	var length := bytes.decode_u8(5)
+	if bytes.size() != 6 + length:
+		return {}
+	return {
+		"sender": bytes.decode_u32(1),
+		"text": bytes.slice(6, 6 + length).get_string_from_utf8(),
+	}
+
+
 ## What kind of message this is, or [constant Kind.NONE] for anything empty or
 ## unrecognised.
 static func kind_of(bytes: PackedByteArray) -> Kind:
 	if bytes.is_empty():
 		return Kind.NONE
 	var first := bytes.decode_u8(0)
-	if first < Kind.HELLO or first > Kind.DESPAWN:
+	# Membership, not a range. This was `first > Kind.DESPAWN`, which is a line
+	# that has to be edited every time a kind is added -- and forgetting it
+	# makes the new message invisible with no error anywhere, because an
+	# unrecognised kind is *supposed* to be ignored. Adding CHAT broke it
+	# immediately and the test said so, which is the only reason it was a
+	# five-minute problem.
+	if first == Kind.NONE or not Kind.values().has(first):
 		return Kind.NONE
 	return first as Kind
 
