@@ -3,7 +3,7 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 28 — Title screen and scene routing**. The planned
+Last updated after **Feature 29 — Double jump, and a companion that dies**. The planned
 vertical slice (features 1–11) was completed long ago; everything since is
 built on top of it.
 
@@ -121,7 +121,8 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 25 | Multiplayer foundation: session and authority seam | done | `bf555d5` |
 | 26 | Wire protocol and transport, sized for 100 players | done | `d29a428` |
 | 27 | Entity replication, interpolation, tuning export | done | `831fdaf` |
-| 28 | Title screen, scene routing, shared settings panel | done | — |
+| 28 | Title screen, scene routing, shared settings panel | done | `c82922a` |
+| 29 | Double jump, and a companion that dies | done | — |
 
 **The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
@@ -921,6 +922,37 @@ runner — so the suite covers everything up to that call and the round trip was
 verified with a throwaway probe: title → `Main` with a `Player` and no socket,
 then back to `TitleScreen`, unpaused.
 
+### 29. A second jump, and a death that was missing
+
+`MovementConfig.air_jumps` defaults to **0** and the player's `.tres` sets it
+to 1. The default matters: every walking actor shares the class, so a default
+of 1 would have handed a double jump to six wanderers and the companion.
+
+The air-jump count is reset by *being grounded*, checked every tick, not by
+launching — so walking off a ledge leaves the air jump available and landing
+returns it before the player thinks to ask. The launch **replaces** vertical
+velocity rather than adding to it, so a double jump taken halfway down a fall
+is worth exactly as much as one taken at the apex. Measured in the running
+game: 1.16 m for a single, 2.23 m for a double.
+
+**The jump suite was testing itself.** Its test double overrode
+`consume_jump` — the method under test — with a copy of the rule, so every
+assertion below checked the copy. `MovementComponent.is_grounded()` now exists
+so a test can override *where the ground is* rather than *what jumping means*,
+and the nine jump tests exercise the real thing. A test double should replace
+what the code depends on, never what the code does.
+
+**The companion could not die.** It had health, took damage and reached zero,
+but its scene had no `ExplodeOnDeath` — the wanderer's has one. It read as a
+movement bug because `FollowComponent` correctly stops following when the
+follower is dead, so a companion at zero health stands perfectly still. That is
+the bill for composition: a missing component is not an error, nothing warns,
+and the symptom surfaces somewhere else. Every actor that can be killed now
+has a test asserting that killing it does something.
+
+The companion does **not** respawn. `WandererSpawner` tops the wanderer
+population back up; nothing does that for the scene-placed companion.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -952,6 +984,8 @@ needs and this repo does not have:
   with holes in them, which is all a top-down camera needs to see into.
 - **A character of our own.** The player is a CC0 robot standing in for one. It
   animates and it is the right height; it is not the art direction.
+- **A companion that comes back.** Killing it is permanent until relaunch;
+  only wanderers are topped back up.
 - **Devblog posts 025–027.** The three multiplayer features shipped without
   them, against the rule that a post lands in the same commit as its feature.
 - Crafting, inventory, combat, enemies, and real UI — all deliberately out of

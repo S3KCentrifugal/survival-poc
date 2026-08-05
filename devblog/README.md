@@ -38,6 +38,7 @@ rather than an edit to the old one.
 | 023 | [Telling the player what happened](023-feedback-and-respawning.md) | Respawning, damage numbers, and a shared resource caught a third time |
 | 024 | [A friend, and two numbers that broke pathfinding](024-companion-and-navigation.md) | Following, runtime navmesh baking, and voxel rounding |
 | 028 | [A front door](028-title-screen.md) | Why the scene swap is hand-rolled, and a child that was ready too early |
+| 029 | [Two jumps, and a companion that could not die](029-double-jump-and-a-companion-that-could-not-die.md) | Air jumps in data, a test that was testing itself, and the bill for composition |
 
 Numbers follow the **feature** order, not the order posts get written — 012 is
 the twelfth feature, and 002–011 and 025–027 below are still owed. The three

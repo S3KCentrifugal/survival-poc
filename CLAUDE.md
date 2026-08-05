@@ -181,6 +181,20 @@ then left alone.
   180-degree half-arc misses the thing directly behind. Compare angles with a
   small tolerance, never exactly. The symptom is a check that works everywhere
   except at the boundary, which is exactly where the test is.
+- **A component nobody attached is silent.** Composition's cost: there is no
+  base class whose contract went unfulfilled, so a missing node produces no
+  error, no warning, and no null — the actor simply lacks a behaviour. The
+  companion had health, took damage and reached zero with no `ExplodeOnDeath`,
+  and because `FollowComponent` correctly stops following when dead, the
+  symptom was "it stopped moving", pointing at the wrong system entirely. When
+  adding an actor, diff its scene against the nearest existing one, and assert
+  in a test that each capability is *present*, not just that it works.
+- **A test double must replace what the code depends on, never what the code
+  does.** `test_jump.gd` overrode `consume_jump` — the method under test —
+  with a copy of the rule, so nine assertions checked the copy and stayed green
+  while the real rule changed. If an override contains an `if`, that `if` is
+  the thing you meant to test. Push the seam down to the dependency
+  (`is_grounded()`), not to the behaviour.
 - **`StringName` comparison sorts by interned pointer, not by text.** `<`, `>`
   and therefore `Array.sort()` return allocation order, which is stable within a
   run and changes the moment an unrelated system interns a new name — so a test

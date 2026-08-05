@@ -55,6 +55,18 @@ enum FacingMode {
 ## silently change what the character can climb.
 @export_range(0.0, 5.0, 0.05) var jump_height: float = 1.1
 
+## Extra jumps allowed with nothing underfoot. One is a double jump.
+##
+## Zero by default, so nothing gains the ability by sharing this class. It is
+## the player's move, not a property of walking, and a wanderer that could
+## double jump would be a surprise nobody asked for.
+##
+## Every air jump reaches [member jump_height], because the launch *replaces*
+## vertical velocity rather than adding to it -- a second jump that had to
+## overcome the speed of a long fall would be worth almost nothing at exactly
+## the moment a player reaches for it.
+@export_range(0, 3, 1) var air_jumps: int = 0
+
 
 func turn_speed_radians() -> float:
 	return deg_to_rad(turn_speed_degrees)

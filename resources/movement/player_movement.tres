@@ -12,3 +12,4 @@ sprint_multiplier = 1.7
 turn_speed_degrees = 720.0
 gravity = 20.0
 jump_height = 1.1
+air_jumps = 1

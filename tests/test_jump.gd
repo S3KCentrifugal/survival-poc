@@ -1,5 +1,5 @@
 extends TestCase
-## Jumping: the launch speed, the rising edge, and what stops it.
+## Jumping: the launch speed, the rising edge, what stops it, and the second one.
 
 const PLAYER_SCENE: String = "res://characters/player.tscn"
 const STEP: float = 1.0 / 60.0
@@ -9,15 +9,19 @@ var _mounted: Array[Node] = []
 
 ## A player that believes it is standing on something, so jumping can be tested
 ## without a physics frame ever having run.
+##
+## Overrides *only* where the ground is. An earlier version overrode
+## [method MovementComponent.consume_jump] itself, which meant every test below
+## was checking a copy of the rule written in this file rather than the one the
+## game runs -- and the copy quietly stopped matching the moment air jumps were
+## added.
 class GroundedMovement:
 	extends MovementComponent
 
 	var grounded: bool = true
 
-	func consume_jump(state: InputState) -> bool:
-		var pressed: bool = state.jump and not _jump_held
-		_jump_held = state.jump
-		return pressed and grounded
+	func is_grounded() -> bool:
+		return grounded
 
 
 func after_each() -> void:
@@ -116,10 +120,12 @@ func test_releasing_and_pressing_again_jumps_again() -> void:
 	assert_true(movement.consume_jump(source.poll()), "the second press did nothing")
 
 
-## Air control and double jumps are decisions this game has not made, and
-## defaulting to "yes" would make them for it.
-func test_you_cannot_jump_in_mid_air() -> void:
+## Nothing gains a second jump by sharing [MovementConfig]. It is the player's
+## move, and a wanderer that could double jump would be a surprise nobody asked
+## for.
+func test_without_air_jumps_you_cannot_jump_in_mid_air() -> void:
 	var movement := _grounded_actor()
+	movement.config.air_jumps = 0
 	var source := _source_of(movement)
 
 	source.jump(true)
@@ -129,6 +135,96 @@ func test_you_cannot_jump_in_mid_air() -> void:
 	movement.consume_jump(source.poll())
 	source.jump(true)
 	assert_false(movement.consume_jump(source.poll()), "jumped again with no ground underfoot")
+
+
+func test_the_player_can_jump_twice() -> void:
+	var config: MovementConfig = load("res://resources/movement/player_movement.tres")
+	assert_eq(config.air_jumps, 1, "the player has no double jump")
+
+
+func _press(movement: GroundedMovement) -> bool:
+	# A press is a release and a press: the rising edge is what launches.
+	var source := _source_of(movement)
+	source.jump(false)
+	movement.consume_jump(source.poll())
+	source.jump(true)
+	return movement.consume_jump(source.poll())
+
+
+func test_the_second_jump_happens_in_the_air() -> void:
+	var movement := _grounded_actor()
+	assert_true(_press(movement), "the first jump did not launch")
+
+	movement.grounded = false
+	assert_true(_press(movement), "the second jump did nothing")
+	assert_eq(movement.air_jumps_used(), 1)
+
+
+## Two, not unlimited. The count is what separates a double jump from flight.
+func test_there_is_no_third_jump() -> void:
+	var movement := _grounded_actor()
+	_press(movement)
+	movement.grounded = false
+	_press(movement)
+	assert_false(_press(movement), "the character can fly")
+
+
+## One press must not spend both jumps in consecutive ticks.
+func test_holding_the_key_does_not_spend_the_second_jump() -> void:
+	var movement := _grounded_actor()
+	var source := _source_of(movement)
+	source.jump(true)
+
+	var launches := 0
+	for _frame in 30:
+		if movement.consume_jump(source.poll()):
+			launches += 1
+		# Off the ground from the tick after the launch, as it would be.
+		movement.grounded = launches == 0
+	assert_eq(launches, 1, "a held key launched %d times" % launches)
+
+
+func test_landing_gives_the_second_jump_back() -> void:
+	var movement := _grounded_actor()
+	_press(movement)
+	movement.grounded = false
+	_press(movement)
+	assert_eq(movement.air_jumps_used(), 1)
+
+	movement.grounded = true
+	movement.consume_jump(_source_of(movement).poll())
+	assert_eq(movement.air_jumps_used(), 0, "landing did not restore the air jump")
+	assert_true(_press(movement), "could not jump again after landing")
+
+
+## Walking off a ledge should leave the air jump available -- it was never
+## spent, and a player who steps off an edge reaching for it has not done
+## anything wrong.
+func test_walking_off_a_ledge_keeps_the_air_jump() -> void:
+	var movement := _grounded_actor()
+	# Never jumped; simply ran out of floor.
+	movement.consume_jump(_source_of(movement).poll())
+	movement.grounded = false
+	assert_true(_press(movement), "stepping off an edge cost the air jump")
+
+
+## The launch replaces vertical velocity rather than adding to it, so the second
+## jump is worth the same whether it is used at the apex or halfway down.
+func test_the_second_jump_is_worth_as_much_when_falling() -> void:
+	var movement := _grounded_actor()
+	var expected := MovementSolver.jump_velocity(
+		movement.config.jump_height, movement.config.gravity
+	)
+
+	movement.grounded = false
+	movement.body.velocity.y = -12.0
+	var source := _source_of(movement)
+	source.jump(true)
+	movement.step(STEP)
+	assert_true(
+		is_equal_approx(movement.body.velocity.y, expected),
+		"a falling double jump launched at %f instead of %f" % [movement.body.velocity.y, expected]
+	)
 
 
 func test_it_announces_the_launch() -> void:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/components/movement_component.gd" id="1_movement"]
 [ext_resource type="Resource" path="res://resources/movement/companion_movement.tres" id="2_config"]
@@ -13,6 +13,8 @@
 [ext_resource type="Resource" path="res://resources/follow/companion_follow.tres" id="11_follow_config"]
 [ext_resource type="Script" path="res://scripts/components/hurt_reaction.gd" id="12_hurt"]
 [ext_resource type="PackedScene" path="res://ui/health_bar_3d.tscn" id="13_healthbar"]
+[ext_resource type="Script" path="res://scripts/components/explode_on_death.gd" id="14_explode"]
+[ext_resource type="PackedScene" path="res://effects/explosion.tscn" id="15_explosion"]
 [ext_resource type="Script" path="res://scripts/components/network_entity.gd" id="90_netent"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
@@ -56,6 +58,12 @@ stagger_seconds = 0.5
 
 [node name="HealthBar" parent="." instance=ExtResource("13_healthbar") node_paths=PackedStringArray("health")]
 health = NodePath("../Health")
+
+[node name="Explode" type="Node" parent="." node_paths=PackedStringArray("health", "actor")]
+script = ExtResource("14_explode")
+health = NodePath("../Health")
+actor = NodePath("..")
+effect = ExtResource("15_explosion")
 
 [node name="Follow" type="Node" parent="." node_paths=PackedStringArray("body", "movement", "agent", "hurt")]
 script = ExtResource("10_follow")

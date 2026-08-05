@@ -134,6 +134,8 @@ argument.
 
 ---
 
-Next: nothing scheduled. Posts 002–011 and 025–027 are still owed — the three
+Next: [029 — Two jumps, and a companion that could not
+die](029-double-jump-and-a-companion-that-could-not-die.md). Posts 002–011 and
+025–027 are still owed — the three
 multiplayer features shipped without theirs, which is the convention in
 `CLAUDE.md` being broken and worth writing down rather than quietly leaving.

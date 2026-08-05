@@ -35,6 +35,9 @@ var _sprinting: bool = false
 ## every frame. Releasing is what arms the next one.
 var _jump_held: bool = false
 
+## Air jumps spent since the feet last touched anything.
+var _air_jumps_used: int = 0
+
 
 func _ready() -> void:
 	if config == null:
@@ -98,20 +101,50 @@ func consume_sprint(state: InputState) -> bool:
 	return true
 
 
+## Whether the actor has something underfoot.
+##
+## A method rather than a bare call to [method CharacterBody3D.is_on_floor] so a
+## test can stand an actor on imaginary ground: that answer is only meaningful
+## after [method CharacterBody3D.move_and_slide] has run inside a real physics
+## frame, and jumping is worth checking without one.
+func is_grounded() -> bool:
+	return body != null and body.is_on_floor()
+
+
 ## Whether this tick launches a jump, and remembers the key for the next one.
 ##
 ## The rising edge is spotted here rather than in the input source, because
 ## "the key went down" is an event and [InputState] describes what is *held*.
 ## Holding the key therefore jumps once: you have to let go to jump again, which
-## is what stops a held spacebar becoming a hover.
+## is what stops a held spacebar becoming a hover -- and, now that there is a
+## second jump, what stops one press spending both.
 func consume_jump(state: InputState) -> bool:
 	var pressed := state.jump and not _jump_held
 	_jump_held = state.jump
-	if not pressed or body == null:
+	if body == null:
 		return false
-	# Feet on the ground only. Air control and double jumps are decisions this
-	# game has not made yet, and defaulting to "yes" would make them for it.
-	return body.is_on_floor()
+
+	var grounded := is_grounded()
+	# Landing is what gives the air jumps back, and it is checked every tick
+	# rather than on the press: a player who walks off a ledge without jumping
+	# should still have their air jump, and one who lands should have it again
+	# before they think to ask.
+	if grounded:
+		_air_jumps_used = 0
+	if not pressed:
+		return false
+	if grounded:
+		return true
+
+	if _air_jumps_used >= config.air_jumps:
+		return false
+	_air_jumps_used += 1
+	return true
+
+
+## Air jumps spent since the actor last stood on something.
+func air_jumps_used() -> int:
+	return _air_jumps_used
 
 
 ## The velocity the actor should have after [param delta], given [param state].

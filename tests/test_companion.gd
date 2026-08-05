@@ -41,8 +41,29 @@ func _pair() -> Array:
 func test_the_scene_is_assembled() -> void:
 	var companion: CharacterBody3D = load(COMPANION_SCENE).instantiate()
 	_mounted.append(companion)
-	for child: String in ["CollisionShape3D", "Model", "Agent", "Movement", "Follow", "Animation"]:
+	for child: String in [
+		"CollisionShape3D", "Model", "Agent", "Movement", "Follow", "Animation", "Explode"
+	]:
 		assert_not_null(companion.get_node_or_null(child), "no %s" % child)
+
+
+## It used to have health, a way to lose it, and nothing that happened at zero.
+## [FollowComponent] stops following a corpse, so a killed companion simply
+## stood where it fell -- which reads as the follow logic breaking rather than
+## as the character dying.
+func test_a_dead_companion_blows_up_like_everything_else() -> void:
+	var companion: CharacterBody3D = load(COMPANION_SCENE).instantiate()
+	(Engine.get_main_loop() as SceneTree).root.add_child(companion)
+	_mounted.append(companion)
+
+	var explode: ExplodeOnDeath = companion.get_node_or_null("Explode")
+	assert_not_null(explode, "a companion at zero health would just stand there")
+	assert_eq(explode.health, companion.get_node("Health"))
+	assert_not_null(explode.effect, "it would disappear with no explosion")
+
+	var health: HealthComponent = companion.get_node("Health")
+	health.take_damage(health.maximum())
+	assert_true(explode.has_exploded(), "it died without exploding")
 
 
 ## The same claim as the wanderers: it runs the player's movement code.
