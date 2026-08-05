@@ -79,6 +79,44 @@ func test_no_input_produces_no_movement_at_any_yaw() -> void:
 		assert_true(world.is_zero_approx())
 
 
+## The click that gives the cursor back after a menu or an alt-tab is aimed at
+## the window, not at whatever is standing in front of you.
+func test_the_click_that_takes_the_cursor_back_does_not_attack() -> void:
+	var source := PlayerInputSource.new()
+	source.capture_mouse(false)
+
+	Input.action_press(PlayerInputSource.ACTION_ATTACK)
+	source.capture_mouse(true)
+	assert_false(source.poll().attack, "clicking back into the window threw a punch")
+
+
+func test_the_next_click_after_that_one_does_attack() -> void:
+	var source := PlayerInputSource.new()
+	source.capture_mouse(false)
+	Input.action_press(PlayerInputSource.ACTION_ATTACK)
+	source.capture_mouse(true)
+	source.poll()
+
+	Input.action_release(PlayerInputSource.ACTION_ATTACK)
+	source.poll()
+	Input.action_press(PlayerInputSource.ACTION_ATTACK)
+	assert_true(source.poll().attack, "the swallow never let go")
+
+
+## Regression: [WorldRoot] recaptures the cursor on *every* left click, so a
+## swallow armed on every capture -- rather than only on the transition from
+## released -- ate the punch that click was meant to throw. Every click.
+func test_clicking_while_already_captured_still_attacks() -> void:
+	var source := PlayerInputSource.new()
+	source.capture_mouse(true)
+	Input.action_release(PlayerInputSource.ACTION_ATTACK)
+	source.poll()
+
+	Input.action_press(PlayerInputSource.ACTION_ATTACK)
+	source.capture_mouse(true)  # what WorldRoot does on the same click
+	assert_true(source.poll().attack, "the click that recaptured ate its own punch")
+
+
 func test_yaw_is_recovered_from_a_camera_basis() -> void:
 	# Round-trip: frame from a known yaw, read it back off the basis.
 	for yaw_degrees: float in [0.0, 45.0, 120.0, 300.0]:

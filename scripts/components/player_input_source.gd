@@ -122,9 +122,12 @@ func handle_event(event: InputEvent) -> void:
 ## and a window you cannot leave are the two ways mouse capture ruins an
 ## afternoon.
 func capture_mouse(captured: bool) -> void:
-	mouse_captured = captured
-	if captured:
+	# Only on the way *in*. WorldRoot recaptures on every left click, so arming
+	# the swallow on every call ate the punch that click was meant to throw --
+	# which is to say, every punch.
+	if captured and not mouse_captured:
 		_swallow_attack = true
+	mouse_captured = captured
 	Input.mouse_mode = (
 		Input.MOUSE_MODE_CAPTURED if captured else Input.MOUSE_MODE_VISIBLE
 	)
