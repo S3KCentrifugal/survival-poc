@@ -142,4 +142,6 @@ hold one of is a number that never changes and therefore says nothing.
 
 ---
 
-Next: nothing scheduled. Posts 002–011 and 025–027 are still owed.
+Next: [033 — Terrain with somewhere to
+stand](033-terrain-with-somewhere-to-stand.md). Posts 002–011 and 025–027 are
+still owed.

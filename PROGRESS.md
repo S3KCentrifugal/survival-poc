@@ -3,7 +3,7 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 32 — Dropping items and item icons**. The planned
+Last updated after **Feature 33 — Larger, layered terrain**. The planned
 vertical slice (features 1–11) was completed long ago; everything since is
 built on top of it.
 
@@ -125,7 +125,8 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 29 | Double jump, and a companion that dies | done | `cd68c74` |
 | 30 | A sky: gradient, sun disc, halo and stars | done | `63376d3` |
 | 31 | Mushrooms, pickup on F, and an inventory on I | done | `4748172` |
-| 32 | Dropping items, item icons, and stack counts | done | — |
+| 32 | Dropping items, item icons, and stack counts | done | `b45e62d` |
+| 33 | Larger, layered terrain with slope-blended textures | done | — |
 
 **The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
@@ -133,7 +134,8 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 Playable now: `./run.sh`. You start in a room inside a two-room base, seen from
 over the character's shoulder. WASD moves relative to the camera, the mouse
 turns it, the wheel zooms. Shift sprints until the bar runs out. Go through the
-internal doorway, out of the building and across to the tower. F3 for the
+internal doorway, out of the building and across to the tower. Outside is 256 m
+of grassland with rolling hills and rocky high ground. F3 for the
 readout, backtick for the console, Escape for the menu. Space jumps twice, left
 click punches — hit a wanderer enough and it blows up. Red mushrooms grow in
 the grass: walk up to one, press **F** to pick it up, **I** to see what you are
@@ -1067,6 +1069,49 @@ Icons are SVG, rasterised on import, drawn with `EXPAND_IGNORE_SIZE` and
 `STRETCH_KEEP_ASPECT_CENTERED` -- without the first, a 512-pixel icon makes an
 84-pixel cell 512 pixels wide.
 
+### 33. Terrain with somewhere to stand
+
+256 m across instead of 64, with plains, rolling hills and rocky ridgelines,
+textured by slope.
+
+**One noise field cannot make a landscape** -- every square metre is as
+interesting as every other, which is the one property real ground never has.
+`TerrainShaper` is four layers: a very low-frequency **relief** mask deciding
+where the land is interesting, **hills** for the broad shape, folded
+`1 - abs(n)` **ridges** for creases where plain noise rounds, and **detail**
+everywhere. The hill layer is raised to a power so low ground is more common
+than high ground, which is what a landscape does and a test asserts.
+
+**The relief mask has a floor, and that one number is the feature.** At zero,
+hills stood on a perfectly flat sheet like cones dropped on a table. Plains now
+get 16% of the hill layer, so they undulate in the same shape as the hills and
+the hills read as the high end of one landscape.
+
+**Tuned against numbers.** A probe reports the slope profile as percentages,
+which is how the original frequencies were caught: they gave 11 m of relief
+over 256 m, a four percent grade, because they had been chosen for a much
+larger world and at 64 m across there was nothing to notice. The final profile
+is 41% flat, 32% rolling, 21% steep, 6% cliff, and the tests assert bands
+around it.
+
+**Texturing is derived, not painted.** Grass under 16 degrees, dirt to 26, rock
+from 32 -- no splat map to keep in sync with the heightfield, so a new seed
+retextures itself. Cliffs are triplanar (a steep face UV-mapped from above is
+smeared into vertical streaks), the grass is sampled at two scales to hide the
+tiling grid, and the thresholds are jittered so the boundaries are ragged
+rather than contour lines. Textures are CC0 from ambientCG, resized to 512 --
+676 KB for six maps rather than 13 MB, with provenance in
+`assets/terrain/README.md`.
+
+**The navmesh cell size was never the point.** Sixteen times the ground area
+took the test suite from a minute to seven and a half, almost all of it the
+bake at 0.1 m cells over 256 m -- 6.5 million voxels. Re-reading post 024, the
+finding there was that the bake *ceils the agent radius to whole cells*, not
+that cells must be small. 0.4 divides by 0.2 exactly, so cells are 0.2 now, the
+bake is a sixteenth of the size, the suite is under three minutes and the
+companion still walks through the doorway. `agent_max_climb` and
+`region_min_size` were being silently rounded too; both are whole cells now.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -1089,8 +1134,13 @@ needs and this repo does not have:
 - **Server-validated damage, and a gated console.** Items 1 and 5 of "what is
   wrong today" in `MULTIPLAYER.md` are still open: the attacker applies damage,
   and `tp`/`kill`/`time` are ungated.
-- **Terrain streaming.** One 64 m tile. Chunking means many `Heightfield`s
-  rather than a rewrite, which was the point of keeping it node-free.
+- **Terrain streaming.** One 256 m tile, and its edges are vertical drops
+  because a finite tile has to end somewhere. Chunking means many
+  `Heightfield`s rather than a rewrite, which was the point of keeping it
+  node-free.
+- **Content spread over the new ground.** Wanderers scatter over 28 m and
+  mushrooms over 44 m, both tuned when the world was 64 m across. They now sit
+  in a cluster near the base with 256 m of empty grass around them.
 - **A level format.** The prototype layout is constants in
   `scripts/world/prototype_level.gd`. The second building is what should decide
   what a level resource needs to say.
@@ -1128,14 +1178,10 @@ Nothing here is blocking; all are judgement calls left to the owner.
   `library/` are deliberately excluded from git, so art masters would have **no
   backup path**. Harmless while both are empty; wire it before the first real
   `.blend` lands.
-- **Terrain noise frequency** (0.015) gives ~66m features on a 64m tile. This
-  was raised when the camera was 18 m up and the ground read as flat; at
-  third-person distance the same terrain has 3.4 m of relief across a building
-  footprint, which is plenty. **Re-judge it from the new camera before
-  changing it** — the original complaint was about a view that no longer exists.
-
 Resolved: camera distance, by feature 16 replacing the fixed 18 m isometric
-camera with a 5 m third-person one.
+camera with a 5 m third-person one. Terrain noise frequency, by feature 33
+replacing the single noise field with four layers tuned against a measured
+slope profile.
 
 ## Environment notes
 

@@ -48,17 +48,21 @@ geometry_source_geometry_mode = 2
 geometry_source_group_name = &"navigation_source"
 ; Matches the navigation map's own defaults. A mismatch warns on every
 ; region added and quietly degrades the bake.
-cell_size = 0.1
-cell_height = 0.1
+cell_size = 0.2
+cell_height = 0.2
 agent_height = 1.8
-; Exactly two cells. The bake ceils this to whole voxels, so 0.55 became 0.75
-; -- which erodes 0.75 m from every wall and leaves a 1.6 m doorway with a
-; tenth of a metre of navigable width. Companions then cannot path indoors at
-; all, which looks exactly like pathfinding being broken.
+; Exactly two cells at 0.2, which is the whole point. The bake ceils the radius
+; to whole voxels, so what matters is not that the cells are small but that the
+; radius is a multiple of them: 0.55 at 0.25 became 0.75 and left a 1.6 m
+; doorway with a tenth of a metre of navigable width. 0.4 at 0.2 is 0.4
+; exactly, and costs a sixteenth of the bake that 0.1 did over a 256 m tile.
 agent_radius = 0.4
-agent_max_climb = 0.3
+; Two cells exactly. Floored to cell_height, so 0.3 at 0.2 became 0.2 and
+; warned about it.
+agent_max_climb = 0.4
 agent_max_slope = 45.0
-region_min_size = 0.5
+; Converted to int, so 0.5 became 0. Whole numbers only.
+region_min_size = 2.0
 filter_low_hanging_obstacles = true
 filter_ledge_spans = true
 filter_walkable_low_height_spans = true

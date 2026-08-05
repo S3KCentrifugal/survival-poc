@@ -31,19 +31,14 @@ func _init(p_size_meters: int, p_heights: PackedFloat32Array) -> void:
 
 ## Builds a field from [param config]. Deterministic for a given seed.
 static func generate(config: TerrainConfig) -> Heightfield:
-	var noise := FastNoiseLite.new()
-	noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
-	noise.seed = config.noise_seed
-	noise.frequency = config.noise_frequency
-	noise.fractal_octaves = config.noise_octaves
-
+	var shaper := TerrainShaper.new(config)
 	var resolution := config.resolution()
 	var heights := PackedFloat32Array()
 	heights.resize(resolution * resolution)
 
 	for z in resolution:
 		for x in resolution:
-			heights[z * resolution + x] = noise.get_noise_2d(x, z) * config.height_scale
+			heights[z * resolution + x] = shaper.height_at(x, z)
 
 	return Heightfield.new(config.size_meters, heights)
 

@@ -74,13 +74,13 @@ interact={
 
 [navigation]
 
-; Finer than the 0.25 default. A doorway is 1.6 m wide in a 0.3 m wall, and the
-; bake erodes the agent radius from every surface -- at 0.25 the remaining gap
-; does not survive rasterisation and the inside of a building becomes an island
-; nothing can path out of. Must match the navmesh's own cell size or every
-; region added warns.
-3d/default_cell_size=0.1
-3d/default_cell_height=0.1
+; The agent radius (0.4) must be an exact multiple of this, or the bake ceils it
+; up and erodes more than asked from every surface -- 0.55 at 0.25 became 0.75
+; and closed a 1.6 m doorway entirely. 0.2 divides 0.4 exactly. Finer than that
+; is not more correct, only slower: 0.1 over a 256 m tile is 6.5 million voxels
+; and six seconds. Must match the navmesh's own cell size or every region warns.
+3d/default_cell_size=0.2
+3d/default_cell_height=0.2
 
 [rendering]
 

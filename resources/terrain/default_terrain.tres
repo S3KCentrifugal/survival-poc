@@ -4,8 +4,18 @@
 
 [resource]
 script = ExtResource("1_config")
-size_meters = 64
-height_scale = 6.0
+size_meters = 256
+height_scale = 44.0
 noise_seed = 1337
-noise_frequency = 0.015
 noise_octaves = 4
+relief_frequency = 0.0075
+plains_extent = 0.46
+plains_roughness = 0.025
+relief_floor = 0.16
+hill_frequency = 0.013
+hill_weight = 0.75
+hill_sharpness = 1.7
+ridge_frequency = 0.025
+ridge_weight = 0.42
+detail_frequency = 0.045
+detail_weight = 0.018
