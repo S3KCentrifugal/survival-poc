@@ -1,6 +1,6 @@
 # 022 — Two bars, one delay, and a puff of sparks
 
-*2026-08-05 · commit pending*
+*2026-08-05 · commit `669a517`*
 
 Health now comes back on its own, there is a real HUD showing it, and a wanderer
 punched enough times stops existing in a shower of orange.
