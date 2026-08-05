@@ -110,7 +110,7 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 17 | Jump | done | `4b13064` |
 | 18 | Escape menu and graphics settings | done | `6ec1535` |
 | 19 | Punch on left click | done | `eeaef61` |
-| 20 | Wandering characters | done | |
+| 20 | Wandering characters | done | `a3b1062` |
 
 **The planned slice is complete.** 484 tests passing across 36 suites.
 `./run_tests.sh` exits non-zero on failure.

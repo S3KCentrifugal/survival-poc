@@ -1,6 +1,6 @@
 # 020 — Six characters, and the promise from feature 4
 
-*2026-08-04 · commit pending*
+*2026-08-04 · commit `a3b1062`*
 
 Six actors now amble around the world. They walk slowly, stop for a few seconds,
 pick somewhere else, and never stray far from where they started.
