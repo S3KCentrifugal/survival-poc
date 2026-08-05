@@ -119,7 +119,7 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 24 | Companion that follows you, with pathfinding | done | `563e75b` |
 | 25 | Multiplayer foundation: session and authority seam | done | `bf555d5` |
 | 26 | Wire protocol and transport, sized for 100 players | done | `d29a428` |
-| 27 | Entity replication, interpolation, tuning export | done | |
+| 27 | Entity replication, interpolation, tuning export | done | `831fdaf` |
 
 **The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
