@@ -109,7 +109,7 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 16 | Third-person camera: mouse look, wheel zoom | done | `a9ebd09` |
 | 17 | Jump | done | `4b13064` |
 | 18 | Escape menu and graphics settings | done | `6ec1535` |
-| 19 | Punch on left click | done | |
+| 19 | Punch on left click | done | `eeaef61` |
 
 **The planned slice is complete.** 455 tests passing across 34 suites.
 `./run_tests.sh` exits non-zero on failure.
