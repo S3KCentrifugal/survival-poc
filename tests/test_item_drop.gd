@@ -38,13 +38,16 @@ func test_a_dropped_stack_is_immediately_pickable_again() -> void:
 	var item := dropper.drop(load(MUSHROOM_PATH), 6)
 	assert_not_null(item, "nothing landed")
 
-	var found := PickupCollector.nearest(
-		Vector3.ZERO, (Engine.get_main_loop() as SceneTree).get_nodes_in_group(
-			PickupComponent.GROUP
-		), 2.2
-	)
+	var body := Node3D.new()
+	mount(body)
+	var router := InteractionRouter.new()
+	router.body = body
+	body.add_child(router)
+
+	var found := router.find_target()
 	assert_not_null(found, "the dropped stack is out of reach")
-	assert_eq(found.amount, 6, "it landed as %d rather than the six dropped" % found.amount)
+	var pickup: PickupComponent = found.get_parent().get_node("Pickup")
+	assert_eq(pickup.amount, 6, "it landed as %d rather than the six dropped" % pickup.amount)
 
 
 ## Twenty mushrooms dropped as twenty nodes is a pile you press F at twenty
@@ -55,7 +58,10 @@ func test_a_whole_stack_lands_as_one_pickup() -> void:
 	var pickup: PickupComponent = item.get_node("Pickup")
 
 	assert_eq(pickup.amount, 12)
-	assert_true(pickup.prompt_text().contains("12"), "the prompt hides how many there are")
+	var interactable: InteractableComponent = item.get_node("Interactable")
+	assert_true(
+		interactable.prompt_text().contains("12"), "the prompt hides how many there are"
+	)
 
 
 ## Something you put down is already there. Watching it sprout would read as

@@ -1,6 +1,7 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/components/workbench_component.gd" id="1_bench"]
+[ext_resource type="Script" path="res://scripts/components/interactable_component.gd" id="9_interactable"]
 [ext_resource type="Resource" path="res://resources/recipes/mushroom_soup.tres" id="2_recipe"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_top"]
@@ -48,9 +49,17 @@ mesh = SubResource("BoxMesh_leg")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
 shape = SubResource("BoxShape3D_bench")
 
-[node name="Bench" type="Node" parent="." node_paths=PackedStringArray("actor")]
-script = ExtResource("1_bench")
-recipes = Array[Resource]([ExtResource("2_recipe")])
+; A bench is a big thing; you should not have to stand on it.
+[node name="Interactable" type="Node" parent="." node_paths=PackedStringArray("actor")]
+script = ExtResource("9_interactable")
+kind = 1
 actor = NodePath("..")
 display_name = "Workbench"
 verb = "Use"
+reach = 2.6
+
+[node name="Bench" type="Node" parent="." node_paths=PackedStringArray("interactable")]
+script = ExtResource("1_bench")
+recipes = Array[Resource]([ExtResource("2_recipe")])
+interactable = NodePath("../Interactable")
+display_name = "Workbench"

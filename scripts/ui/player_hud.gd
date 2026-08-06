@@ -21,9 +21,6 @@ extends CanvasLayer
 ## the prompt can never say "Trade with Merchant".
 @export var router: InteractionRouter
 
-## What can be used, so the HUD can say what E would do. Optional.
-@export var interactor: Interactor
-
 @export var health_bar: ProgressBar
 @export var stamina_bar: ProgressBar
 @export var health_label: Label
@@ -53,8 +50,6 @@ func _ready() -> void:
 		health.changed.connect(_on_health_changed)
 	if router != null:
 		router.target_changed.connect(_on_interact_target_changed)
-	if interactor != null:
-		interactor.target_changed.connect(_on_use_target_changed)
 	_refresh_prompt()
 	if experience != null:
 		experience.gained.connect(_on_experience_gained)
@@ -174,10 +169,9 @@ func _tint(bar: ProgressBar, colour: Color) -> void:
 ## Shows what each key would do right now, or hides the prompt when there is
 ## nothing in reach.
 ##
-## Both at once when both are in reach, on separate lines. Showing only the
-## nearer one means standing at a bench with a mushroom by your foot hides the
-## bench, and a prompt that comes and goes as you shuffle is worse than two
-## lines of text.
+## One line, because there is now one key. Two components each watching their
+## own key is what this refactor removed; the router picks whichever thing is
+## nearest and the prompt says what that one would do.
 func _refresh_prompt() -> void:
 	if prompt_label == null:
 		return
@@ -185,17 +179,12 @@ func _refresh_prompt() -> void:
 	var reachable := router.prompt_text() if router != null else ""
 	if not reachable.is_empty():
 		lines.append("[F]  %s" % reachable)
-	var usable := interactor.target() if interactor != null else null
-	if usable != null:
-		lines.append("[E]  %s" % usable.prompt_text())
-
 	prompt_label.visible = not lines.is_empty()
 	prompt_label.text = "\n".join(lines)
 
 
-func _on_interact_target_changed(_target: Node) -> void:
+func _on_interact_target_changed(_target: InteractableComponent) -> void:
 	_refresh_prompt()
 
 
-func _on_use_target_changed(_usable: WorkbenchComponent) -> void:
-	_refresh_prompt()
+

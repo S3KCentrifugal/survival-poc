@@ -113,4 +113,6 @@ the next person to have read:
 
 ---
 
-Next: nothing scheduled. Posts 002–011 and 025–027 are still owed.
+Next: [039 — Three components that were
+one](039-three-components-that-were-one.md). Posts 002–011 and 025–027 are still
+owed.

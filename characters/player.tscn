@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://scripts/components/movement_component.gd" id="1_movement"]
 [ext_resource type="Resource" path="res://resources/movement/player_movement.tres" id="2_config"]
@@ -16,9 +16,7 @@
 [ext_resource type="Script" path="res://scripts/components/damage_numbers.gd" id="15_numbers"]
 [ext_resource type="PackedScene" path="res://effects/damage_number.tscn" id="16_number_scene"]
 [ext_resource type="Script" path="res://scripts/components/inventory_component.gd" id="17_inventory"]
-[ext_resource type="Script" path="res://scripts/components/pickup_collector.gd" id="18_collector"]
 [ext_resource type="Script" path="res://scripts/components/item_dropper.gd" id="19_dropper"]
-[ext_resource type="Script" path="res://scripts/components/interactor.gd" id="20_interactor"]
 [ext_resource type="Script" path="res://scripts/components/interaction_router.gd" id="21_router"]
 [ext_resource type="Script" path="res://scripts/progression/experience_component.gd" id="22_experience"]
 [ext_resource type="Resource" path="res://resources/progression/player_experience.tres" id="23_experience_config"]
@@ -83,27 +81,14 @@ effect = ExtResource("16_number_scene")
 script = ExtResource("17_inventory")
 capacity = 20
 
-[node name="Collector" type="Node" parent="." node_paths=PackedStringArray("body", "inventory")]
-script = ExtResource("18_collector")
-body = NodePath("..")
-inventory = NodePath("../Inventory")
-reach = 2.2
-
 [node name="Dropper" type="Node" parent="." node_paths=PackedStringArray("body")]
 script = ExtResource("19_dropper")
 body = NodePath("..")
 distance = 1.0
 
-[node name="Interactor" type="Node" parent="." node_paths=PackedStringArray("body")]
-script = ExtResource("20_interactor")
-body = NodePath("..")
-reach = 2.6
-
-[node name="Router" type="Node" parent="." node_paths=PackedStringArray("body", "collector")]
+[node name="Router" type="Node" parent="." node_paths=PackedStringArray("body")]
 script = ExtResource("21_router")
 body = NodePath("..")
-collector = NodePath("../Collector")
-merchant_reach = 2.8
 
 [node name="Experience" type="Node" parent="." node_paths=PackedStringArray("attack")]
 script = ExtResource("22_experience")

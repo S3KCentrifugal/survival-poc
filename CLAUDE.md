@@ -194,11 +194,11 @@ then left alone.
   shop that could then never be closed. A modal panel must take its close key
   in `_input`, which runs before all of `_unhandled_input` whatever the scene
   order is. Guard on `visible` and return immediately.
-- **A script error inside a test does not fail the suite.** GDScript aborts the
-  test body and the runner records no failed assertion, so the run reports
-  `all passing` while five tests did nothing. After any refactor that changes a
-  component's properties, read the output for `SCRIPT ERROR`, not just the
-  count at the bottom.
+- **A script error inside a test does not fail the suite** — the runner cannot
+  see it, because an aborted method and a completed one look identical from
+  inside. `run_tests.sh` greps its own output for `SCRIPT ERROR`, parse errors
+  and leaks and fails on any of them; do not weaken that check, and do not
+  trust the count at the bottom on its own.
 - **Never bound a check with "whichever enum value is currently last".**
   `if kind > Kind.DESPAWN: return NONE` was correct the day it was written and
   silently dropped every message of the next kind added -- with no error,

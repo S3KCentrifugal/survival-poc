@@ -3,7 +3,7 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 38 — Fixing panels that could not be closed**. The planned
+Last updated after **Feature 39 — A refactoring pass**. The planned
 vertical slice (features 1–11) was completed long ago; everything since is
 built on top of it.
 
@@ -131,7 +131,8 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 35 | A chat box on F12, networked | done | `b7b05c8` |
 | 36 | Gold, merchants, and a store screen | done | `c7ca19a` |
 | 37 | Levels and experience, and a heavy attack on right click | done | `4ccec09` |
-| 38 | Fix: panels that could not be closed | done | — |
+| 38 | Fix: panels that could not be closed | done | `21554d0` |
+| 39 | Refactoring pass: interaction, panels, test framework | done | — |
 
 **The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
@@ -148,7 +149,7 @@ experience, and your level and progress are on the HUD. Red mushrooms grow in
 the grass: walk up to one, press **F** to pick it up, **I** to see what you are
 carrying — drag a stack onto another slot to move it, or out of the panel to
 put it back on the ground. There is a workbench in the second room: stand at it,
-press **E**, and three mushrooms become soup. Gold-hatted **merchants** stand
+press **F**, and three mushrooms become soup. Gold-hatted **merchants** stand
 outside — walk up and press **F** to sell mushrooms and soup, or buy a sword.
 **F12** opens a chat box.
 Something is playing in the background. Health and stamina are on screen, and both come back on their own if
@@ -1297,6 +1298,43 @@ screenshot of a working shop both missed them. The new tests are all sequences,
 including one asserting Escape still opens the pause menu when nothing else is
 open -- precisely what a fix like this breaks next.
 
+### 39. A refactoring pass
+
+A review of the project for drift. Four findings, all from the last six
+features.
+
+**Three components were one.** `PickupComponent`, `WorkbenchComponent` and
+`MerchantComponent` each declared their own group and independently implemented
+`world_position()`, `is_available()`, `prompt_text()` and the same `actor`
+fallback -- three groups, three searches, and a router that knew all three
+types. Being *reachable* is not the same responsibility as being *pickable*, so
+`InteractableComponent` now sits beside the behaviour instead of inside it. One
+group, one search, and the router dispatches by signal rather than by cast.
+`Interactor` and `InteractionRouter` collapsed into one at the same time: 197
+lines differing only in which group and which key, both of which are
+configuration.
+
+**Reach moved onto the thing.** A mushroom reaches 2.2 m, a bench 2.6, a
+merchant 2.8. A merchant is bigger than a mushroom and that is a fact about the
+merchant, not about the person walking up to it.
+
+**The three modal panels share their lifecycle.** `ModalPanel` is a component
+they hold, not a base class -- they are all `CanvasLayer`s and this project has
+no class hierarchy. Devblog 038 had to fix one bug in three places, which is
+what the duplication cost.
+
+**The test framework was lying.** A GDScript error aborts a test body and
+returns to the runner as though it finished, so the suite reported `all
+passing` over broken tests. `run_tests.sh` now greps its own output for script
+errors, parse errors and leaks. It caught one immediately and about a dozen more
+during the refactor -- every one a test that had quietly stopped testing
+anything. Deliberately narrow: tests that provoke an ordinary `ERROR:` on
+purpose stay green.
+
+`TestCase` also gained `mount()`; thirty-seven suites had copied the same five
+lines. `PickupCollector`, `Interactor` and `Proximity` were deleted outright,
+and `scripts/ui/` lost four files that were never UI.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -1333,12 +1371,6 @@ needs and this repo does not have:
   with holes in them, which is all a top-down camera needs to see into.
 - **A character of our own.** The player is a CC0 robot standing in for one. It
   animates and it is the right height; it is not the art direction.
-- **A test runner that fails on script errors.** Moving the interact key broke
-  five pickup tests with `SCRIPT ERROR: Invalid assignment ...`, and the suite
-  reported **all passing** -- a script error aborts a test body without failing
-  an assertion. Those five tests were doing nothing and nothing said so. This is
-  the most valuable thing on this list: a suite that logs a script error must
-  not be able to report success.
 - **Anything that a level unlocks.** Levels are earned and displayed; nothing
   reads them. Stat growth, gated recipes and a merchant who stocks better
   things at level 10 are all the obvious next step and none are built.

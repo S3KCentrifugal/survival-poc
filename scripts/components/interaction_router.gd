@@ -2,48 +2,43 @@ class_name InteractionRouter
 extends Node
 ## Owns the interact key and decides what it meant.
 ##
-## There are two kinds of thing you walk up to and press F at: something to pick
-## up, and someone to trade with. Giving each its own component reading the same
-## key means standing between a mushroom and a merchant picks the mushroom *and*
-## opens the shop, which is not what either press meant.
+## One search over one group, and whichever [InteractableComponent] is nearest
+## wins. Before this there were three groups, three components each implementing
+## the same three methods, and two dispatchers watching two keys -- so standing
+## between a mushroom and a merchant could pick the mushroom up *and* open the
+## shop, and adding a fourth kind of thing meant a fourth of everything.
 ##
-## So one component reads the key, asks [Proximity] across both groups at once,
-## and dispatches to whichever is actually nearest. The components it dispatches
-## to keep their public methods -- [method PickupCollector.collect] still works
-## from a console or a test -- they just no longer each watch the keyboard.
+## Each interactable carries its own [member InteractableComponent.reach],
+## because a merchant is bigger than a mushroom and that difference belongs to
+## the thing rather than to the person walking up to it. Nothing here has to
+## know which is which.
 ##
-## The workbench is deliberately not in here. It is on E, because operating a
-## fixture is a different verb from walking up to a thing, and because a bench
-## you cannot mistake for a mushroom does not need disambiguating.
+## Routing is by signal, not by cast: the router calls `interact()` and whoever
+## attached the behaviour has already connected to it. That is what keeps this
+## file from growing a branch per feature.
 
-## Emitted when what F would act on changes, including to nothing. A prompt
-## reads this rather than polling.
-signal target_changed(target: Node)
+## Emitted when what the key would act on changes, including to nothing. A
+## prompt reads this rather than polling.
+signal target_changed(target: InteractableComponent)
 
-## Emitted when the player hails a merchant, for a store to open on.
-signal merchant_hailed(merchant: MerchantComponent)
+## Emitted after something is interacted with, for anything that wants to know
+## without connecting to every interactable in the world.
+signal interacted(target: InteractableComponent)
 
 @export var body: Node3D
-
-## Does the picking up. Its reach is used for pickups.
-@export var collector: PickupCollector
-
-## How far a merchant can be hailed from. Wider than a pickup's reach: a person
-## is bigger than a mushroom and you should not have to stand on their feet.
-@export_range(0.5, 8.0, 0.1) var merchant_reach: float = 2.8
 
 ## Where intent comes from, assigned by whoever assembles the actor.
 var input_source: InputSource
 
 var _held: bool = false
-var _target: Node
+var _target: InteractableComponent
 
 
 func _process(_delta: float) -> void:
 	step()
 
 
-## One tick: work out what F would do, and do it if asked.
+## One tick: work out what the key would do, and do it if asked.
 func step() -> void:
 	_set_target(find_target())
 	if input_source == null:
@@ -56,62 +51,53 @@ func step() -> void:
 		interact()
 
 
-## Does whatever F would do. Returns whether anything happened.
+## Does whatever the key would do. Returns whether anything happened.
+##
+## Looks first, so calling this without a step() having run does the obvious
+## thing rather than nothing -- the lesson from the first version of
+## [method PickupCollector.collect].
 func interact() -> bool:
 	_set_target(find_target())
 	if _target == null:
 		return false
-
-	var merchant := _target as MerchantComponent
-	if merchant != null:
-		merchant.hail(body)
-		merchant_hailed.emit(merchant)
-		return true
-
-	var pickup := _target as PickupComponent
-	if pickup != null and collector != null:
-		return collector.collect() > 0
-	return false
+	_target.interact(body)
+	interacted.emit(_target)
+	return true
 
 
-## The nearest thing F would act on, across both groups.
+## The nearest interactable within its own reach, or null.
 ##
-## The two reaches differ, so this cannot be one call to [Proximity]. Each group
-## is searched at its own distance and the closer winner is taken -- a merchant
-## three metres away does not beat a mushroom at your feet.
-func find_target() -> Node:
+## Each candidate is measured against the reach *it* declares, which is why this
+## is a loop rather than one call with a single radius. Squared throughout: the
+## comparison is the same and there is no square root per candidate per frame.
+func find_target() -> InteractableComponent:
 	if body == null or not is_inside_tree():
 		return null
+
 	var here := body.global_position
-
-	var pickup: Node = null
-	if collector != null:
-		pickup = Proximity.nearest(
-			here, get_tree().get_nodes_in_group(PickupComponent.GROUP), collector.reach
-		)
-	var merchant := Proximity.nearest(
-		here, get_tree().get_nodes_in_group(MerchantComponent.GROUP), merchant_reach
-	)
-
-	if pickup == null:
-		return merchant
-	if merchant == null:
-		return pickup
-	var to_pickup := here.distance_squared_to(pickup.call(&"world_position"))
-	var to_merchant := here.distance_squared_to(merchant.call(&"world_position"))
-	return pickup if to_pickup <= to_merchant else merchant
+	var best: InteractableComponent = null
+	var best_distance := INF
+	for node: Node in get_tree().get_nodes_in_group(InteractableComponent.GROUP):
+		var candidate := node as InteractableComponent
+		if candidate == null or not candidate.is_available():
+			continue
+		var distance := here.distance_squared_to(candidate.world_position())
+		if distance <= candidate.reach * candidate.reach and distance < best_distance:
+			best_distance = distance
+			best = candidate
+	return best
 
 
-func target() -> Node:
+func target() -> InteractableComponent:
 	return _target
 
 
 ## What a prompt should read, or an empty string when there is nothing in reach.
 func prompt_text() -> String:
-	return "" if _target == null else String(_target.call(&"prompt_text"))
+	return "" if _target == null else _target.prompt_text()
 
 
-func _set_target(node: Node) -> void:
+func _set_target(node: InteractableComponent) -> void:
 	if node == _target:
 		return
 	_target = node

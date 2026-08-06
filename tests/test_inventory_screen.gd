@@ -126,7 +126,7 @@ func test_a_picked_mushroom_shows_up_in_the_screen() -> void:
 	mount(world)
 
 	var player: Node3D = world.get_node("Player")
-	var collector: PickupCollector = world.get_node("Player/Collector")
+	var router: InteractionRouter = world.get_node("Player/Router")
 	var patch: MushroomPatch = world.get_node("Mushrooms")
 	var screen: InventoryScreen = world.get_node("InventoryScreen")
 
@@ -134,7 +134,7 @@ func test_a_picked_mushroom_shows_up_in_the_screen() -> void:
 	var mushroom := patch.mushrooms()[0]
 	mushroom.global_position = player.global_position + Vector3(0.6, 0.0, 0.0)
 
-	assert_eq(collector.collect(), 1, "F picked up nothing")
+	assert_true(router.interact(), "F picked up nothing")
 	assert_eq(screen.cell_text(0), "1", "the bag on screen says '%s'" % screen.cell_text(0))
 
 

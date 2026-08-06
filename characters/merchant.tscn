@@ -1,10 +1,11 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="PackedScene" path="res://assets/characters/godot_robot/3DGodotRobot.glb" id="1_model"]
 [ext_resource type="Script" path="res://scripts/components/health_component.gd" id="2_health"]
 [ext_resource type="Resource" path="res://resources/health/player_health.tres" id="3_health_config"]
 [ext_resource type="Script" path="res://scripts/components/inventory_component.gd" id="4_inventory"]
 [ext_resource type="Script" path="res://scripts/components/merchant_component.gd" id="5_merchant"]
+[ext_resource type="Script" path="res://scripts/components/interactable_component.gd" id="14_interactable"]
 [ext_resource type="Script" path="res://scripts/components/model_tint.gd" id="6_tint"]
 [ext_resource type="Resource" path="res://resources/trade/buys_mushrooms.tres" id="7_mushrooms"]
 [ext_resource type="Resource" path="res://resources/trade/buys_soup.tres" id="8_soup"]
@@ -87,10 +88,19 @@ config = ExtResource("3_health_config")
 script = ExtResource("4_inventory")
 capacity = 24
 
-[node name="Merchant" type="Node" parent="." node_paths=PackedStringArray("inventory", "actor")]
-script = ExtResource("5_merchant")
-offers = Array[Resource]([ExtResource("7_mushrooms"), ExtResource("8_soup"), ExtResource("9_sword")])
-inventory = NodePath("../Stock")
+; A person is bigger than a mushroom, and you should not have to stand on
+; their feet to talk to them.
+[node name="Interactable" type="Node" parent="." node_paths=PackedStringArray("actor")]
+script = ExtResource("14_interactable")
+kind = 2
 actor = NodePath("..")
 display_name = "Merchant"
 verb = "Trade with"
+reach = 2.8
+
+[node name="Merchant" type="Node" parent="." node_paths=PackedStringArray("inventory", "interactable")]
+script = ExtResource("5_merchant")
+offers = Array[Resource]([ExtResource("7_mushrooms"), ExtResource("8_soup"), ExtResource("9_sword")])
+inventory = NodePath("../Stock")
+interactable = NodePath("../Interactable")
+display_name = "Merchant"

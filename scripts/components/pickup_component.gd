@@ -1,33 +1,35 @@
 class_name PickupComponent
 extends Node
-## Marks a thing in the world as something you can pick up.
+## What happens when you pick something up.
 ##
-## Attach to an item's scene and point [member actor] at it. Joins a group
-## rather than carrying an [Area3D], so finding one is a distance check over a
-## short list instead of a physics query -- which means a test can put two
-## mushrooms and a player in a bare tree and check which one gets picked,
-## with no physics frame and no collision layers to get wrong.
-##
-## Fine at this scale. A world with thousands of loose items wants a spatial
-## index, and that is the day this becomes an Area3D.
-
-## Everything pickable is in this group. A group rather than a list held by the
-## collector, so an item spawned by anything at all is findable without telling
-## anyone it exists.
-const GROUP: StringName = &"pickup"
+## Being *reachable* is [InteractableComponent]'s job, sitting beside this one:
+## where it is, whether it is still there, what the prompt says. This is only
+## the transfer. Splitting them is what let three near-identical components --
+## this, the workbench and the merchant -- stop each carrying their own copy of
+## the same three methods.
 
 ## Emitted once it has been taken, before the actor is freed.
 signal taken(definition: ItemDefinition, amount: int)
 
 @export var definition: ItemDefinition
 
-@export_range(1, 999, 1) var amount: int = 1
+## How many are in the pile.
+##
+## A setter, so the prompt follows. A dropped stack has its amount written
+## *after* the scene is instantiated -- exactly the shape of the capacity bug in
+## feature 31, where a property read once in _ready did nothing for half its
+## callers.
+@export_range(1, 999, 1) var amount: int = 1:
+	set(value):
+		amount = maxi(value, 0)
+		_refresh_prompt()
 
 ## The thing in the world. Defaults to this component's owner.
 @export var actor: Node3D
 
-## What a prompt says. Falls back to the item's own name.
-@export var verb: String = "Pick up"
+## Where being-in-reach lives. The prompt text is kept in step with what is
+## actually left in the pile from here.
+@export var interactable: InteractableComponent
 
 
 func _ready() -> void:
@@ -35,24 +37,14 @@ func _ready() -> void:
 		actor = owner as Node3D
 	if actor == null:
 		actor = get_parent() as Node3D
-	add_to_group(GROUP)
+	if interactable != null:
+		interactable.interacted.connect(_on_interacted)
+		_refresh_prompt()
 
 
-## Where it is, for a distance check.
-func world_position() -> Vector3:
-	return Vector3.ZERO if actor == null else actor.global_position
-
-
-## Whether it is still there to be taken. A pickup mid-removal is not.
+## Whether there is anything left to take.
 func is_available() -> bool:
-	return (
-		definition != null
-		and definition.is_valid()
-		and amount > 0
-		and actor != null
-		and is_instance_valid(actor)
-		and not actor.is_queued_for_deletion()
-	)
+	return definition != null and definition.is_valid() and amount > 0
 
 
 ## Hands the item to [param inventory] and removes what was taken.
@@ -71,14 +63,40 @@ func collect_into(inventory: InventoryComponent) -> int:
 	amount = left
 	taken.emit(definition, collected)
 	if amount <= 0:
-		remove_from_group(GROUP)
+		if interactable != null:
+			# Stops offering itself now rather than at the end of the frame,
+			# which is when queue_free actually takes effect.
+			interactable.retire()
 		actor.queue_free()
+	else:
+		_refresh_prompt()
 	return collected
 
 
-## What a prompt should read.
-func prompt_text() -> String:
-	if definition == null:
-		return verb
-	var name := definition.display_name
-	return "%s %s" % [verb, name] if amount <= 1 else "%s %s x%d" % [verb, name, amount]
+## Whoever it belongs to, told by the router.
+func _on_interacted(by: Node) -> void:
+	collect_into(_inventory_of(by))
+
+
+## The bag on the thing that reached for this.
+##
+## Looked up rather than exported, because a pickup is reached for by whoever
+## happens to walk past -- it cannot know in advance whose bag it goes into, and
+## in multiplayer that is the whole point.
+func _inventory_of(by: Node) -> InventoryComponent:
+	if by == null:
+		return null
+	for child: Node in by.get_children():
+		var inventory := child as InventoryComponent
+		if inventory != null:
+			return inventory
+	return null
+
+
+## Keeps the prompt saying how many are left.
+func _refresh_prompt() -> void:
+	if interactable == null or definition == null:
+		return
+	interactable.display_name = (
+		definition.display_name if amount <= 1 else "%s x%d" % [definition.display_name, amount]
+	)

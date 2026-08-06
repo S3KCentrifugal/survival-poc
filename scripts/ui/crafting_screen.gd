@@ -16,7 +16,11 @@ signal closed
 @export var inventory: InventoryComponent
 
 ## Watched so the panel opens when a bench is used.
-@export var interactor: Interactor
+##
+## The router, not a bench. Working out that the thing reached for was a bench
+## is the panel's job, which is what lets one panel serve every bench in the
+## world rather than one each.
+@export var router: InteractionRouter
 
 ## Owns opening, closing, the cursor, the keyboard and the close keys.
 @export var modal: ModalPanel
@@ -43,8 +47,8 @@ func _ready() -> void:
 		# itself would read it too early.
 		modal.world_root = world_root
 		modal.closed.connect(_on_closed)
-	if interactor != null:
-		interactor.used.connect(_on_used)
+	if router != null:
+		router.interacted.connect(_on_interacted)
 	if inventory != null:
 		# The panel shows what can be made *now*, so it has to follow the bag:
 		# crafting one soup can be what makes the second one impossible.
@@ -120,10 +124,26 @@ func craft(index: int) -> int:
 	return made
 
 
-func _on_used(bench: WorkbenchComponent) -> void:
+func _on_interacted(target: InteractableComponent) -> void:
+	var used := bench_beside(target)
+	if used == null:
+		return
 	# Using the bench you already have open closes it, which is what pressing
 	# the key again should do.
-	show_bench(null if bench == _bench and visible else bench)
+	show_bench(null if used == _bench and is_open() else used)
+
+
+## The workbench attached beside [param target], or null if it is not one.
+static func bench_beside(target: InteractableComponent) -> WorkbenchComponent:
+	if target == null or target.kind != InteractableComponent.Kind.STATION:
+		return null
+	if target.get_parent() == null:
+		return null
+	for sibling: Node in target.get_parent().get_children():
+		var found := sibling as WorkbenchComponent
+		if found != null:
+			return found
+	return null
 
 
 func _build_rows() -> void:

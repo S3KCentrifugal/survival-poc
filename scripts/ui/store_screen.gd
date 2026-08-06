@@ -17,7 +17,12 @@ signal closed
 
 @export var inventory: InventoryComponent
 
-## Watched so the shop opens when a merchant is hailed.
+## Watched so the shop opens when a merchant is interacted with.
+##
+## The router, not a merchant. The router is deliberately type-agnostic -- it
+## knows only that something interactable was reached -- so working out that
+## *this* one was a merchant is the shop's job, and doing it here is what lets
+## one panel serve every merchant in the world rather than one each.
 @export var router: InteractionRouter
 
 ## Owns opening, closing, the cursor, the keyboard and the close keys. Held
@@ -52,7 +57,7 @@ func _ready() -> void:
 		modal.world_root = world_root
 		modal.closed.connect(_on_closed)
 	if router != null:
-		router.merchant_hailed.connect(_on_hailed)
+		router.interacted.connect(_on_interacted)
 	if inventory != null:
 		inventory.changed.connect(refresh)
 
@@ -139,10 +144,29 @@ func button_for(index: int) -> Button:
 	return null if index < 0 or index >= _buttons.size() else _buttons[index]
 
 
-func _on_hailed(merchant: MerchantComponent) -> void:
+func _on_interacted(target: InteractableComponent) -> void:
+	var hailed := merchant_beside(target)
+	if hailed == null:
+		return
 	# Hailing the merchant you already have open closes the shop, which is what
 	# pressing the key again should do.
-	show_merchant(null if merchant == _merchant and visible else merchant)
+	show_merchant(null if hailed == _merchant and is_open() else hailed)
+
+
+## The merchant attached beside [param target], or null if it is not one.
+##
+## Sibling lookup rather than a cast on the interactable: reach and behaviour
+## are separate components on purpose, and this is the seam between them.
+static func merchant_beside(target: InteractableComponent) -> MerchantComponent:
+	if target == null or target.kind != InteractableComponent.Kind.MERCHANT:
+		return null
+	if target.get_parent() == null:
+		return null
+	for sibling: Node in target.get_parent().get_children():
+		var found := sibling as MerchantComponent
+		if found != null:
+			return found
+	return null
 
 
 func _build_rows() -> void:

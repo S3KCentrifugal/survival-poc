@@ -1,6 +1,7 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/components/pickup_component.gd" id="1_pickup"]
+[ext_resource type="Script" path="res://scripts/components/interactable_component.gd" id="9_interactable"]
 [ext_resource type="Resource" path="res://resources/items/soup.tres" id="2_item"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bowl"]
@@ -38,8 +39,16 @@ mesh = SubResource("CylinderMesh_bowl")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.066, 0)
 mesh = SubResource("CylinderMesh_soup")
 
-[node name="Pickup" type="Node" parent="." node_paths=PackedStringArray("actor")]
+[node name="Interactable" type="Node" parent="." node_paths=PackedStringArray("actor")]
+script = ExtResource("9_interactable")
+kind = 0
+actor = NodePath("..")
+verb = "Pick up"
+reach = 2.2
+
+[node name="Pickup" type="Node" parent="." node_paths=PackedStringArray("actor", "interactable")]
 script = ExtResource("1_pickup")
+interactable = NodePath("../Interactable")
 definition = ExtResource("2_item")
 amount = 1
 actor = NodePath("..")

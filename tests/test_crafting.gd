@@ -120,8 +120,12 @@ func test_the_bench_scene_carries_the_recipe() -> void:
 	var bench: WorkbenchComponent = pair[0]
 	assert_eq(bench.recipes.size(), 1, "the bench makes nothing")
 	assert_eq(bench.recipes[0].id, &"mushroom_soup")
-	assert_true(bench.is_in_group(WorkbenchComponent.GROUP), "nothing will ever find it")
-	assert_true(bench.is_available())
+	assert_true(
+		bench.get_parent().get_node("Interactable").is_in_group(InteractableComponent.GROUP),
+		"nothing will ever find it"
+	)
+	var interactable: InteractableComponent = bench.get_parent().get_node("Interactable")
+	assert_true(interactable.is_available(), "the bench cannot be walked up to")
 
 
 func test_the_bench_makes_soup() -> void:

@@ -13,22 +13,14 @@ extends Node3D
 @export var player: CharacterBody3D
 @export var player_movement: MovementComponent
 
-## Shares the player's input source, so a click means the same thing to the
-## swing as W does to the legs.
 @export var player_attack: AttackComponent
 
 ## The same source again. Reaching for a mushroom is intent like any other, so
 ## it arrives the same way -- which is what lets a remote player pick things up
 ## without a second path through the code.
-@export var player_collector: PickupCollector
-
-## Owns the interact key and decides whether a press meant the mushroom or the
-## merchant. The collector no longer reads input itself.
+## Owns the interact key. One component reads it and dispatches to whichever
+## interactable is nearest, so there is one place to hand intent to.
 @export var player_router: InteractionRouter
-
-## Uses whatever the player is standing next to. The same source again -- a
-## workbench is operated by intent like anything else.
-@export var player_interactor: Interactor
 
 ## Given the terrain and somewhere to parent dropped items. Both are the
 ## world's to know: a player prefab that names a terrain only works in a world
@@ -154,8 +146,6 @@ func _wire_input() -> void:
 		player_attack.input_source = _player_input
 	if player_router != null:
 		player_router.input_source = _player_input
-	if player_interactor != null:
-		player_interactor.input_source = _player_input
 	if player_dropper != null:
 		player_dropper.terrain = terrain
 		player_dropper.container = self

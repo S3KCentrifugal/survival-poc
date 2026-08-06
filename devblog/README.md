@@ -48,6 +48,7 @@ rather than an edit to the old one.
 | 036 | [Gold, merchants, and one key with one owner](036-gold-and-merchants.md) | Currency as an item, all-or-nothing trades, and five tests that had stopped testing anything |
 | 037 | [Levels, and a swing worth waiting for](037-levels-and-a-heavier-swing.md) | A curve instead of a table, who gets credit for a kill, and a panel that released the cursor but not the keyboard |
 | 038 | [A shop you could not leave](038-a-shop-you-could-not-leave.md) | Input order decided by an invisible line in a .tscn, and suspension resetting every rising edge |
+| 039 | [Three components that were one](039-three-components-that-were-one.md) | Splitting reachable from pickable, reach as a property of the thing, and a test runner that was lying |
 
 Numbers follow the **feature** order, not the order posts get written — 012 is
 the twelfth feature, and 002–011 and 025–027 below are still owed. The three

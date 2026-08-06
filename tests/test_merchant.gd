@@ -31,8 +31,11 @@ func test_the_merchant_scene_is_assembled() -> void:
 	var merchant := _merchant_at(Vector3.ZERO)
 	assert_not_null(merchant.inventory, "the merchant has nowhere to keep stock or gold")
 	assert_true(merchant.offers.size() >= 2, "the merchant trades in %d things" % merchant.offers.size())
-	assert_true(merchant.is_in_group(MerchantComponent.GROUP), "nothing will ever find them")
-	assert_true(merchant.is_available())
+	assert_true(
+		merchant.get_parent().get_node("Interactable").is_in_group(InteractableComponent.GROUP),
+		"nothing will ever find them"
+	)
+	assert_true((merchant.get_parent().get_node("Interactable") as InteractableComponent).is_available())
 
 
 ## "Distinct from other wandering characters" is the ask, and it is not met by
@@ -200,8 +203,11 @@ func test_pressing_the_key_at_a_merchant_opens_the_store() -> void:
 	# correctly prefers whichever is nearest, so leaving them in makes this a
 	# test of where the patch happened to sprout. Which is worth knowing, and is
 	# what the two priority tests below are for.
-	for pickup: Node in world.get_tree().get_nodes_in_group(PickupComponent.GROUP):
-		pickup.get_parent().free()
+	for node: Node in world.get_tree().get_nodes_in_group(InteractableComponent.GROUP):
+		# One group holds every kind now, so this has to say which it means --
+		# freeing "everything interactable" would take the merchants too.
+		if (node as InteractableComponent).kind == InteractableComponent.Kind.PICKUP:
+			node.get_parent().free()
 
 	var actor: Node3D = (world.get_node("Merchants") as MerchantPost).merchants()[0]
 	(world.get_node("Player") as Node3D).global_position = (
@@ -227,7 +233,9 @@ func test_a_mushroom_at_your_feet_beats_a_merchant_further_away() -> void:
 	world.add_child(mushroom)
 	mushroom.global_position = player.global_position + Vector3(0.3, 0.0, 0.0)
 
-	assert_true(router.find_target() is PickupComponent, "the merchant won at two metres")
+	var target := router.find_target()
+	assert_not_null(target, "nothing was in reach at all")
+	assert_eq(target.kind, InteractableComponent.Kind.PICKUP, "the merchant won at two metres")
 
 
 func test_a_merchant_beats_a_mushroom_further_away() -> void:
@@ -241,7 +249,11 @@ func test_a_merchant_beats_a_mushroom_further_away() -> void:
 	world.add_child(mushroom)
 	mushroom.global_position = player.global_position + Vector3(1.6, 0.0, 0.0)
 
-	assert_true(router.find_target() is MerchantComponent, "the mushroom won at 1.6 metres")
+	var target := router.find_target()
+	assert_not_null(target, "nothing was in reach at all")
+	assert_eq(
+		target.kind, InteractableComponent.Kind.MERCHANT, "the mushroom won at 1.6 metres"
+	)
 
 
 func test_the_store_does_not_pause_the_game() -> void:
@@ -287,8 +299,11 @@ func test_the_hud_says_when_a_merchant_is_in_reach() -> void:
 	var hud: PlayerHud = world.get_node("PlayerHud")
 	assert_eq(hud.router, world.get_node("Player/Router"), "the HUD cannot see merchants")
 
-	for pickup: Node in world.get_tree().get_nodes_in_group(PickupComponent.GROUP):
-		pickup.get_parent().free()
+	for node: Node in world.get_tree().get_nodes_in_group(InteractableComponent.GROUP):
+		# One group holds every kind now, so this has to say which it means --
+		# freeing "everything interactable" would take the merchants too.
+		if (node as InteractableComponent).kind == InteractableComponent.Kind.PICKUP:
+			node.get_parent().free()
 
 	var actor: Node3D = (world.get_node("Merchants") as MerchantPost).merchants()[0]
 	(world.get_node("Player") as Node3D).global_position = (

@@ -8,7 +8,6 @@ extends Node
 ##
 ## Joins the interactable group so [Interactor] can find it, the same way
 ## [PickupComponent] joins the pickup group. Both are found by
-## [Proximity.nearest], which is why neither needs an Area3D.
 
 ## Everything you can walk up to and use is in this group.
 const GROUP: StringName = &"interactable"
@@ -25,36 +24,15 @@ signal refused(recipe: Recipe, reason: String)
 
 @export var recipes: Array[Recipe] = []
 
-## The thing in the world. Defaults to this component's owner.
-@export var actor: Node3D
+## Where being-in-reach lives.
+@export var interactable: InteractableComponent
 
 @export var display_name: String = "Workbench"
 
-@export var verb: String = "Use"
-
 
 func _ready() -> void:
-	if actor == null:
-		actor = owner as Node3D
-	if actor == null:
-		actor = get_parent() as Node3D
-	add_to_group(GROUP)
-
-
-## Where it is, for a distance check.
-func world_position() -> Vector3:
-	return Vector3.ZERO if actor == null else actor.global_position
-
-
-## Whether it can be used. A bench is not consumed, so this is only ever false
-## while it is being removed.
-func is_available() -> bool:
-	return actor != null and is_instance_valid(actor) and not actor.is_queued_for_deletion()
-
-
-## What a prompt should read.
-func prompt_text() -> String:
-	return "%s %s" % [verb, display_name]
+	if interactable != null:
+		interactable.interacted.connect(use)
 
 
 ## Called by whoever walked up and pressed the key.

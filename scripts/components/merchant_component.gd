@@ -30,33 +30,16 @@ signal refused(offer: TradeOffer, reason: String)
 ## Their goods and their gold.
 @export var inventory: InventoryComponent
 
-## The thing in the world. Defaults to this component's owner.
-@export var actor: Node3D
+## Where being-in-reach lives.
+@export var interactable: InteractableComponent
 
 @export var display_name: String = "Merchant"
 
-@export var verb: String = "Trade with"
-
 
 func _ready() -> void:
-	if actor == null:
-		actor = owner as Node3D
-	if actor == null:
-		actor = get_parent() as Node3D
 	_own_the_offers()
-	add_to_group(GROUP)
-
-
-func world_position() -> Vector3:
-	return Vector3.ZERO if actor == null else actor.global_position
-
-
-func is_available() -> bool:
-	return actor != null and is_instance_valid(actor) and not actor.is_queued_for_deletion()
-
-
-func prompt_text() -> String:
-	return "%s %s" % [verb, display_name]
+	if interactable != null:
+		interactable.interacted.connect(hail)
 
 
 ## Called by whoever walked up and pressed the key.

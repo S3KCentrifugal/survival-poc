@@ -16,24 +16,24 @@ func _bench_at(where: Vector3) -> WorkbenchComponent:
 	return scene.get_node("Bench")
 
 
-func _interactor_at(where: Vector3) -> Interactor:
+func _interactor_at(where: Vector3) -> InteractionRouter:
 	var body := Node3D.new()
 	mount(body)
 	body.global_position = where
 
-	var interactor := Interactor.new()
-	interactor.body = body
-	interactor.input_source = ScriptedInputSource.new()
-	body.add_child(interactor)
-	return interactor
+	var router := InteractionRouter.new()
+	router.body = body
+	router.input_source = ScriptedInputSource.new()
+	body.add_child(router)
+	return router
 
 
-func _press_use(interactor: Interactor) -> void:
-	var source: ScriptedInputSource = interactor.input_source
-	source.use(false)
-	interactor.step()
-	source.use(true)
-	interactor.step()
+func _press_use(router: InteractionRouter) -> void:
+	var source: ScriptedInputSource = router.input_source
+	source.interact(false)
+	router.step()
+	source.interact(true)
+	router.step()
 
 
 func test_the_key_is_bound() -> void:
@@ -43,13 +43,13 @@ func test_the_key_is_bound() -> void:
 	)
 
 
-## Two verbs, two keys. F takes a thing away, E operates a thing that stays --
-## folding both behind one key means deciding what a press means when a mushroom
-## is growing next to the bench.
-func test_use_and_interact_are_different_actions() -> void:
-	assert_false(
-		PlayerInputSource.ACTION_USE == PlayerInputSource.ACTION_INTERACT,
-		"picking up and using are the same key"
+## One key for everything you walk up to. Two components each watching their own
+## key was what made standing between a mushroom and a bench ambiguous; the
+## router picks whichever is nearest instead.
+func test_one_key_reaches_everything() -> void:
+	assert_true(
+		InputMap.has_action(PlayerInputSource.ACTION_INTERACT),
+		"nothing is bound to reach a bench with"
 	)
 
 
@@ -84,7 +84,7 @@ func test_holding_the_key_uses_it_once() -> void:
 	var uses := [0]
 	bench.used.connect(func(_by: Node) -> void: uses[0] += 1)
 
-	(interactor.input_source as ScriptedInputSource).use(true)
+	(interactor.input_source as ScriptedInputSource).interact(true)
 	for _frame in 20:
 		interactor.step()
 	assert_eq(uses[0], 1, "a held key used the bench %d times" % uses[0])
@@ -98,13 +98,14 @@ func test_using_directly_finds_its_own_target() -> void:
 	var uses := [0]
 	bench.used.connect(func(_by: Node) -> void: uses[0] += 1)
 
-	assert_true(interactor.use(), "use() did nothing without a step() first")
+	assert_true(interactor.interact(), "interact() did nothing without a step() first")
 	assert_eq(uses[0], 1)
 
 
 func test_the_prompt_names_the_bench() -> void:
 	var bench := _bench_at(Vector3.ZERO)
-	assert_true(bench.prompt_text().contains("Workbench"))
+	var interactable: InteractableComponent = bench.get_parent().get_node("Interactable")
+	assert_true(interactable.prompt_text().contains("Workbench"))
 
 
 func _world() -> Node:
@@ -120,9 +121,9 @@ func test_the_world_has_a_bench_and_a_panel_wired_to_it() -> void:
 	var screen: CraftingScreen = world.get_node_or_null("CraftingScreen")
 	assert_not_null(screen, "there is no crafting panel")
 	assert_eq(screen.inventory, world.get_node("Player/Inventory"))
-	assert_eq(screen.interactor, world.get_node("Player/Interactor"), "nothing would open it")
+	assert_eq(screen.router, world.get_node("Player/Router"), "nothing would open it")
 
-	var interactor: Interactor = world.get_node("Player/Interactor")
+	var interactor: InteractionRouter = world.get_node("Player/Router")
 	assert_not_null(interactor.input_source, "nothing gave the interactor an input source")
 
 
@@ -225,23 +226,24 @@ func test_the_bench_stands_on_the_floor() -> void:
 func test_the_hud_says_what_the_use_key_would_do() -> void:
 	var world := _world()
 	var hud: PlayerHud = world.get_node("PlayerHud")
-	assert_eq(hud.interactor, world.get_node("Player/Interactor"), "the HUD cannot see the bench")
+	assert_eq(hud.router, world.get_node("Player/Router"), "the HUD cannot see the bench")
 
 	(world.get_node("Player") as Node3D).global_position = (
 		(world.get_node("Workbench") as Node3D).global_position + Vector3(1.0, 0.0, 0.0)
 	)
-	(world.get_node("Player/Interactor") as Interactor).step()
+	(world.get_node("Player/Router") as InteractionRouter).step()
 
 	assert_true(hud.prompt_label.visible, "standing at the bench showed no prompt")
 	assert_true(
-		hud.prompt_label.text.contains("[E]"),
+		hud.prompt_label.text.contains("[F]"),
 		"the prompt reads '%s'" % hud.prompt_label.text
 	)
 
 
-## Both at once when both are in reach. Showing only the nearer one means a
-## mushroom by your foot hides the bench.
-func test_both_prompts_show_together() -> void:
+## One prompt, for whichever is nearest. Two components each watching their own
+## key was what made this ambiguous; the router picks one and the prompt says
+## what that one would do.
+func test_the_prompt_names_whichever_is_nearest() -> void:
 	var world := _world()
 	var hud: PlayerHud = world.get_node("PlayerHud")
 	var bench: Node3D = world.get_node("Workbench")
@@ -250,14 +252,21 @@ func test_both_prompts_show_together() -> void:
 
 	var mushroom: Node3D = load("res://items/mushroom.tscn").instantiate()
 	world.add_child(mushroom)
-	mushroom.global_position = player.global_position + Vector3(0.4, 0.0, 0.0)
-
-	# The router owns F now, so it is what the prompt asks.
+	mushroom.global_position = player.global_position + Vector3(0.3, 0.0, 0.0)
 	(world.get_node("Player/Router") as InteractionRouter).step()
-	(world.get_node("Player/Interactor") as Interactor).step()
 
-	assert_true(hud.prompt_label.text.contains("[F]"), "the mushroom prompt is missing")
-	assert_true(hud.prompt_label.text.contains("[E]"), "the bench prompt is missing")
+	assert_true(hud.prompt_label.text.contains("[F]"), "there was no prompt at all")
+	assert_true(
+		hud.prompt_label.text.contains("Mushroom"),
+		"the mushroom at 0.3 m lost to the bench at 1 m: '%s'" % hud.prompt_label.text
+	)
+
+	mushroom.global_position = player.global_position + Vector3(4.0, 0.0, 0.0)
+	(world.get_node("Player/Router") as InteractionRouter).step()
+	assert_true(
+		hud.prompt_label.text.contains("Workbench"),
+		"with the mushroom out of reach the bench should win: '%s'" % hud.prompt_label.text
+	)
 
 
 func _key_event(code: Key) -> InputEventKey:
