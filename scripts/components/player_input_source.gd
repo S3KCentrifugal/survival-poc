@@ -54,11 +54,37 @@ var _zoom: float = 0.0
 
 ## While true, [method poll] reports a player doing nothing at all.
 ##
-## Set while a text field has focus. Every consumer reads intent through this
-## object, so suspending it here suspends movement, jumping, punching, picking
-## up and using in one place -- rather than each of them separately learning
-## what a chat box is.
-var suspended: bool = false
+## Set while a text field has focus or a panel is open. Every consumer reads
+## intent through this object, so suspending it here suspends movement, jumping,
+## punching, picking up and using in one place -- rather than each of them
+## separately learning what a chat box is.
+##
+## Resuming swallows whatever is still held. Consumers spot a press as a rising
+## edge, and a suspended source reports every button as released -- so without
+## this, the key that opened a panel is still down when the panel closes and
+## reads as a brand new press. Which is a shop that reopens the instant you shut
+## it, and no way out but the mouse.
+var suspended: bool = false:
+	set(value):
+		if suspended and not value:
+			_swallow_held()
+		suspended = value
+
+## Actions being ignored until they are physically released.
+##
+## Only the edge-triggered ones. Movement and sprint are asked "are you held",
+## so continuing to walk when a panel closes is correct and swallowing them
+## would strand the player until they let go of W.
+var _swallowed: Dictionary[StringName, bool] = {}
+
+## The actions a consumer reads as an event rather than a state.
+const EDGE_ACTIONS: Array[StringName] = [
+	ACTION_JUMP,
+	ACTION_ATTACK,
+	ACTION_HEAVY_ATTACK,
+	ACTION_INTERACT,
+	ACTION_USE,
+]
 
 ## Set when the cursor is captured, cleared when the attack button next comes
 ## up. The click that takes the cursor back after a menu or an alt-tab is aimed
@@ -82,13 +108,13 @@ func poll() -> InputState:
 	)
 	state.move = to_world_direction(raw, camera_yaw())
 	state.sprint = Input.is_action_pressed(ACTION_SPRINT)
-	state.jump = Input.is_action_pressed(ACTION_JUMP)
+	state.jump = _edge_intent(ACTION_JUMP)
 	state.attack = _attack_intent()
 	# Not passed through _attack_intent: that exists to swallow the click that
 	# recaptures the cursor, and the cursor is recaptured with the left button.
-	state.heavy_attack = Input.is_action_pressed(ACTION_HEAVY_ATTACK)
-	state.interact = Input.is_action_pressed(ACTION_INTERACT)
-	state.use = Input.is_action_pressed(ACTION_USE)
+	state.heavy_attack = _edge_intent(ACTION_HEAVY_ATTACK)
+	state.interact = _edge_intent(ACTION_INTERACT)
+	state.use = _edge_intent(ACTION_USE)
 
 	var aim: Variant = resolve_aim()
 	if aim != null:
@@ -101,10 +127,31 @@ func poll() -> InputState:
 ## Whether the player is asking to swing, ignoring the click that recaptured
 ## the cursor.
 func _attack_intent() -> bool:
-	var pressed := Input.is_action_pressed(ACTION_ATTACK)
-	if not pressed:
+	var pressed := _edge_intent(ACTION_ATTACK)
+	if not Input.is_action_pressed(ACTION_ATTACK):
 		_swallow_attack = false
 	return pressed and not _swallow_attack
+
+
+## Whether [param action] is held *and* was not already held when input
+## resumed.
+func _edge_intent(action: StringName) -> bool:
+	if not Input.is_action_pressed(action):
+		_swallowed.erase(action)
+		return false
+	return not _swallowed.has(action)
+
+
+## Ignores every edge action currently down until it comes back up.
+func _swallow_held() -> void:
+	for action: StringName in EDGE_ACTIONS:
+		if Input.is_action_pressed(action):
+			_swallowed[action] = true
+
+
+## Whether [param action] is being ignored, for a test.
+func is_swallowing(action: StringName) -> bool:
+	return _swallowed.has(action)
 
 
 func consume_look() -> Vector2:

@@ -3,7 +3,7 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 37 — Levels and a heavy attack**. The planned
+Last updated after **Feature 38 — Fixing panels that could not be closed**. The planned
 vertical slice (features 1–11) was completed long ago; everything since is
 built on top of it.
 
@@ -130,7 +130,8 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 34 | Generated background music, and a bench that crafts soup | done | `31a71dd` |
 | 35 | A chat box on F12, networked | done | `b7b05c8` |
 | 36 | Gold, merchants, and a store screen | done | `c7ca19a` |
-| 37 | Levels and experience, and a heavy attack on right click | done | — |
+| 37 | Levels and experience, and a heavy attack on right click | done | `4ccec09` |
+| 38 | Fix: panels that could not be closed | done | — |
 
 **The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
@@ -1270,6 +1271,31 @@ pair of moves gets broken.
 the cursor but not the keyboard, so the character stayed playable behind the
 panel. Harmless until clicking "Sell" also kicked whoever stood behind it. All
 three now call `set_input_suspended`, the mechanism the chat box already had.
+
+### 38. A shop you could not leave
+
+Reported from play: the merchant dialog could not be closed. Two bugs, both
+introduced by earlier features, both green in the suite.
+
+**Escape reached the pause menu first.** `_unhandled_input` is delivered in
+reverse tree order and `PauseMenu` sits after the panels in `main.tscn`, so the
+menu opened *over* the open shop. Which node wins was decided by a line in a
+scene file that neither script mentions. The three modal panels now take their
+close key in `_input`, which runs before all of `_unhandled_input` -- the same
+thing the dev console already did.
+
+**F reopened the shop as fast as it closed it.** Feature 37 made panels suspend
+gameplay input; a suspended source reports every button released, so the still
+held F read as a rising edge the moment the panel closed and unsuspended.
+`PlayerInputSource` now swallows every edge action still held when input
+resumes -- only the edge ones, since movement is asked "are you held" and
+swallowing it would strand the player until they let go of W.
+
+Both are sequence bugs: a key held across a state change, two nodes competing
+for one event. A single call proves neither, which is why a green suite and a
+screenshot of a working shop both missed them. The new tests are all sequences,
+including one asserting Escape still opens the pause menu when nothing else is
+open -- precisely what a fix like this breaks next.
 
 ## What is not built
 

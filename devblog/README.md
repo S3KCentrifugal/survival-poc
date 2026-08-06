@@ -47,6 +47,7 @@ rather than an edit to the old one.
 | 035 | [A chat box, and a range check that aged badly](035-a-chat-box.md) | Sanitising other people's text, a length byte you must not trust, and typing that walked the character |
 | 036 | [Gold, merchants, and one key with one owner](036-gold-and-merchants.md) | Currency as an item, all-or-nothing trades, and five tests that had stopped testing anything |
 | 037 | [Levels, and a swing worth waiting for](037-levels-and-a-heavier-swing.md) | A curve instead of a table, who gets credit for a kill, and a panel that released the cursor but not the keyboard |
+| 038 | [A shop you could not leave](038-a-shop-you-could-not-leave.md) | Input order decided by an invisible line in a .tscn, and suspension resetting every rising edge |
 
 Numbers follow the **feature** order, not the order posts get written — 012 is
 the twelfth feature, and 002–011 and 025–027 below are still owed. The three

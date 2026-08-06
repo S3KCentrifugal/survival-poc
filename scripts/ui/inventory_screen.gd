@@ -64,8 +64,8 @@ func _ready() -> void:
 	refresh()
 
 
-## Handled as *unhandled* input, so a console or a text field takes the key
-## first. Typing "inventory" into the dev console should not open the bag five
+## Opening is *unhandled* input, so a console or a text field takes the key
+## first -- typing "inventory" into the dev console should not open the bag five
 ## times.
 func _unhandled_input(event: InputEvent) -> void:
 	var key := event as InputEventKey
@@ -73,6 +73,21 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	set_open(not visible)
 	get_viewport().set_input_as_handled()
+
+
+## Closing is [method Node._input], which runs before all of that. An open modal
+## panel has to win its own close key: `_unhandled_input` runs in reverse tree
+## order and the pause menu sits after this one, so Escape opened the menu over
+## the open bag instead of closing it.
+func _input(event: InputEvent) -> void:
+	if not visible:
+		return
+	var key := event as InputEventKey
+	if key == null or not key.pressed or key.echo:
+		return
+	if key.keycode == KEY_ESCAPE or key.keycode == toggle_key:
+		set_open(false)
+		get_viewport().set_input_as_handled()
 
 
 func set_open(open: bool) -> void:

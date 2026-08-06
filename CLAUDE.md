@@ -181,6 +181,19 @@ then left alone.
   180-degree half-arc misses the thing directly behind. Compare angles with a
   small tolerance, never exactly. The symptom is a check that works everywhere
   except at the boundary, which is exactly where the test is.
+- **Suspending an input source resets every rising edge.** A suspended
+  [PlayerInputSource] reports every button released, so a key held across the
+  suspension reads as a *fresh press* the moment it resumes — the key that
+  opened a panel reopens it the instant the panel closes, forever. Swallow
+  anything still held on resume, and only the edge-triggered actions: movement
+  is asked "are you held", so swallowing it strands the player until they let
+  go of W.
+- **`_unhandled_input` is delivered in reverse tree order.** Which node wins a
+  key is decided by a line in a `.tscn` that neither script mentions — the
+  pause menu sits after the panels, so Escape opened the menu *over* an open
+  shop that could then never be closed. A modal panel must take its close key
+  in `_input`, which runs before all of `_unhandled_input` whatever the scene
+  order is. Guard on `visible` and return immediately.
 - **A script error inside a test does not fail the suite.** GDScript aborts the
   test body and the runner records no failed assertion, so the run reports
   `all passing` while five tests did nothing. After any refactor that changes a

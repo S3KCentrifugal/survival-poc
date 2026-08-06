@@ -45,7 +45,16 @@ func _ready() -> void:
 		inventory.changed.connect(refresh)
 
 
-func _unhandled_input(event: InputEvent) -> void:
+## Handled in [method Node._input] rather than `_unhandled_input`, and this is
+## not a style choice. `_unhandled_input` runs in reverse tree order, and the
+## pause menu happens to sit after this panel -- so Escape reached the menu
+## first and opened it *over* an open shop, which could then never be closed.
+## Tree order is an invisible dependency and a bad one to rest on. `_input` runs
+## before all of it, and an open modal panel is exactly the thing that should
+## win its own close key.
+##
+## Returns immediately when hidden, so a closed panel costs one comparison.
+func _input(event: InputEvent) -> void:
 	if not visible:
 		return
 	var key := event as InputEventKey

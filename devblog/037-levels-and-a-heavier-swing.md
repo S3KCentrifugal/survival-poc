@@ -127,4 +127,6 @@ cursor" and "stopped listening to the player" are different things.
 
 ---
 
-Next: nothing scheduled. Posts 002–011 and 025–027 are still owed.
+Next: [038 — A shop you could not leave](038-a-shop-you-could-not-leave.md),
+which is the bill for the input suspension above. Posts 002–011 and 025–027 are
+still owed.

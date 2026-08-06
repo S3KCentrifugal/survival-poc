@@ -269,3 +269,36 @@ func test_both_prompts_show_together() -> void:
 
 	assert_true(hud.prompt_label.text.contains("[F]"), "the mushroom prompt is missing")
 	assert_true(hud.prompt_label.text.contains("[E]"), "the bench prompt is missing")
+
+
+func _key_event(code: Key) -> InputEventKey:
+	var event := InputEventKey.new()
+	event.keycode = code
+	event.physical_keycode = code
+	event.pressed = true
+	return event
+
+
+## The bench had the same fault the shop was reported with: escape opened the
+## pause menu over the panel instead of closing it, because `_unhandled_input`
+## runs in reverse tree order and the menu sits after the panel.
+func test_escape_closes_the_bench_without_opening_the_pause_menu() -> void:
+	var world := _world()
+	var screen: CraftingScreen = world.get_node("CraftingScreen")
+	var pause: PauseMenu = world.get_node("PauseMenu")
+	screen.show_bench(world.get_node("Workbench/Bench"))
+
+	world.get_tree().root.push_input(_key_event(KEY_ESCAPE))
+
+	assert_false(screen.is_open(), "escape did not close the bench panel")
+	assert_false(pause.visible, "escape opened the pause menu over the panel")
+	assert_false((Engine.get_main_loop() as SceneTree).paused)
+
+
+func test_the_use_key_closes_the_bench() -> void:
+	var world := _world()
+	var screen: CraftingScreen = world.get_node("CraftingScreen")
+	screen.show_bench(world.get_node("Workbench/Bench"))
+
+	world.get_tree().root.push_input(_key_event(KEY_E))
+	assert_false(screen.is_open(), "E did not close the bench panel")

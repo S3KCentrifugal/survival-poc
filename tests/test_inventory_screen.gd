@@ -272,3 +272,40 @@ func test_dragging_out_an_item_with_no_world_form_is_refused() -> void:
 	(world.get_node("Player/Inventory") as InventoryComponent).collect(idea, 1)
 
 	assert_false(screen._can_drop_outside(Vector2.ZERO, {"source": &"inventory", "index": 0}))
+
+
+func _key_event(code: Key) -> InputEventKey:
+	var event := InputEventKey.new()
+	event.keycode = code
+	event.physical_keycode = code
+	event.pressed = true
+	return event
+
+
+## Same fault as the shop and the bench: escape reaches the pause menu first,
+## because `_unhandled_input` runs in reverse tree order and the menu is later
+## in the scene. An open panel must win its own close key.
+func test_escape_closes_the_bag_without_opening_the_pause_menu() -> void:
+	var world: Node = load(MAIN_SCENE).instantiate()
+	_mount(world)
+	var screen: InventoryScreen = world.get_node("InventoryScreen")
+	var pause: PauseMenu = world.get_node("PauseMenu")
+	screen.set_open(true)
+
+	world.get_tree().root.push_input(_key_event(KEY_ESCAPE))
+
+	assert_false(screen.is_open(), "escape did not close the bag")
+	assert_false(pause.visible, "escape opened the pause menu over the bag")
+	assert_false((Engine.get_main_loop() as SceneTree).paused)
+
+
+## And the pause menu still works when nothing else is open, which is the thing
+## a fix like this is most likely to break.
+func test_escape_still_opens_the_pause_menu_with_no_panel_open() -> void:
+	var world: Node = load(MAIN_SCENE).instantiate()
+	_mount(world)
+	var pause: PauseMenu = world.get_node("PauseMenu")
+
+	world.get_tree().root.push_input(_key_event(KEY_ESCAPE))
+	assert_true(pause.visible, "escape no longer opens the pause menu")
+	pause.set_open(false)

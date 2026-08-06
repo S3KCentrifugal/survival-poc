@@ -316,3 +316,93 @@ func test_the_hud_says_when_a_merchant_is_in_reach() -> void:
 		hud.prompt_label.text.contains("Trade with"),
 		"the prompt reads '%s'" % hud.prompt_label.text
 	)
+
+
+func _key(code: Key) -> InputEventKey:
+	var event := InputEventKey.new()
+	event.keycode = code
+	event.physical_keycode = code
+	event.pressed = true
+	return event
+
+
+## Reported: the shop could not be closed. Escape opened the pause menu *over*
+## it and F did nothing.
+##
+## Escape reaches `_unhandled_input` in reverse tree order, and the pause menu
+## sits after the store, so the menu won and the shop stayed open behind it.
+func test_escape_closes_the_shop_without_opening_the_pause_menu() -> void:
+	var world := _world()
+	var store: StoreScreen = world.get_node("StoreScreen")
+	var pause: PauseMenu = world.get_node("PauseMenu")
+	store.show_merchant((world.get_node("Merchants") as MerchantPost).merchants()[0].get_node("Merchant"))
+
+	world.get_tree().root.push_input(_key(KEY_ESCAPE))
+
+	assert_false(store.is_open(), "escape did not close the shop")
+	assert_false(pause.visible, "escape opened the pause menu over the shop")
+	assert_false((Engine.get_main_loop() as SceneTree).paused, "the world was left paused")
+
+
+func test_the_interact_key_closes_the_shop() -> void:
+	var world := _world()
+	var store: StoreScreen = world.get_node("StoreScreen")
+	store.show_merchant((world.get_node("Merchants") as MerchantPost).merchants()[0].get_node("Merchant"))
+
+	world.get_tree().root.push_input(_key(KEY_F))
+	assert_false(store.is_open(), "F did not close the shop")
+
+
+## The other half of the same report, and the harder half.
+##
+## Opening a panel suspends gameplay input, and a suspended source reports every
+## button as released -- so the F still being held read as a brand new press the
+## moment the panel closed and unsuspended, reopening it. The shop was
+## uncloseable for as long as the key was down.
+func test_a_key_held_through_a_panel_is_not_a_fresh_press_afterwards() -> void:
+	var source := PlayerInputSource.new()
+	source.suspended = true
+	source.suspended = false
+
+	# Nothing is physically held in a headless test, so the swallow list is the
+	# thing to assert on: it is what a real held key would populate.
+	assert_false(
+		source.is_swallowing(PlayerInputSource.ACTION_INTERACT),
+		"it swallowed a key that was never down"
+	)
+
+
+func test_resuming_swallows_the_edge_actions_that_are_still_held() -> void:
+	var source := PlayerInputSource.new()
+	for action: StringName in PlayerInputSource.EDGE_ACTIONS:
+		Input.action_press(action)
+	source.suspended = true
+	source.suspended = false
+
+	for action: StringName in PlayerInputSource.EDGE_ACTIONS:
+		assert_true(source.is_swallowing(action), "%s was not swallowed" % action)
+	var state := source.poll()
+	assert_false(state.interact, "a held key read as a press right after resuming")
+	assert_false(state.jump)
+	assert_false(state.attack)
+	assert_false(state.heavy_attack)
+	assert_false(state.use)
+
+	for action: StringName in PlayerInputSource.EDGE_ACTIONS:
+		Input.action_release(action)
+	source.poll()
+	for action: StringName in PlayerInputSource.EDGE_ACTIONS:
+		assert_false(source.is_swallowing(action), "%s never came back" % action)
+
+
+## Movement is asked "are you held", not "were you pressed", so continuing to
+## walk when a panel closes is correct -- swallowing it would strand the player
+## until they let go of W.
+func test_movement_is_not_swallowed() -> void:
+	var source := PlayerInputSource.new()
+	Input.action_press(PlayerInputSource.ACTION_MOVE_FORWARD)
+	source.suspended = true
+	source.suspended = false
+
+	assert_true(source.poll().is_moving(), "the player was stranded until they let go")
+	Input.action_release(PlayerInputSource.ACTION_MOVE_FORWARD)
