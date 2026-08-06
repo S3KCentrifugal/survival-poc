@@ -43,8 +43,12 @@ then disagrees across projects.
 ```bash
 ./run_tests.sh    # headless suite; exits non-zero on failure
 ./run.sh          # play it (extra args pass through to Godot)
+./build.sh        # export Linux + Windows into <games-root>/exports/
 gd                # open in the editor at the pinned version (toolkit wrapper)
 ```
+
+All three take `GODOT=/path/to/godot` to override the pinned engine, which is
+how CI points them at one it downloaded itself.
 
 Both scripts import the project on first run — a fresh clone has no `.godot/`,
 and without that pass every `class_name` global fails to resolve.
@@ -105,6 +109,27 @@ reasoning is still in your head — not reconstructed from a diff later.
 Do not duplicate `PROGRESS.md`. That file is the *current* state — kept accurate
 and rewritten as things change. The dev blog is the *history* — appended to and
 then left alone.
+
+## Shipping
+
+**`DEPLOY.md` is the reasoning and the manual steps; this is the rule.** Testers
+get the game through a **Steam Playtest**, built by GitHub Actions, with GitHub
+Releases as the fallback that always works.
+
+- **`build.sh` is the build.** CI is a thin wrapper around it, so a broken build
+  is fixed locally rather than by pushing commits at a YAML file.
+- **One Linux x86_64 binary covers desktop Linux, Steam Deck and Steam
+  Machine.** All three are Linux on x86_64; they are not separate targets.
+- **The executable bit is the thing that breaks silently.** Steam preserves the
+  permissions it is given, and `upload-artifact` does not preserve any. A Linux
+  build without it installs perfectly and then does nothing. It is set in
+  `build.sh` *and* re-set in the Steam job; do not remove either.
+- **Never commit Steam credentials.** `STEAM_USERNAME`, `STEAM_CONFIG_VDF` and
+  `STEAM_APP_ID` are repository secrets. `STEAM_APP_ID` is the **playtest** app,
+  not the base app — they are different ids and testers only own the playtest.
+- **`SetLive` stays empty in `steam/app_build.vdf`.** Promoting a build is a
+  deliberate click in Steamworks, not a side effect of running a script.
+- **Export template downloads are 1.2 GB.** The CI cache is not an optimisation.
 
 ## Interface
 

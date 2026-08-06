@@ -115,4 +115,5 @@ them worse at their job.
 
 ---
 
-Next: nothing scheduled. Posts 002–011 and 025–027 are still owed.
+Next: [041 — Getting it to testers](041-getting-it-to-testers.md). Posts
+002–011 and 025–027 are still owed.

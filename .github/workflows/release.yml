@@ -1,0 +1,141 @@
+name: release
+
+# Builds every platform and, when asked, pushes to Steam.
+#
+#   tag v0.3.0  ->  build + GitHub release + Steam "playtest" branch
+#   manual run  ->  build, and Steam only if you tick the box
+#
+# The Steam step is deliberately opt-in on manual runs. A pipeline that uploads
+# to a live branch on every button press is one nobody dares press.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      steam:
+        description: "Upload to Steam"
+        type: boolean
+        default: false
+      branch:
+        description: "Steam beta branch to set live"
+        type: string
+        default: playtest
+
+permissions:
+  contents: write
+
+jobs:
+  # Nothing ships without the suite passing. Reused, not repeated.
+  tests:
+    uses: ./.github/workflows/test.yml
+
+  build:
+    needs: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the pinned engine version
+        id: godot
+        run: echo "version=$(cat .godot-version)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Godot and export templates
+        id: cache
+        uses: actions/cache@v4
+        with:
+          # Templates are 1.2 GB compressed and ~2 GB unpacked. Downloading
+          # them per run would dominate the build and burn the API allowance.
+          path: |
+            ~/godot
+            ~/.local/share/godot/export_templates
+          key: godot-build-${{ steps.godot.outputs.version }}
+
+      - name: Install Godot and templates
+        if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          VERSION: ${{ steps.godot.outputs.version }}
+        run: |
+          set -euo pipefail
+          url="https://github.com/godotengine/godot/releases/download/${VERSION}-stable"
+          mkdir -p ~/godot ~/.local/share/godot/export_templates
+          curl -sSfL -o /tmp/godot.zip "${url}/Godot_v${VERSION}-stable_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d ~/godot
+          mv ~/godot/Godot_v${VERSION}-stable_linux.x86_64 ~/godot/godot
+          chmod +x ~/godot/godot
+          curl -sSfL -o /tmp/templates.tpz "${url}/Godot_v${VERSION}-stable_export_templates.tpz"
+          unzip -q /tmp/templates.tpz -d /tmp/tpz
+          mv /tmp/tpz/templates ~/.local/share/godot/export_templates/${VERSION}.stable
+
+      - name: Build Linux and Windows
+        run: GODOT=~/godot/godot BUILD_OUT="$PWD/build" ./build.sh
+
+      # Kept separate so a failed Steam upload does not cost the build, and so
+      # a tester can always be handed a direct link while Steam is being sorted
+      # out.
+      - name: Upload artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: survival-poc-${{ github.sha }}
+          path: build/
+          retention-days: 30
+
+      - name: Package for the GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          # zip preserves the executable bit; a tar of the Linux build would
+          # too, but a zip is what a tester on Windows can open.
+          (cd build/linux && zip -qr ../../dist/survival-poc-linux-x86_64.zip .)
+          (cd build/windows && zip -qr ../../dist/survival-poc-windows-x86_64.zip .)
+
+      - name: Publish the GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+
+      - name: Save the build for the Steam job
+        if: >-
+          startsWith(github.ref, 'refs/tags/v') ||
+          inputs.steam
+        uses: actions/upload-artifact@v4
+        with:
+          name: steam-content
+          path: build/
+          retention-days: 1
+
+  steam:
+    needs: build
+    if: >-
+      startsWith(github.ref, 'refs/tags/v') ||
+      inputs.steam
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: steam-content
+          path: build
+
+      # download-artifact does not restore permissions, and a Linux build
+      # without the executable bit installs fine and then does nothing when
+      # launched. See DEPLOY.md.
+      - name: Restore the executable bit
+        run: chmod +x build/linux/survival-poc.x86_64
+
+      - name: Upload to Steam
+        uses: game-ci/steam-deploy@v3
+        with:
+          username: ${{ secrets.STEAM_USERNAME }}
+          configVdf: ${{ secrets.STEAM_CONFIG_VDF }}
+          appId: ${{ secrets.STEAM_APP_ID }}
+          buildDescription: ${{ github.ref_name }} (${{ github.sha }})
+          rootPath: build
+          depot1Path: linux
+          depot2Path: windows
+          releaseBranch: ${{ inputs.branch || 'playtest' }}

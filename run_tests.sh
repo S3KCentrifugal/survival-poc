@@ -9,7 +9,10 @@ set -euo pipefail
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GAMES_ROOT="${GAMES_ROOT:-$(cd "$PROJECT_DIR/../.." && pwd)}"
 VERSION="$(cat "$PROJECT_DIR/.godot-version")"
-GODOT="$GAMES_ROOT/engine/$VERSION/godot"
+# Overridable so CI can point at a Godot it downloaded itself, rather than
+# faking the managed tree layout with a symlink. Locally it resolves to the
+# pinned engine exactly as before.
+GODOT="${GODOT:-$GAMES_ROOT/engine/$VERSION/godot}"
 
 [[ -x "$GODOT" ]] || { echo "Godot $VERSION not installed -- run toolkit/bootstrap.sh" >&2; exit 1; }
 

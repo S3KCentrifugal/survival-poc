@@ -12,6 +12,12 @@ export.cfg
 # Builds live in ~/games/exports/<name>, never in the repo.
 /exports/
 /builds/
+/build/
+
+# steamcmd's local record of what it last uploaded, plus its logs. Machine
+# state, not source -- and it contains the depot manifests, which are large.
+/.steam-build/
+steam/*.local.vdf
 *.pck
 *.zip
 

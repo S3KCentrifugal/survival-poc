@@ -3,7 +3,7 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 40 — A design system for the interface**. The planned
+Last updated after **Feature 41 — Build and Steam playtest pipeline**. The planned
 vertical slice (features 1–11) was completed long ago; everything since is
 built on top of it.
 
@@ -43,6 +43,7 @@ grow. Do not over-engineer.
 - Static typing everywhere, including typed collections
 
 `CLAUDE.md` holds the enforceable version of this plus the engine traps.
+**`DEPLOY.md`** holds the shipping pipeline and the manual Steam steps.
 **`UI.md`** holds the interface guidelines: which ones, from where, and what is
 deliberately not done yet. **`MULTIPLAYER.md`** holds the networking architecture: the authority model, the
 replication plan, the path to an MMO, and the order the work should happen in.
@@ -134,7 +135,8 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 37 | Levels and experience, and a heavy attack on right click | done | `4ccec09` |
 | 38 | Fix: panels that could not be closed | done | `21554d0` |
 | 39 | Refactoring pass: interaction, panels, test framework | done | `50c690f` |
-| 40 | A design system for the interface | done | — |
+| 40 | A design system for the interface | done | `134d64e` |
+| 41 | Build and Steam playtest pipeline | done | — |
 
 **The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
@@ -1366,6 +1368,31 @@ line under the buttons, full-width left-aligned rows in one order, disabled rows
 keeping their borders and explaining themselves in place. The accent came back
 off the rows -- it means "this is the answer", and a shop has no single answer.
 
+### 41. Getting it to testers
+
+`DEPLOY.md` is the analysis and the manual steps. The route is a **Steam
+Playtest** -- the feature Valve built for exactly this: a free, gated app linked
+to the store page, with testers getting a normal library entry and, importantly,
+a normal Steam Deck install. A demo is public and a password-protected beta
+branch needs testers to own the app; neither fits. itch.io and GitHub Releases
+stay as the bridge that works today, since the $100 Steam Direct fee and two
+app reviews take days.
+
+`build.sh` exports both platforms and CI is a thin wrapper around it, because a
+pipeline whose only home is a YAML file is one you debug by pushing commits.
+Tests gate everything; a tag builds, publishes a GitHub release and sets the
+Steam build live on `playtest`; a manual run only touches Steam if you tick the
+box.
+
+**One Linux x86_64 binary covers desktop Linux, the Steam Deck and the Steam
+Machine** -- all three are Linux on x86_64. What is *not* done for the Deck is
+the part that matters: no controller support at all, and an interface tuned for
+1080p rather than 1280x800. Expect Playable, not Verified.
+
+The gotcha worth knowing: **Steam preserves the executable bit it is given, and
+`upload-artifact` preserves none**, so a Linux build can install perfectly and
+do nothing when launched. Set in `build.sh` and re-set in the Steam job.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -1410,6 +1437,10 @@ needs and this repo does not have:
   `ExperienceComponent` listens rather than reaching.
 - **A sword that does anything.** It can be bought, carried, dropped and picked
   up. It is not equippable and does not change the punch.
+- **Controller support of any kind.** The blocker for Steam Deck Verified and
+  the biggest gap in the playtest. `InputSource` is the seam.
+- **Code signing, macOS, and a dedicated server build.** All three are in
+  `DEPLOY.md` with why they are not worth it yet.
 - **Interface scaling, a text-size setting, reduced motion, or controller
   navigation.** Focus *styling* is correct; nothing sets up focus neighbours,
   so a pad cannot walk the UI. All four are listed in `UI.md`.

@@ -1,0 +1,23 @@
+// The Linux depot: Steam Deck, Steam Machine, and desktop Linux.
+//
+// One x86_64 build covers all three. SteamOS on both the Deck and the Steam
+// Machine is Arch-based Linux on x86_64, so there is no separate target -- the
+// difference is in what the game does with a 1280x800 screen and a gamepad, not
+// in what it is compiled for.
+"DepotBuild"
+{
+	"DepotID" "0"
+	"ContentRoot" "../build/linux/"
+
+	"FileMapping"
+	{
+		"LocalPath" "*"
+		"DepotPath" "."
+		"Recursive" "1"
+	}
+
+	// Nothing to exclude yet. When there is, it goes here rather than being
+	// deleted from the build directory -- the build should be the same whether
+	// it is going to Steam or to a zip.
+	"FileExclusion" "*.pdb"
+}

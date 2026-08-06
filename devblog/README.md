@@ -50,6 +50,7 @@ rather than an edit to the old one.
 | 038 | [A shop you could not leave](038-a-shop-you-could-not-leave.md) | Input order decided by an invisible line in a .tscn, and suspension resetting every rising edge |
 | 039 | [Three components that were one](039-three-components-that-were-one.md) | Splitting reachable from pickable, reach as a property of the thing, and a test runner that was lying |
 | 040 | [An interface with rules](040-an-interface-with-rules.md) | Naming the guidelines, one theme instead of 84 overrides, and contrast tests that failed on the palette I had just shipped |
+| 041 | [Getting it to testers](041-getting-it-to-testers.md) | Why Steam Playtest, the executable bit that fails silently, and a session file that expires without telling anyone |
 
 Numbers follow the **feature** order, not the order posts get written — 012 is
 the twelfth feature, and 002–011 and 025–027 below are still owed. The three

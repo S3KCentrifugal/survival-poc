@@ -1,0 +1,29 @@
+// SteamPipe build script for survival-poc.
+//
+// Used by `steamcmd +run_app_build`. The GitHub workflow does not read this --
+// game-ci/steam-deploy generates its own from the inputs -- but a build you can
+// only make from CI is a build you cannot debug, so this is the same thing by
+// hand and DEPLOY.md explains how to run it.
+//
+// Replace every 0 below with the real ids from Steamworks before use.
+"AppBuild"
+{
+	"AppID"  "0"          // your base app id
+	"Desc"   "manual build"
+
+	// Where steamcmd writes logs and its local cache of what it last uploaded.
+	// Keep it out of the repo: it is machine state, not source.
+	"ContentRoot" "../build/"
+	"BuildOutput" "../.steam-build/"
+
+	// The branch this build goes live on. EMPTY means "upload but set nothing
+	// live", which is the safe default -- promoting is then a deliberate click
+	// in Steamworks rather than a side effect of running a script.
+	"SetLive" ""
+
+	"Depots"
+	{
+		"0" "depot_linux.vdf"     // your Linux depot id
+		"0" "depot_windows.vdf"   // your Windows depot id
+	}
+}

@@ -1,0 +1,47 @@
+name: tests
+
+# The gate. Nothing reaches a tester that has not been through this, which is
+# why the release workflow calls it rather than duplicating it.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+
+jobs:
+  suite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the pinned engine version
+        id: godot
+        run: echo "version=$(cat .godot-version)" >> "$GITHUB_OUTPUT"
+
+      # Cached because it is ~70 MB and the version only moves when the pin
+      # does, which is the same key.
+      - name: Cache Godot
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: ~/godot
+          key: godot-${{ steps.godot.outputs.version }}-linux
+
+      - name: Install Godot ${{ steps.godot.outputs.version }}
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        env:
+          VERSION: ${{ steps.godot.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/godot
+          url="https://github.com/godotengine/godot/releases/download/${VERSION}-stable"
+          curl -sSfL -o /tmp/godot.zip "${url}/Godot_v${VERSION}-stable_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d ~/godot
+          mv ~/godot/Godot_v${VERSION}-stable_linux.x86_64 ~/godot/godot
+          chmod +x ~/godot/godot
+
+      # The suite needs a live SceneTree, and some suites mount 3D scenes. The
+      # headless display server covers it; no X server is required.
+      - name: Run the suite
+        run: GODOT=~/godot/godot ./run_tests.sh
