@@ -5,21 +5,6 @@ extends TestCase
 const MAIN_SCENE: String = "res://scenes/main.tscn"
 const MUSHROOM_SCENE: String = "res://items/mushroom.tscn"
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
-
-func _mount(node: Node) -> Node:
-	(Engine.get_main_loop() as SceneTree).root.add_child(node)
-	_mounted.append(node)
-	return node
-
 
 func _patch(count: int, regrow_seconds: float = 1.0) -> MushroomPatch:
 	var patch := MushroomPatch.new()
@@ -28,7 +13,7 @@ func _patch(count: int, regrow_seconds: float = 1.0) -> MushroomPatch:
 	patch.regrow_seconds = regrow_seconds
 	patch.area = Rect2(-10.0, -10.0, 20.0, 20.0)
 	patch.avoid = Rect2(-2.0, -2.0, 4.0, 4.0)
-	_mount(patch)
+	mount(patch)
 	return patch
 
 
@@ -125,7 +110,7 @@ func test_it_stops_at_the_count_it_was_given() -> void:
 ## before you may pick something up is a rule nobody enjoys discovering.
 func test_a_sprouting_mushroom_can_still_be_picked() -> void:
 	var mushroom: Node3D = load(MUSHROOM_SCENE).instantiate()
-	_mount(mushroom)
+	mount(mushroom)
 	var growth := mushroom as MushroomGrowth
 	growth._process(0.01)
 
@@ -135,7 +120,7 @@ func test_a_sprouting_mushroom_can_still_be_picked() -> void:
 
 func test_growing_scales_the_model_and_stops() -> void:
 	var mushroom: Node3D = load(MUSHROOM_SCENE).instantiate()
-	_mount(mushroom)
+	mount(mushroom)
 	var growth := mushroom as MushroomGrowth
 	var model: Node3D = mushroom.get_node("Model")
 
@@ -148,7 +133,7 @@ func test_growing_scales_the_model_and_stops() -> void:
 
 func test_the_world_has_a_patch() -> void:
 	var world: Node = load(MAIN_SCENE).instantiate()
-	_mount(world)
+	mount(world)
 	var patch: MushroomPatch = world.get_node_or_null("Mushrooms")
 	assert_not_null(patch, "there are no mushrooms in the world")
 	assert_not_null(patch.scene, "the patch has nothing to grow")
@@ -159,7 +144,7 @@ func test_the_world_has_a_patch() -> void:
 ## Dropped onto the surface, not left hanging over a hill or buried in one.
 func test_they_sit_on_the_ground() -> void:
 	var world: Node = load(MAIN_SCENE).instantiate()
-	_mount(world)
+	mount(world)
 	var patch: MushroomPatch = world.get_node("Mushrooms")
 	var terrain: Terrain = world.get_node("Terrain")
 
@@ -173,5 +158,5 @@ func test_they_sit_on_the_ground() -> void:
 
 func _a_bag() -> InventoryComponent:
 	var inventory := InventoryComponent.new()
-	_mount(inventory)
+	mount(inventory)
 	return inventory

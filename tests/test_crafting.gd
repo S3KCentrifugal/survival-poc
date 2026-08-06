@@ -6,21 +6,6 @@ const RECIPE_PATH: String = "res://resources/recipes/mushroom_soup.tres"
 const MUSHROOM_PATH: String = "res://resources/items/mushroom.tres"
 const SOUP_PATH: String = "res://resources/items/soup.tres"
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
-
-func _mount(node: Node) -> Node:
-	(Engine.get_main_loop() as SceneTree).root.add_child(node)
-	_mounted.append(node)
-	return node
-
 
 func _recipe() -> Recipe:
 	return load(RECIPE_PATH)
@@ -120,11 +105,11 @@ func test_the_summary_names_both_ends() -> void:
 
 func _bench_and_bag(mushrooms: int) -> Array:
 	var bench_scene: Node3D = load("res://world/workbench.tscn").instantiate()
-	_mount(bench_scene)
+	mount(bench_scene)
 	var bench: WorkbenchComponent = bench_scene.get_node("Bench")
 
 	var inventory := InventoryComponent.new()
-	_mount(inventory)
+	mount(inventory)
 	if mushrooms > 0:
 		inventory.collect(load(MUSHROOM_PATH), mushrooms)
 	return [bench, inventory]

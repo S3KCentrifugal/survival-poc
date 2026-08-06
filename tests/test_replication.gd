@@ -4,22 +4,6 @@ extends TestCase
 const MAIN_SCENE: String = "res://scenes/main.tscn"
 const PLAYER_SCENE: String = "res://characters/player.tscn"
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
-
-func _mount(node: Node) -> Node:
-	var tree := Engine.get_main_loop() as SceneTree
-	tree.root.add_child(node)
-	_mounted.append(node)
-	return node
-
 
 func _buffer(delay: float = 0.1) -> SnapshotInterpolator:
 	var interpolator := SnapshotInterpolator.new(delay)
@@ -105,7 +89,7 @@ func test_it_never_forgets_everything() -> void:
 
 func test_a_player_carries_a_network_entity() -> void:
 	var player: CharacterBody3D = load(PLAYER_SCENE).instantiate()
-	_mount(player)
+	mount(player)
 	var entity: NetworkEntity = player.get_node_or_null("Network")
 	assert_not_null(entity, "a player could never be replicated")
 	assert_eq(entity.kind, NetworkProtocol.EntityKind.PLAYER)
@@ -115,7 +99,7 @@ func test_a_player_carries_a_network_entity() -> void:
 
 func test_capturing_reads_the_actor_into_plain_numbers() -> void:
 	var player: CharacterBody3D = load(PLAYER_SCENE).instantiate()
-	_mount(player)
+	mount(player)
 	player.global_position = Vector3(5.0, 1.0, -2.0)
 	player.global_rotation.y = 1.0
 
@@ -131,7 +115,7 @@ func test_capturing_reads_the_actor_into_plain_numbers() -> void:
 ## A puppet that also simulates fights its own replicated position.
 func test_a_proxy_stops_simulating_itself() -> void:
 	var player: CharacterBody3D = load(PLAYER_SCENE).instantiate()
-	_mount(player)
+	mount(player)
 	var entity: NetworkEntity = player.get_node("Network")
 	var movement: MovementComponent = player.get_node("Movement")
 
@@ -143,7 +127,7 @@ func test_a_proxy_stops_simulating_itself() -> void:
 
 func test_a_proxy_moves_to_where_it_is_told() -> void:
 	var player: CharacterBody3D = load(PLAYER_SCENE).instantiate()
-	_mount(player)
+	mount(player)
 	var entity: NetworkEntity = player.get_node("Network")
 	entity.become_proxy(0.05)
 
@@ -158,7 +142,7 @@ func test_a_proxy_moves_to_where_it_is_told() -> void:
 ## that were never struck here.
 func test_a_replicated_health_change_is_silent() -> void:
 	var player: CharacterBody3D = load(PLAYER_SCENE).instantiate()
-	_mount(player)
+	mount(player)
 	var health: HealthComponent = player.get_node("Health")
 	var hits := [0]
 	health.damaged.connect(func(_amount: float) -> void: hits[0] += 1)
@@ -169,7 +153,7 @@ func test_a_replicated_health_change_is_silent() -> void:
 
 
 func test_the_main_scene_can_replicate() -> void:
-	var world := _mount(load(MAIN_SCENE).instantiate())
+	var world := mount(load(MAIN_SCENE).instantiate())
 	var replication: ReplicationService = world.get_node_or_null("Replication")
 	assert_not_null(replication, "the world cannot replicate anything")
 	assert_eq(replication.network, world.get_node("Network"))
@@ -178,7 +162,7 @@ func test_the_main_scene_can_replicate() -> void:
 
 ## In single-player there is no socket, so nothing broadcasts and nothing spawns.
 func test_single_player_replicates_nothing() -> void:
-	var world := _mount(load(MAIN_SCENE).instantiate())
+	var world := mount(load(MAIN_SCENE).instantiate())
 	var replication: ReplicationService = world.get_node("Replication")
 	replication._process(1.0)
 	assert_eq(replication.entity_count(), 0, "single-player spawned network entities")
@@ -188,7 +172,7 @@ func test_single_player_replicates_nothing() -> void:
 ## they all go out as entity 0, and a client folds the whole world into one
 ## character standing in eight places.
 func test_scene_placed_entities_are_given_ids_before_they_are_sent() -> void:
-	var world := _mount(load(MAIN_SCENE).instantiate())
+	var world := mount(load(MAIN_SCENE).instantiate())
 	var replication: ReplicationService = world.get_node("Replication")
 
 	var without_ids := 0

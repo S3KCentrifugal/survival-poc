@@ -5,21 +5,10 @@ const PLAYER_SCENE: String = "res://characters/player.tscn"
 const CONFIG_RESOURCE: String = "res://resources/movement/player_movement.tres"
 const STEP: float = 1.0 / 60.0
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
 
 func _mount_player() -> CharacterBody3D:
-	var tree := Engine.get_main_loop() as SceneTree
 	var player: CharacterBody3D = load(PLAYER_SCENE).instantiate()
-	tree.root.add_child(player)
-	_mounted.append(player)
+	mount(player)
 	return player
 
 

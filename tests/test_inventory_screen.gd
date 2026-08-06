@@ -4,22 +4,10 @@ extends TestCase
 const MAIN_SCENE: String = "res://scenes/main.tscn"
 const SCREEN_SCENE: String = "res://ui/inventory_screen.tscn"
 
-var _mounted: Array[Node] = []
-
 
 func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
 	# A suite that leaves the tree paused takes every later one with it.
 	(Engine.get_main_loop() as SceneTree).paused = false
-
-
-func _mount(node: Node) -> Node:
-	(Engine.get_main_loop() as SceneTree).root.add_child(node)
-	_mounted.append(node)
-	return node
 
 
 func _screen() -> InventoryScreen:
@@ -28,7 +16,7 @@ func _screen() -> InventoryScreen:
 	inventory.capacity = 6
 	screen.add_child(inventory)
 	screen.inventory = inventory
-	_mount(screen)
+	mount(screen)
 	return screen
 
 
@@ -120,7 +108,7 @@ func test_emptying_a_slot_clears_its_cell() -> void:
 
 func test_the_world_carries_one_wired_to_the_player() -> void:
 	var world: Node = load(MAIN_SCENE).instantiate()
-	_mount(world)
+	mount(world)
 
 	var screen: InventoryScreen = world.get_node_or_null("InventoryScreen")
 	assert_not_null(screen, "there is no inventory screen in the world")
@@ -135,7 +123,7 @@ func test_the_world_carries_one_wired_to_the_player() -> void:
 ## The whole loop, in the assembled world: walk up, press F, and see it.
 func test_a_picked_mushroom_shows_up_in_the_screen() -> void:
 	var world: Node = load(MAIN_SCENE).instantiate()
-	_mount(world)
+	mount(world)
 
 	var player: Node3D = world.get_node("Player")
 	var collector: PickupCollector = world.get_node("Player/Collector")
@@ -245,7 +233,7 @@ func test_dragging_one_cell_onto_another_moves_the_stack() -> void:
 ## has to accept the drag rather than ignore the mouse.
 func test_the_area_outside_the_panel_takes_a_drop() -> void:
 	var world: Node = load(MAIN_SCENE).instantiate()
-	_mount(world)
+	mount(world)
 	var screen: InventoryScreen = world.get_node("InventoryScreen")
 	var inventory: InventoryComponent = world.get_node("Player/Inventory")
 	inventory.collect(_mushroom(), 2)
@@ -266,7 +254,7 @@ func test_the_area_outside_the_panel_takes_a_drop() -> void:
 ## down.
 func test_dragging_out_an_item_with_no_world_form_is_refused() -> void:
 	var world: Node = load(MAIN_SCENE).instantiate()
-	_mount(world)
+	mount(world)
 	var screen: InventoryScreen = world.get_node("InventoryScreen")
 	var idea := _item(&"idea")
 	(world.get_node("Player/Inventory") as InventoryComponent).collect(idea, 1)
@@ -287,7 +275,7 @@ func _key_event(code: Key) -> InputEventKey:
 ## in the scene. An open panel must win its own close key.
 func test_escape_closes_the_bag_without_opening_the_pause_menu() -> void:
 	var world: Node = load(MAIN_SCENE).instantiate()
-	_mount(world)
+	mount(world)
 	var screen: InventoryScreen = world.get_node("InventoryScreen")
 	var pause: PauseMenu = world.get_node("PauseMenu")
 	screen.set_open(true)
@@ -303,7 +291,7 @@ func test_escape_closes_the_bag_without_opening_the_pause_menu() -> void:
 ## a fix like this is most likely to break.
 func test_escape_still_opens_the_pause_menu_with_no_panel_open() -> void:
 	var world: Node = load(MAIN_SCENE).instantiate()
-	_mount(world)
+	mount(world)
 	var pause: PauseMenu = world.get_node("PauseMenu")
 
 	world.get_tree().root.push_input(_key_event(KEY_ESCAPE))

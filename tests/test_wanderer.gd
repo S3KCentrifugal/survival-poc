@@ -5,29 +5,16 @@ const MAIN_SCENE: String = "res://scenes/main.tscn"
 const WANDERER_SCENE: String = "res://characters/wanderer.tscn"
 const STEP: float = 1.0 / 60.0
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
 
 func _mount_wanderer() -> CharacterBody3D:
-	var tree := Engine.get_main_loop() as SceneTree
 	var actor: CharacterBody3D = load(WANDERER_SCENE).instantiate()
-	tree.root.add_child(actor)
-	_mounted.append(actor)
+	mount(actor)
 	return actor
 
 
 func _mount_world() -> Node:
-	var tree := Engine.get_main_loop() as SceneTree
 	var world: Node = load(MAIN_SCENE).instantiate()
-	tree.root.add_child(world)
-	_mounted.append(world)
+	mount(world)
 	return world
 
 
@@ -155,6 +142,5 @@ func test_a_spawner_with_no_scene_says_so_rather_than_crashing() -> void:
 	var tree := Engine.get_main_loop() as SceneTree
 	var spawner := WandererSpawner.new()
 	spawner.scene = null
-	tree.root.add_child(spawner)
-	_mounted.append(spawner)
+	mount(spawner)
 	assert_eq(spawner.spawned_actors().size(), 0)

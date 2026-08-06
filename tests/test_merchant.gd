@@ -7,25 +7,10 @@ const MERCHANT_SCENE: String = "res://characters/merchant.tscn"
 const MUSHROOM_PATH: String = "res://resources/items/mushroom.tres"
 const GOLD_PATH: String = "res://resources/items/gold.tres"
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
-
-func _mount(node: Node) -> Node:
-	(Engine.get_main_loop() as SceneTree).root.add_child(node)
-	_mounted.append(node)
-	return node
-
 
 func _merchant_at(where: Vector3) -> MerchantComponent:
 	var actor: Node3D = load(MERCHANT_SCENE).instantiate()
-	_mount(actor)
+	mount(actor)
 	actor.global_position = where
 	var merchant: MerchantComponent = actor.get_node("Merchant")
 	(actor.get_node("Stock") as InventoryComponent).collect(load(GOLD_PATH), 400)
@@ -34,7 +19,7 @@ func _merchant_at(where: Vector3) -> MerchantComponent:
 
 func _bag(mushrooms: int, gold: int) -> InventoryComponent:
 	var inventory := InventoryComponent.new()
-	_mount(inventory)
+	mount(inventory)
 	if mushrooms > 0:
 		inventory.collect(load(MUSHROOM_PATH), mushrooms)
 	if gold > 0:
@@ -54,7 +39,7 @@ func test_the_merchant_scene_is_assembled() -> void:
 ## a component nobody can see.
 func test_a_merchant_looks_different_from_a_wanderer() -> void:
 	var actor: Node3D = load(MERCHANT_SCENE).instantiate()
-	_mount(actor)
+	mount(actor)
 
 	assert_not_null(actor.get_node_or_null("Nameplate"), "there is no nameplate")
 	assert_eq((actor.get_node("Nameplate") as Label3D).text, "Merchant")
@@ -69,7 +54,7 @@ func test_a_merchant_looks_different_from_a_wanderer() -> void:
 ## turns a textured robot into a flat silhouette.
 func test_the_tint_is_an_overlay_that_keeps_the_model_visible() -> void:
 	var actor: Node3D = load(MERCHANT_SCENE).instantiate()
-	_mount(actor)
+	mount(actor)
 	var tint: ModelTint = actor.get_node("Tint")
 
 	assert_true(tint.tint.a < 1.0, "an opaque tint hides the character underneath")
@@ -84,7 +69,7 @@ func test_the_tint_is_an_overlay_that_keeps_the_model_visible() -> void:
 ## visiting.
 func test_merchants_do_not_wander() -> void:
 	var actor: Node3D = load(MERCHANT_SCENE).instantiate()
-	_mount(actor)
+	mount(actor)
 	assert_null(actor.get_node_or_null("Wander"), "the merchant wanders off")
 	assert_null(actor.get_node_or_null("Movement"), "the merchant can be moved")
 
@@ -159,7 +144,7 @@ func test_a_merchant_will_not_trade_an_offer_it_does_not_have() -> void:
 
 func _world() -> Node:
 	var world: Node = load(MAIN_SCENE).instantiate()
-	_mount(world)
+	mount(world)
 	return world
 
 

@@ -6,26 +6,10 @@ const WANDERER_SCENE: String = "res://characters/wanderer.tscn"
 const NUMBER_SCENE: String = "res://effects/damage_number.tscn"
 const BAR_SCENE: String = "res://ui/health_bar_3d.tscn"
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
-
-func _mount(node: Node) -> Node:
-	var tree := Engine.get_main_loop() as SceneTree
-	tree.root.add_child(node)
-	_mounted.append(node)
-	return node
-
 
 func _mount_wanderer() -> CharacterBody3D:
 	var holder := Node3D.new()
-	_mount(holder)
+	mount(holder)
 	var actor: CharacterBody3D = load(WANDERER_SCENE).instantiate()
 	holder.add_child(actor)
 	return actor
@@ -40,7 +24,7 @@ func test_the_number_scene_loads() -> void:
 
 func test_the_player_prints_its_damage() -> void:
 	var player: CharacterBody3D = load(PLAYER_SCENE).instantiate()
-	_mount(player)
+	mount(player)
 	var numbers: DamageNumbers = player.get_node_or_null("DamageNumbers")
 	assert_not_null(numbers, "punches would land silently")
 	assert_eq(numbers.attack, player.get_node("Attack"))
@@ -49,14 +33,14 @@ func test_the_player_prints_its_damage() -> void:
 
 func test_a_number_says_what_was_taken() -> void:
 	var number: DamageNumber = load(NUMBER_SCENE).instantiate()
-	_mount(number)
+	mount(number)
 	number.show_damage(37.0)
 	assert_eq(number.label.text, "37")
 
 
 func test_it_rounds_rather_than_printing_a_decimal() -> void:
 	var number: DamageNumber = load(NUMBER_SCENE).instantiate()
-	_mount(number)
+	mount(number)
 	number.show_damage(12.6)
 	assert_eq(number.label.text, "13")
 
@@ -65,8 +49,8 @@ func test_it_rounds_rather_than_printing_a_decimal() -> void:
 func test_a_killing_hit_looks_different() -> void:
 	var ordinary: DamageNumber = load(NUMBER_SCENE).instantiate()
 	var killing: DamageNumber = load(NUMBER_SCENE).instantiate()
-	_mount(ordinary)
-	_mount(killing)
+	mount(ordinary)
+	mount(killing)
 	ordinary.show_damage(12.0, false)
 	killing.show_damage(12.0, true)
 	assert_ne(ordinary.label.modulate, killing.label.modulate)
@@ -74,7 +58,7 @@ func test_a_killing_hit_looks_different() -> void:
 
 func test_a_number_drifts_up_and_removes_itself() -> void:
 	var number: DamageNumber = load(NUMBER_SCENE).instantiate()
-	_mount(number)
+	mount(number)
 	number.global_position = Vector3(1.0, 2.0, 3.0)
 	number._ready()
 
@@ -88,7 +72,7 @@ func test_a_number_drifts_up_and_removes_itself() -> void:
 
 func test_a_number_fades_before_it_goes() -> void:
 	var number: DamageNumber = load(NUMBER_SCENE).instantiate()
-	_mount(number)
+	mount(number)
 	number._ready()
 	number._process(number.lifetime * 0.9)
 	assert_true(number.label.modulate.a < 1.0, "it vanished at full opacity")
@@ -101,7 +85,7 @@ func test_a_number_is_not_parented_to_what_it_describes() -> void:
 	var world := actor.get_parent()
 	var numbers := DamageNumbers.new()
 	numbers.effect = load(NUMBER_SCENE)
-	_mount(numbers)
+	mount(numbers)
 
 	numbers.print_damage(actor, 12.0)
 	var found := false
@@ -115,7 +99,7 @@ func test_printing_with_no_effect_scene_does_nothing() -> void:
 	var actor := _mount_wanderer()
 	var numbers := DamageNumbers.new()
 	numbers.effect = null
-	_mount(numbers)
+	mount(numbers)
 	numbers.print_damage(actor, 12.0)  # must not raise
 
 
@@ -160,7 +144,7 @@ func test_the_bar_hides_again_once_it_is_left_alone() -> void:
 ## A scale of exactly zero collapses the basis and Godot complains every frame.
 func test_an_empty_bar_does_not_collapse_its_transform() -> void:
 	var bar: HealthBar3D = load(BAR_SCENE).instantiate()
-	_mount(bar)
+	mount(bar)
 	bar.set_fraction(0.0)
 	assert_true(bar.fill_pivot.scale.x > 0.0)
 	assert_true(bar.fill_pivot.transform.basis.determinant() != 0.0)
@@ -168,14 +152,14 @@ func test_an_empty_bar_does_not_collapse_its_transform() -> void:
 
 func test_a_nan_fraction_reads_as_empty() -> void:
 	var bar: HealthBar3D = load(BAR_SCENE).instantiate()
-	_mount(bar)
+	mount(bar)
 	bar.set_fraction(sqrt(-1.0))
 	assert_false(is_nan(bar.fraction()))
 
 
 func test_a_low_bar_changes_colour() -> void:
 	var bar: HealthBar3D = load(BAR_SCENE).instantiate()
-	_mount(bar)
+	mount(bar)
 	bar.set_fraction(1.0)
 	var healthy := (bar.fill.material_override as StandardMaterial3D).albedo_color
 	bar.set_fraction(0.1)
@@ -187,8 +171,8 @@ func test_a_low_bar_changes_colour() -> void:
 func test_bars_do_not_share_a_material() -> void:
 	var first: HealthBar3D = load(BAR_SCENE).instantiate()
 	var second: HealthBar3D = load(BAR_SCENE).instantiate()
-	_mount(first)
-	_mount(second)
+	mount(first)
+	mount(second)
 	second.set_fraction(1.0)
 	var before := (second.fill.material_override as StandardMaterial3D).albedo_color
 	first.set_fraction(0.05)

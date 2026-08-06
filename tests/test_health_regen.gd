@@ -3,15 +3,6 @@ extends TestCase
 
 const STEP: float = 1.0 / 60.0
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
 
 func _health(regen: float = 10.0, delay: float = 1.0, maximum: float = 100.0) -> HealthComponent:
 	var config := HealthConfig.new()
@@ -20,7 +11,7 @@ func _health(regen: float = 10.0, delay: float = 1.0, maximum: float = 100.0) ->
 	config.regen_delay = delay
 	var component := HealthComponent.new()
 	component.config = config
-	_mounted.append(component)
+	mount(component)
 	return component
 
 

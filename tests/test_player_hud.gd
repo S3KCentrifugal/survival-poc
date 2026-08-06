@@ -4,15 +4,6 @@ extends TestCase
 const MAIN_SCENE: String = "res://scenes/main.tscn"
 const HUD_SCENE: String = "res://ui/player_hud.tscn"
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
 
 ## A HUD watching vitals of its own, so a test can move them freely.
 func _hud() -> PlayerHud:
@@ -28,17 +19,14 @@ func _hud() -> PlayerHud:
 	hud.health = health
 	hud.stamina = stamina
 
-	tree.root.add_child(hud)
-	_mounted.append(hud)
+	mount(hud)
 	hud.refresh()
 	return hud
 
 
 func test_the_main_scene_carries_a_hud_wired_to_the_player() -> void:
-	var tree := Engine.get_main_loop() as SceneTree
 	var world: Node = load(MAIN_SCENE).instantiate()
-	tree.root.add_child(world)
-	_mounted.append(world)
+	mount(world)
 
 	var hud: PlayerHud = world.get_node_or_null("PlayerHud")
 	assert_not_null(hud, "the player has no HUD")
@@ -49,10 +37,8 @@ func test_the_main_scene_carries_a_hud_wired_to_the_player() -> void:
 ## The HUD is for whoever is playing; the overlay is for whoever is building.
 ## F3 must not take the health bar away with it.
 func test_it_is_not_the_debug_overlay() -> void:
-	var tree := Engine.get_main_loop() as SceneTree
 	var world: Node = load(MAIN_SCENE).instantiate()
-	tree.root.add_child(world)
-	_mounted.append(world)
+	mount(world)
 
 	var hud: PlayerHud = world.get_node("PlayerHud")
 	var overlay: DebugOverlay = world.get_node("DebugOverlay")
@@ -131,9 +117,7 @@ func test_recolouring_one_bar_leaves_the_other_alone() -> void:
 
 
 func test_a_hud_watching_nothing_does_not_crash() -> void:
-	var tree := Engine.get_main_loop() as SceneTree
 	var hud: PlayerHud = load(HUD_SCENE).instantiate()
-	tree.root.add_child(hud)
-	_mounted.append(hud)
+	mount(hud)
 	hud.refresh()
 	assert_eq(hud.health_fraction(), 1.0)

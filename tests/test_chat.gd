@@ -4,21 +4,6 @@ extends TestCase
 
 const MAIN_SCENE: String = "res://scenes/main.tscn"
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
-
-func _mount(node: Node) -> Node:
-	(Engine.get_main_loop() as SceneTree).root.add_child(node)
-	_mounted.append(node)
-	return node
-
 
 func test_a_line_goes_in_and_comes_back_out() -> void:
 	var chat := ChatLog.new()
@@ -172,7 +157,7 @@ func test_the_protocol_version_did_not_move() -> void:
 func _service() -> ChatService:
 	var service := ChatService.new()
 	service.player_name = "You"
-	_mount(service)
+	mount(service)
 	return service
 
 
@@ -201,7 +186,7 @@ func test_announcements_are_system_lines() -> void:
 
 func _world() -> Node:
 	var world: Node = load(MAIN_SCENE).instantiate()
-	_mount(world)
+	mount(world)
 	return world
 
 

@@ -5,15 +5,6 @@ const PLAYER_SCENE: String = "res://characters/player.tscn"
 const CONFIG_RESOURCE: String = "res://resources/attack/player_attack.tres"
 const STEP: float = 1.0 / 60.0
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
 
 func _attacker(cooldown: float = 0.35) -> AttackComponent:
 	var config := AttackConfig.new()
@@ -21,7 +12,7 @@ func _attacker(cooldown: float = 0.35) -> AttackComponent:
 	var component := AttackComponent.new()
 	component.config = config
 	component.input_source = ScriptedInputSource.new()
-	_mounted.append(component)
+	mount(component)
 	return component
 
 
@@ -30,10 +21,8 @@ func _source_of(attack: AttackComponent) -> ScriptedInputSource:
 
 
 func _mount_player() -> CharacterBody3D:
-	var tree := Engine.get_main_loop() as SceneTree
 	var player: CharacterBody3D = load(PLAYER_SCENE).instantiate()
-	tree.root.add_child(player)
-	_mounted.append(player)
+	mount(player)
 	return player
 
 
@@ -166,7 +155,7 @@ func test_punching_can_be_asked_for_directly() -> void:
 func test_an_attack_with_no_input_source_never_swings() -> void:
 	var attack := AttackComponent.new()
 	attack.config = AttackConfig.new()
-	_mounted.append(attack)
+	mount(attack)
 	for _frame in 30:
 		attack.step(STEP)
 	assert_false(attack.is_attacking())

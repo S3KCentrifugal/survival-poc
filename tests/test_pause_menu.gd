@@ -3,23 +3,15 @@ extends TestCase
 
 const MAIN_SCENE: String = "res://scenes/main.tscn"
 
-var _mounted: Array[Node] = []
-
 
 func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
 	# A test that leaves the tree paused takes every later suite with it.
 	(Engine.get_main_loop() as SceneTree).paused = false
 
 
 func _mount_world() -> Node:
-	var tree := Engine.get_main_loop() as SceneTree
 	var world: Node = load(MAIN_SCENE).instantiate()
-	tree.root.add_child(world)
-	_mounted.append(world)
+	mount(world)
 	return world
 
 
@@ -172,8 +164,7 @@ func test_applying_saves_to_disk() -> void:
 	var tree := Engine.get_main_loop() as SceneTree
 	var menu: PauseMenu = load("res://ui/pause_menu.tscn").instantiate()
 	menu.settings_path = "user://test_pause_settings.cfg"
-	tree.root.add_child(menu)
-	_mounted.append(menu)
+	mount(menu)
 
 	var panel := menu.settings_menu
 	var wanted := GameSettings.new()

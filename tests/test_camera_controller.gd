@@ -4,31 +4,15 @@ extends TestCase
 const CAMERA_SCENE: String = "res://prefabs/third_person_camera.tscn"
 const CONFIG_RESOURCE: String = "res://resources/camera/default_camera.tres"
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
-
-func _mount(node: Node) -> Node:
-	var tree := Engine.get_main_loop() as SceneTree
-	tree.root.add_child(node)
-	_mounted.append(node)
-	return node
-
 
 func _mount_camera() -> CameraController:
-	return _mount(load(CAMERA_SCENE).instantiate()) as CameraController
+	return mount(load(CAMERA_SCENE).instantiate()) as CameraController
 
 
 ## A stand-in for the player, which does not exist yet.
 func _mount_target(at: Vector3) -> Node3D:
 	var node := Node3D.new()
-	_mount(node)
+	mount(node)
 	node.global_position = at
 	return node
 

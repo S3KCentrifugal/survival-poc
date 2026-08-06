@@ -4,33 +4,21 @@ extends TestCase
 const MAIN_SCENE: String = "res://scenes/main.tscn"
 const MUSHROOM_PATH: String = "res://resources/items/mushroom.tres"
 
-var _mounted: Array[Node] = []
-
 
 func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
 	(Engine.get_main_loop() as SceneTree).paused = false
-
-
-func _mount(node: Node) -> Node:
-	(Engine.get_main_loop() as SceneTree).root.add_child(node)
-	_mounted.append(node)
-	return node
 
 
 func _bench_at(where: Vector3) -> WorkbenchComponent:
 	var scene: Node3D = load("res://world/workbench.tscn").instantiate()
-	_mount(scene)
+	mount(scene)
 	scene.global_position = where
 	return scene.get_node("Bench")
 
 
 func _interactor_at(where: Vector3) -> Interactor:
 	var body := Node3D.new()
-	_mount(body)
+	mount(body)
 	body.global_position = where
 
 	var interactor := Interactor.new()
@@ -121,7 +109,7 @@ func test_the_prompt_names_the_bench() -> void:
 
 func _world() -> Node:
 	var world: Node = load(MAIN_SCENE).instantiate()
-	_mount(world)
+	mount(world)
 	return world
 
 
@@ -176,8 +164,9 @@ func test_escape_closes_it() -> void:
 
 	var key := InputEventKey.new()
 	key.keycode = KEY_ESCAPE
+	key.physical_keycode = KEY_ESCAPE
 	key.pressed = true
-	screen._unhandled_input(key)
+	world.get_tree().root.push_input(key)
 	assert_false(screen.is_open(), "escape did not close the panel")
 
 

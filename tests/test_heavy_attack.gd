@@ -6,27 +6,12 @@ const CONFIG_PATH: String = "res://resources/attack/player_attack.tres"
 const ANIMATION_PATH: String = "res://resources/animation/player_animation.tres"
 const STEP: float = 1.0 / 60.0
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
-
-func _mount(node: Node) -> Node:
-	(Engine.get_main_loop() as SceneTree).root.add_child(node)
-	_mounted.append(node)
-	return node
-
 
 ## An attacker with its own config copy, a full stamina bar, and a scripted
 ## hand on the buttons.
 func _attacker() -> AttackComponent:
 	var body := CharacterBody3D.new()
-	_mount(body)
+	mount(body)
 
 	var stamina := StaminaComponent.new()
 	stamina.config = load("res://resources/stamina/player_stamina.tres")
@@ -181,7 +166,7 @@ func test_the_heavy_plays_a_different_clip() -> void:
 
 func test_the_rig_has_the_clip_the_config_names() -> void:
 	var player: CharacterBody3D = load(PLAYER_SCENE).instantiate()
-	_mount(player)
+	mount(player)
 	var animation: AnimationComponent = player.get_node("Animation")
 	var rig: AnimationPlayer = animation.animation_player
 	assert_true(
@@ -194,7 +179,7 @@ func test_the_rig_has_the_clip_the_config_names() -> void:
 ## cooldown -- a swing cut into a jab does not read as heavy.
 func test_the_heavy_swing_is_shown_for_most_of_its_clip() -> void:
 	var player: CharacterBody3D = load(PLAYER_SCENE).instantiate()
-	_mount(player)
+	mount(player)
 	var animation: AnimationComponent = player.get_node("Animation")
 	var attack: AttackComponent = player.get_node("Attack")
 	var clip := (animation.animation_player as AnimationPlayer).get_animation(
@@ -232,7 +217,7 @@ func test_being_hit_still_beats_a_heavy_swing() -> void:
 
 func test_the_player_is_assembled_for_heavy_attacks() -> void:
 	var player: CharacterBody3D = load(PLAYER_SCENE).instantiate()
-	_mount(player)
+	mount(player)
 	var attack: AttackComponent = player.get_node("Attack")
 	assert_eq(attack.stamina, player.get_node("Stamina"), "the heavy attack would be free")
 	assert_true(attack.config.heavy_stamina_cost > 0.0)
@@ -243,7 +228,7 @@ func test_the_player_is_assembled_for_heavy_attacks() -> void:
 ## "Sell" button would also kick whoever was standing behind the panel.
 func test_open_panels_suspend_gameplay_input() -> void:
 	var world: Node = load("res://scenes/main.tscn").instantiate()
-	_mount(world)
+	mount(world)
 
 	for path: String in ["InventoryScreen", "StoreScreen", "CraftingScreen"]:
 		var panel: CanvasLayer = world.get_node(path)

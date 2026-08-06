@@ -5,25 +5,10 @@ extends TestCase
 const MAIN_SCENE: String = "res://scenes/main.tscn"
 const MUSHROOM_SCENE: String = "res://items/mushroom.tscn"
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
-
-func _mount(node: Node) -> Node:
-	(Engine.get_main_loop() as SceneTree).root.add_child(node)
-	_mounted.append(node)
-	return node
-
 
 func _mushroom_at(where: Vector3) -> Node3D:
 	var mushroom: Node3D = load(MUSHROOM_SCENE).instantiate()
-	_mount(mushroom)
+	mount(mushroom)
 	mushroom.global_position = where
 	return mushroom
 
@@ -35,7 +20,7 @@ func _mushroom_at(where: Vector3) -> Node3D:
 ## does both. These tests drive the router, which is what the game does.
 func _collector_at(where: Vector3) -> PickupCollector:
 	var body := Node3D.new()
-	_mount(body)
+	mount(body)
 	body.global_position = where
 
 	var inventory := InventoryComponent.new()
@@ -208,7 +193,7 @@ func test_the_prompt_says_what_it_is() -> void:
 ## above would notice.
 func test_the_player_is_assembled_to_pick_things_up() -> void:
 	var world: Node = load(MAIN_SCENE).instantiate()
-	_mount(world)
+	mount(world)
 
 	var collector: PickupCollector = world.get_node_or_null("Player/Collector")
 	assert_not_null(collector, "the player cannot pick anything up")

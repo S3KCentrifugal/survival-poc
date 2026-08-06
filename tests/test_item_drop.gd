@@ -5,26 +5,11 @@ extends TestCase
 const MAIN_SCENE: String = "res://scenes/main.tscn"
 const MUSHROOM_PATH: String = "res://resources/items/mushroom.tres"
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
-
-func _mount(node: Node) -> Node:
-	(Engine.get_main_loop() as SceneTree).root.add_child(node)
-	_mounted.append(node)
-	return node
-
 
 ## A body facing -Z with a dropper on it and nothing else around.
 func _dropper_at(where: Vector3) -> ItemDropper:
 	var container := Node3D.new()
-	_mount(container)
+	mount(container)
 	var body := Node3D.new()
 	container.add_child(body)
 	body.global_position = where
@@ -99,7 +84,7 @@ func test_an_item_with_no_world_form_does_not_drop() -> void:
 
 func test_it_lands_on_the_ground_rather_than_at_sea_level() -> void:
 	var world: Node = load(MAIN_SCENE).instantiate()
-	_mount(world)
+	mount(world)
 	var dropper: ItemDropper = world.get_node("Player/Dropper")
 	var terrain: Terrain = world.get_node("Terrain")
 	assert_eq(dropper.terrain, terrain, "the world did not give the dropper its terrain")
@@ -115,7 +100,7 @@ func test_it_lands_on_the_ground_rather_than_at_sea_level() -> void:
 ## The whole round trip, in the assembled world.
 func test_dropping_from_the_screen_empties_the_slot_and_fills_the_world() -> void:
 	var world: Node = load(MAIN_SCENE).instantiate()
-	_mount(world)
+	mount(world)
 	var screen: InventoryScreen = world.get_node("InventoryScreen")
 	var inventory: InventoryComponent = world.get_node("Player/Inventory")
 	inventory.collect(load(MUSHROOM_PATH), 4)
@@ -129,7 +114,7 @@ func test_dropping_from_the_screen_empties_the_slot_and_fills_the_world() -> voi
 ## first and then failed to spawn is a stack that exists nowhere.
 func test_a_failed_drop_keeps_the_items() -> void:
 	var world: Node = load(MAIN_SCENE).instantiate()
-	_mount(world)
+	mount(world)
 	var screen: InventoryScreen = world.get_node("InventoryScreen")
 	var inventory: InventoryComponent = world.get_node("Player/Inventory")
 
@@ -144,13 +129,13 @@ func test_a_failed_drop_keeps_the_items() -> void:
 
 func test_dropping_an_empty_slot_does_nothing() -> void:
 	var world: Node = load(MAIN_SCENE).instantiate()
-	_mount(world)
+	mount(world)
 	assert_eq((world.get_node("InventoryScreen") as InventoryScreen).drop_to_world(3), 0)
 
 
 func test_the_player_is_assembled_to_drop_things() -> void:
 	var world: Node = load(MAIN_SCENE).instantiate()
-	_mount(world)
+	mount(world)
 	var dropper: ItemDropper = world.get_node_or_null("Player/Dropper")
 	assert_not_null(dropper, "the player cannot put anything down")
 	assert_eq(dropper.body, world.get_node("Player"))

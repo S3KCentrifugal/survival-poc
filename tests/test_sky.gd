@@ -9,21 +9,10 @@ const MAIN_SCENE: String = "res://scenes/main.tscn"
 const SHADER_PATH: String = "res://shaders/sky.gdshader"
 const CONFIG_PATH: String = "res://resources/sky/default_sky.tres"
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
 
 func _mount_world() -> Node:
-	var tree := Engine.get_main_loop() as SceneTree
 	var world: Node = load(MAIN_SCENE).instantiate()
-	tree.root.add_child(world)
-	_mounted.append(world)
+	mount(world)
 	return world
 
 
@@ -186,8 +175,7 @@ func test_it_works_with_no_clock_at_all() -> void:
 	var tree := Engine.get_main_loop() as SceneTree
 	var sky := SkyComponent.new()
 	sky.config = load(CONFIG_PATH)
-	tree.root.add_child(sky)
-	_mounted.append(sky)
+	mount(sky)
 
 	assert_true(sky.sun_position().y > 0.9, "a sky with no clock is not lit")
 	assert_null(sky.material(), "it found a material where there is no environment")

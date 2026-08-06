@@ -4,15 +4,6 @@ extends TestCase
 const MAIN_SCENE: String = "res://scenes/main.tscn"
 const CONFIG_RESOURCE: String = "res://resources/day_night/default_day_night.tres"
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
 
 ## A component with its own sun, off the physics clock and out of the way.
 func _day_night(start_time: float = 0.5) -> DayNightComponent:
@@ -29,8 +20,7 @@ func _day_night(start_time: float = 0.5) -> DayNightComponent:
 	component.config = config
 	component.sun = sun
 	sun.add_child(component)
-	tree.root.add_child(sun)
-	_mounted.append(sun)
+	mount(sun)
 	return component
 
 
@@ -43,7 +33,7 @@ func test_the_config_resource_loads() -> void:
 
 func test_the_main_scene_wires_the_cycle_to_the_sun() -> void:
 	var root: Node = load(MAIN_SCENE).instantiate()
-	_mounted.append(root)
+	mount(root)
 	var day_night: DayNightComponent = root.get_node_or_null("DayNight")
 	assert_not_null(day_night, "the main scene has no day/night cycle")
 	assert_not_null(day_night.config, "config is not wired in the scene")
@@ -112,7 +102,7 @@ func test_a_cycle_with_no_sun_still_runs() -> void:
 	# Deliberate: a headless or test scene with no light must not crash.
 	var component := DayNightComponent.new()
 	component.config = DayNightConfig.new()
-	_mounted.append(component)
+	mount(component)
 
 	component.step(1.0)
 	assert_true(component.time_of_day() > 0.0)

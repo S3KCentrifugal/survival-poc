@@ -10,6 +10,14 @@ extends RefCounted
 ## [method before_each] / [method after_each] for shared fixtures.
 
 ## Failure messages recorded during the method currently running.
+## Nodes mounted through [method mount], freed after every test method.
+##
+## Here rather than in each suite because thirty-seven of them had copied the
+## same five lines, and a suite that forgets them leaks into the next one --
+## which shows up as an unrelated test failing for reasons its own file cannot
+## explain.
+var _mounted: Array[Node] = []
+
 var _failures: PackedStringArray = []
 var _assertion_count: int = 0
 
@@ -20,6 +28,33 @@ func before_each() -> void:
 
 
 ## Runs after every test method, even if it failed.
+## The live tree. Every scene test needs it and every suite was casting for it.
+func tree() -> SceneTree:
+	return Engine.get_main_loop() as SceneTree
+
+
+## Adds [param node] to the tree and frees it after this test method.
+##
+## Returns what it was given, so it reads inline:
+## [code]var world := mount(load(MAIN_SCENE).instantiate())[/code].
+func mount(node: Node) -> Node:
+	if node != null:
+		tree().root.add_child(node)
+		_mounted.append(node)
+	return node
+
+
+## Frees everything mounted. Called by the runner *after* [method after_each],
+## not from it -- a suite that overrides after_each without calling super would
+## otherwise silently stop cleaning up, which is exactly the kind of quiet
+## breakage this is here to prevent.
+func release_mounted() -> void:
+	for node: Node in _mounted:
+		if is_instance_valid(node):
+			node.free()
+	_mounted.clear()
+
+
 func after_each() -> void:
 	pass
 

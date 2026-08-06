@@ -6,21 +6,10 @@ const WANDERER_SCENE: String = "res://characters/wanderer.tscn"
 const EXPLOSION_SCENE: String = "res://effects/explosion.tscn"
 const STEP: float = 1.0 / 60.0
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
 
 func _mount_wanderer() -> CharacterBody3D:
-	var tree := Engine.get_main_loop() as SceneTree
 	var holder := Node3D.new()
-	tree.root.add_child(holder)
-	_mounted.append(holder)
+	mount(holder)
 
 	var actor: CharacterBody3D = load(WANDERER_SCENE).instantiate()
 	holder.add_child(actor)
@@ -102,10 +91,8 @@ func test_it_can_be_set_off_directly() -> void:
 
 
 func test_an_explosion_cleans_itself_up() -> void:
-	var tree := Engine.get_main_loop() as SceneTree
 	var effect: Explosion = load(EXPLOSION_SCENE).instantiate()
-	tree.root.add_child(effect)
-	_mounted.append(effect)
+	mount(effect)
 
 	for _frame in 10:
 		effect._process(0.5)
@@ -113,10 +100,8 @@ func test_an_explosion_cleans_itself_up() -> void:
 
 
 func test_the_flash_fades() -> void:
-	var tree := Engine.get_main_loop() as SceneTree
 	var effect: Explosion = load(EXPLOSION_SCENE).instantiate()
-	tree.root.add_child(effect)
-	_mounted.append(effect)
+	mount(effect)
 
 	var before: float = effect.flash.light_energy
 	effect._process(0.1)

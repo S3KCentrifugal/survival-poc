@@ -8,21 +8,10 @@ extends TestCase
 
 const TITLE_SCENE: String = "res://scenes/title.tscn"
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
 
 func _mount_title() -> TitleScreen:
-	var tree := Engine.get_main_loop() as SceneTree
 	var title: TitleScreen = load(TITLE_SCENE).instantiate()
-	tree.root.add_child(title)
-	_mounted.append(title)
+	mount(title)
 	return title
 
 
@@ -144,8 +133,7 @@ func test_the_pause_menu_offers_a_way_back_to_the_title() -> void:
 	var tree := Engine.get_main_loop() as SceneTree
 	var menu: PauseMenu = load("res://ui/pause_menu.tscn").instantiate()
 	menu.settings_path = "user://test_title_settings.cfg"
-	tree.root.add_child(menu)
-	_mounted.append(menu)
+	mount(menu)
 
 	assert_not_null(menu.main_menu_button, "the pause menu has no way back to the title")
 	assert_not_null(menu.quit_button, "the pause menu has no way out of the game")

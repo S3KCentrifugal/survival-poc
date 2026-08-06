@@ -4,8 +4,6 @@ extends TestCase
 const PLAYER_SCENE: String = "res://characters/player.tscn"
 const STEP: float = 1.0 / 60.0
 
-var _mounted: Array[Node] = []
-
 
 ## A player that believes it is standing on something, so jumping can be tested
 ## without a physics frame ever having run.
@@ -24,18 +22,9 @@ class GroundedMovement:
 		return grounded
 
 
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
-
 func _grounded_actor() -> GroundedMovement:
-	var tree := Engine.get_main_loop() as SceneTree
 	var body := CharacterBody3D.new()
-	tree.root.add_child(body)
-	_mounted.append(body)
+	mount(body)
 
 	var movement := GroundedMovement.new()
 	movement.body = body
@@ -265,10 +254,8 @@ func test_jumping_does_not_stop_you_moving() -> void:
 
 
 func test_the_rig_has_the_clip_the_config_names() -> void:
-	var tree := Engine.get_main_loop() as SceneTree
 	var player: CharacterBody3D = load(PLAYER_SCENE).instantiate()
-	tree.root.add_child(player)
-	_mounted.append(player)
+	mount(player)
 
 	var animation: AnimationComponent = player.get_node("Animation")
 	var rig: AnimationPlayer = animation.animation_player

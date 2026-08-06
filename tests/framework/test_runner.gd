@@ -103,6 +103,9 @@ func _run_method(suite: TestCase, suite_name: String, method_name: String) -> vo
 	suite.before_each()
 	suite.call(method_name)
 	suite.after_each()
+	# After the suite's own cleanup, and unconditionally: a suite that overrides
+	# after_each cannot accidentally opt out of having its nodes freed.
+	suite.release_mounted()
 
 	var failures := suite.failures()
 	if failures.is_empty():

@@ -3,22 +3,14 @@ extends TestCase
 
 const MAIN_SCENE: String = "res://scenes/main.tscn"
 
-var _mounted: Array[Node] = []
-
 
 func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
 	_kept.clear()
 
 
 func _mount_world() -> Node:
-	var tree := Engine.get_main_loop() as SceneTree
 	var world: Node = load(MAIN_SCENE).instantiate()
-	tree.root.add_child(world)
-	_mounted.append(world)
+	mount(world)
 	return world
 
 

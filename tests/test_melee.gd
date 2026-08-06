@@ -7,15 +7,6 @@ const STEP: float = 1.0 / 60.0
 const REACH: float = 2.0
 const ARC: float = deg_to_rad(110.0)
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
 
 func _reaches(target: Vector3, forward: Vector3 = Vector3.FORWARD) -> bool:
 	return MeleeSolver.can_reach(Vector3.ZERO, forward, target, REACH, ARC)
@@ -74,25 +65,21 @@ func test_the_arc_can_be_opened_all_the_way_round() -> void:
 ## Searched by type, because a hard-coded node name works until the first actor
 ## that names it something else, and fails silently when it does.
 func test_health_is_found_on_whatever_was_hit() -> void:
-	var tree := Engine.get_main_loop() as SceneTree
 	var actor: CharacterBody3D = load(WANDERER_SCENE).instantiate()
-	tree.root.add_child(actor)
-	_mounted.append(actor)
+	mount(actor)
 	assert_not_null(MeleeSolver.health_of(actor), "a wanderer's health was not found")
 
 
 func test_something_with_no_health_is_not_a_target() -> void:
 	var node := Node3D.new()
-	_mounted.append(node)
+	mount(node)
 	assert_null(MeleeSolver.health_of(node))
 	assert_null(MeleeSolver.health_of(null))
 
 
 func test_the_player_swing_is_wired_to_a_body() -> void:
-	var tree := Engine.get_main_loop() as SceneTree
 	var player: CharacterBody3D = load(PLAYER_SCENE).instantiate()
-	tree.root.add_child(player)
-	_mounted.append(player)
+	mount(player)
 
 	var attack: AttackComponent = player.get_node("Attack")
 	assert_eq(attack.body, player, "the punch has no idea where it is swung from")
@@ -107,7 +94,7 @@ func _hurt_actor() -> HurtReaction:
 	reaction.health = health
 	reaction.stagger_seconds = 0.5
 	health.add_child(reaction)
-	_mounted.append(health)
+	mount(health)
 	# _ready has already run for neither, so connect the way the scene does.
 	health.damaged.connect(reaction._on_damaged)
 	return reaction
@@ -171,10 +158,8 @@ func test_the_flinch_beats_everything_on_screen() -> void:
 
 
 func test_the_flinch_has_a_clip_in_the_rig() -> void:
-	var tree := Engine.get_main_loop() as SceneTree
 	var actor: CharacterBody3D = load(WANDERER_SCENE).instantiate()
-	tree.root.add_child(actor)
-	_mounted.append(actor)
+	mount(actor)
 
 	var animation: AnimationComponent = actor.get_node("Animation")
 	assert_not_null(animation.hurt, "a wanderer would never show a flinch")
@@ -186,10 +171,8 @@ func test_the_flinch_has_a_clip_in_the_rig() -> void:
 
 
 func test_a_reeling_wanderer_stands_still() -> void:
-	var tree := Engine.get_main_loop() as SceneTree
 	var actor: CharacterBody3D = load(WANDERER_SCENE).instantiate()
-	tree.root.add_child(actor)
-	_mounted.append(actor)
+	mount(actor)
 
 	var wander: WanderComponent = actor.get_node("Wander")
 	var health: HealthComponent = actor.get_node("Health")
@@ -207,10 +190,8 @@ func test_a_reeling_wanderer_stands_still() -> void:
 
 
 func test_a_dead_wanderer_stops_for_good() -> void:
-	var tree := Engine.get_main_loop() as SceneTree
 	var actor: CharacterBody3D = load(WANDERER_SCENE).instantiate()
-	tree.root.add_child(actor)
-	_mounted.append(actor)
+	mount(actor)
 
 	var wander: WanderComponent = actor.get_node("Wander")
 	var health: HealthComponent = actor.get_node("Health")

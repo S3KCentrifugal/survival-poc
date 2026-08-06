@@ -5,29 +5,16 @@ const OVERLAY_SCENE: String = "res://ui/debug_overlay.tscn"
 const MAIN_SCENE: String = "res://scenes/main.tscn"
 const PLAYER_SCENE: String = "res://characters/player.tscn"
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
 
 func _mount_overlay() -> DebugOverlay:
-	var tree := Engine.get_main_loop() as SceneTree
 	var overlay: DebugOverlay = load(OVERLAY_SCENE).instantiate()
-	tree.root.add_child(overlay)
-	_mounted.append(overlay)
+	mount(overlay)
 	return overlay
 
 
 func _watching_a_player() -> DebugOverlay:
-	var tree := Engine.get_main_loop() as SceneTree
 	var player: CharacterBody3D = load(PLAYER_SCENE).instantiate()
-	tree.root.add_child(player)
-	_mounted.append(player)
+	mount(player)
 
 	var overlay := _mount_overlay()
 	overlay.body = player
@@ -51,7 +38,7 @@ func test_the_overlay_scene_wires_its_own_label() -> void:
 
 func test_the_main_scene_wires_the_overlay_to_what_it_watches() -> void:
 	var root: Node = load(MAIN_SCENE).instantiate()
-	_mounted.append(root)
+	mount(root)
 	var overlay: DebugOverlay = root.get_node_or_null("DebugOverlay")
 	assert_not_null(overlay, "the main scene has no debug overlay")
 	assert_eq(overlay.body, root.get_node("Player"))

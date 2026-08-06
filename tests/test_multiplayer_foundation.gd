@@ -6,25 +6,9 @@ extends TestCase
 
 const MAIN_SCENE: String = "res://scenes/main.tscn"
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
-
-func _mount(node: Node) -> Node:
-	var tree := Engine.get_main_loop() as SceneTree
-	tree.root.add_child(node)
-	_mounted.append(node)
-	return node
-
 
 func _mount_world() -> Node:
-	return _mount(load(MAIN_SCENE).instantiate())
+	return mount(load(MAIN_SCENE).instantiate())
 
 
 ## The default, and what ./run.sh gives you.
@@ -40,14 +24,14 @@ func test_the_game_runs_single_player_by_default() -> void:
 ## paths diverge, and every multiplayer bug then only reproduces in multiplayer.
 func test_single_player_is_a_server() -> void:
 	var session := GameSession.new()
-	_mount(session)
+	mount(session)
 	assert_true(session.is_server(), "single-player must be authoritative")
 	assert_false(session.is_networked(), "single-player must not think anyone is listening")
 
 
 func test_a_host_is_a_server_and_is_networked() -> void:
 	var session := GameSession.new()
-	_mount(session)
+	mount(session)
 	session.set_mode(GameSession.Mode.HOST)
 	assert_true(session.is_server())
 	assert_true(session.is_networked())
@@ -55,7 +39,7 @@ func test_a_host_is_a_server_and_is_networked() -> void:
 
 func test_a_client_is_not_a_server() -> void:
 	var session := GameSession.new()
-	_mount(session)
+	mount(session)
 	session.set_mode(GameSession.Mode.CLIENT)
 	assert_false(session.is_server(), "a client must never decide what happens")
 	assert_true(session.is_networked())
@@ -63,7 +47,7 @@ func test_a_client_is_not_a_server() -> void:
 
 func test_changing_mode_is_announced_once() -> void:
 	var session := GameSession.new()
-	_mount(session)
+	mount(session)
 	var changes := [0]
 	session.mode_changed.connect(func(_mode: int) -> void: changes[0] += 1)
 
@@ -98,7 +82,7 @@ func test_everything_may_be_simulated_in_single_player() -> void:
 ## than one that runs.
 func test_a_node_outside_the_tree_may_still_simulate() -> void:
 	var loose := Node.new()
-	_mounted.append(loose)
+	mount(loose)
 	assert_true(NetworkAuthority.may_simulate(loose))
 	assert_true(NetworkAuthority.is_server(loose))
 

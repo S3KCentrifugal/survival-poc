@@ -9,21 +9,6 @@ extends TestCase
 const CONFIG_PATH: String = "res://resources/progression/player_experience.tres"
 const MAIN_SCENE: String = "res://scenes/main.tscn"
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
-
-func _mount(node: Node) -> Node:
-	(Engine.get_main_loop() as SceneTree).root.add_child(node)
-	_mounted.append(node)
-	return node
-
 
 func _table() -> ExperienceTable:
 	return ExperienceTable.new(load(CONFIG_PATH))
@@ -124,7 +109,7 @@ func test_remaining_counts_down_to_the_next_level() -> void:
 func _component() -> ExperienceComponent:
 	var component := ExperienceComponent.new()
 	component.config = load(CONFIG_PATH)
-	_mount(component)
+	mount(component)
 	return component
 
 
@@ -180,7 +165,7 @@ func test_damage_earns_experience() -> void:
 	var component := _component()
 	var attack := AttackComponent.new()
 	component.attack = attack
-	_mount(attack)
+	mount(attack)
 	component._ready()
 
 	attack.hit.emit(null, 20.0)
@@ -191,7 +176,7 @@ func test_a_kill_earns_a_bonus_on_top() -> void:
 	var component := _component()
 	var attack := AttackComponent.new()
 	component.attack = attack
-	_mount(attack)
+	mount(attack)
 	component._ready()
 
 	attack.killed.emit(null)
@@ -200,7 +185,7 @@ func test_a_kill_earns_a_bonus_on_top() -> void:
 
 func test_the_player_is_assembled_to_earn_experience() -> void:
 	var world: Node = load(MAIN_SCENE).instantiate()
-	_mount(world)
+	mount(world)
 
 	var experience: ExperienceComponent = world.get_node_or_null("Player/Experience")
 	assert_not_null(experience, "the player cannot earn experience")
@@ -211,7 +196,7 @@ func test_the_player_is_assembled_to_earn_experience() -> void:
 
 func test_the_hud_shows_the_level_and_the_bar() -> void:
 	var world: Node = load(MAIN_SCENE).instantiate()
-	_mount(world)
+	mount(world)
 	var hud: PlayerHud = world.get_node("PlayerHud")
 	var experience: ExperienceComponent = world.get_node("Player/Experience")
 

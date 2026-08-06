@@ -2,22 +2,13 @@ extends TestCase
 ## The registry a save pass walks, and the duplicate check that is the point of
 ## having one.
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
 
 ## A component with a fixed id, not in the tree: the registry only ever asks
 ## for the id.
 func _component(id: StringName) -> SaveIdComponent:
 	var component := SaveIdComponent.new()
 	component.id = id
-	_mounted.append(component)
+	mount(component)
 	return component
 
 
@@ -101,21 +92,18 @@ func test_it_collects_everything_in_the_tree() -> void:
 		component.id = id
 		holder.add_child(component)
 		world.add_child(holder)
-	tree.root.add_child(world)
-	_mounted.append(world)
+	mount(world)
 
-	var registry := SaveRegistry.from_tree(tree)
+	var registry := SaveRegistry.from_tree(tree())
 	for id: StringName in [&"one", &"two", &"three"]:
 		assert_true(registry.has(id), "%s was not collected" % id)
 
 
 func test_the_assembled_world_has_no_duplicate_ids() -> void:
 	# The check that matters: a real scene, walked the way a save pass would.
-	var tree := Engine.get_main_loop() as SceneTree
 	var world: Node = load("res://scenes/main.tscn").instantiate()
-	tree.root.add_child(world)
-	_mounted.append(world)
+	mount(world)
 
-	var registry := SaveRegistry.from_tree(tree)
+	var registry := SaveRegistry.from_tree(tree())
 	assert_false(registry.has_duplicates(), "duplicate ids: %s" % [registry.duplicates()])
 	assert_true(registry.has(&"player"), "the player is not in the registry")

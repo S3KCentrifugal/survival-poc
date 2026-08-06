@@ -4,8 +4,6 @@ extends TestCase
 const PLAYER_SCENE: String = "res://characters/player.tscn"
 const CONFIG_RESOURCE: String = "res://resources/animation/player_animation.tres"
 
-var _mounted: Array[Node] = []
-
 
 ## An animation component standing on solid ground.
 ##
@@ -21,20 +19,11 @@ class GroundedAnimation:
 		return grounded
 
 
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
-
 func _grounded_actor() -> GroundedAnimation:
 	# Mounted, not bare: anything that ends up calling move_and_slide needs a
 	# body that is actually in the tree, or the transform lookups fail.
-	var tree := Engine.get_main_loop() as SceneTree
 	var body := CharacterBody3D.new()
-	tree.root.add_child(body)
-	_mounted.append(body)
+	mount(body)
 
 	var config := AnimationConfig.new()
 	config.move_enter_speed = 0.4
@@ -48,10 +37,8 @@ func _grounded_actor() -> GroundedAnimation:
 
 
 func _mount_player() -> CharacterBody3D:
-	var tree := Engine.get_main_loop() as SceneTree
 	var player: CharacterBody3D = load(PLAYER_SCENE).instantiate()
-	tree.root.add_child(player)
-	_mounted.append(player)
+	mount(player)
 	return player
 
 

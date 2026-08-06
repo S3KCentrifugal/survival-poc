@@ -4,15 +4,6 @@ extends TestCase
 const PLAYER_SCENE: String = "res://characters/player.tscn"
 const CONFIG_RESOURCE: String = "res://resources/health/player_health.tres"
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
 
 ## A component detached from any actor, with a config of a known size.
 func _health(maximum: float = 100.0) -> HealthComponent:
@@ -20,15 +11,13 @@ func _health(maximum: float = 100.0) -> HealthComponent:
 	config.maximum = maximum
 	var component := HealthComponent.new()
 	component.config = config
-	_mounted.append(component)
+	mount(component)
 	return component
 
 
 func _mount_player() -> CharacterBody3D:
-	var tree := Engine.get_main_loop() as SceneTree
 	var player: CharacterBody3D = load(PLAYER_SCENE).instantiate()
-	tree.root.add_child(player)
-	_mounted.append(player)
+	mount(player)
 	return player
 
 

@@ -5,21 +5,10 @@ const MAIN_SCENE: String = "res://scenes/main.tscn"
 const COMPANION_SCENE: String = "res://characters/companion.tscn"
 const STEP: float = 1.0 / 60.0
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
 
 func _mount_world() -> Node:
-	var tree := Engine.get_main_loop() as SceneTree
 	var world: Node = load(MAIN_SCENE).instantiate()
-	tree.root.add_child(world)
-	_mounted.append(world)
+	mount(world)
 	return world
 
 
@@ -30,7 +19,7 @@ func _pair() -> Array:
 	var leader := Node3D.new()
 	tree.root.add_child(companion)
 	tree.root.add_child(leader)
-	_mounted.append(companion)
+	mount(companion)
 	_mounted.append(leader)
 
 	var follow: FollowComponent = companion.get_node("Follow")
@@ -40,7 +29,7 @@ func _pair() -> Array:
 
 func test_the_scene_is_assembled() -> void:
 	var companion: CharacterBody3D = load(COMPANION_SCENE).instantiate()
-	_mounted.append(companion)
+	mount(companion)
 	for child: String in [
 		"CollisionShape3D", "Model", "Agent", "Movement", "Follow", "Animation", "Explode"
 	]:
@@ -54,7 +43,7 @@ func test_the_scene_is_assembled() -> void:
 func test_a_dead_companion_blows_up_like_everything_else() -> void:
 	var companion: CharacterBody3D = load(COMPANION_SCENE).instantiate()
 	(Engine.get_main_loop() as SceneTree).root.add_child(companion)
-	_mounted.append(companion)
+	mount(companion)
 
 	var explode: ExplodeOnDeath = companion.get_node_or_null("Explode")
 	assert_not_null(explode, "a companion at zero health would just stand there")
@@ -180,8 +169,7 @@ func test_a_reeling_companion_stands_still() -> void:
 func test_a_companion_with_nobody_to_follow_stands_still() -> void:
 	var companion: CharacterBody3D = load(COMPANION_SCENE).instantiate()
 	var tree := Engine.get_main_loop() as SceneTree
-	tree.root.add_child(companion)
-	_mounted.append(companion)
+	mount(companion)
 
 	var follow: FollowComponent = companion.get_node("Follow")
 	assert_null(follow.target)

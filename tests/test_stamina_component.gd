@@ -5,15 +5,6 @@ const PLAYER_SCENE: String = "res://characters/player.tscn"
 const CONFIG_RESOURCE: String = "res://resources/stamina/player_stamina.tres"
 const STEP: float = 1.0 / 60.0
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
 
 ## A component detached from any actor, tuned to drain fast enough that a test
 ## does not have to simulate a minute of game time.
@@ -27,15 +18,13 @@ func _stamina() -> StaminaComponent:
 
 	var component := StaminaComponent.new()
 	component.config = config
-	_mounted.append(component)
+	mount(component)
 	return component
 
 
 func _mount_player() -> CharacterBody3D:
-	var tree := Engine.get_main_loop() as SceneTree
 	var player: CharacterBody3D = load(PLAYER_SCENE).instantiate()
-	tree.root.add_child(player)
-	_mounted.append(player)
+	mount(player)
 	return player
 
 

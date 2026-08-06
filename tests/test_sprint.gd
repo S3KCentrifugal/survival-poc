@@ -8,21 +8,10 @@ extends TestCase
 const PLAYER_SCENE: String = "res://characters/player.tscn"
 const STEP: float = 1.0 / 60.0
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
 
 func _mount_player() -> CharacterBody3D:
-	var tree := Engine.get_main_loop() as SceneTree
 	var player: CharacterBody3D = load(PLAYER_SCENE).instantiate()
-	tree.root.add_child(player)
-	_mounted.append(player)
+	mount(player)
 	return player
 
 
@@ -137,7 +126,7 @@ func test_an_exhausted_actor_drops_back_to_a_walk() -> void:
 func test_an_actor_without_stamina_sprints_freely() -> void:
 	var movement := MovementComponent.new()
 	movement.config = MovementConfig.new()
-	_mounted.append(movement)
+	mount(movement)
 
 	var source := _sprinting_input()
 	assert_null(movement.stamina)

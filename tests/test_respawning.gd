@@ -5,15 +5,6 @@ const MAIN_SCENE: String = "res://scenes/main.tscn"
 const WANDERER_SCENE: String = "res://characters/wanderer.tscn"
 const STEP: float = 1.0 / 60.0
 
-var _mounted: Array[Node] = []
-
-
-func after_each() -> void:
-	for node: Node in _mounted:
-		if is_instance_valid(node):
-			node.free()
-	_mounted.clear()
-
 
 ## A spawner with nothing else in the world, so counts are unambiguous.
 func _spawner(count: int = 3, delay: float = 1.0) -> WandererSpawner:
@@ -25,8 +16,7 @@ func _spawner(count: int = 3, delay: float = 1.0) -> WandererSpawner:
 	spawner.keep_away = 0.0
 	spawner.area = Rect2(-20.0, -20.0, 40.0, 40.0)
 	spawner.avoid = Rect2(0.0, 0.0, 0.0, 0.0)
-	tree.root.add_child(spawner)
-	_mounted.append(spawner)
+	mount(spawner)
 	return spawner
 
 
@@ -113,10 +103,8 @@ func test_it_says_when_the_world_is_full_again() -> void:
 ## A wanderer materialising in front of you is worse than a world with one
 ## fewer in it for a moment.
 func test_nobody_spawns_on_top_of_the_player() -> void:
-	var tree := Engine.get_main_loop() as SceneTree
 	var player := Node3D.new()
-	tree.root.add_child(player)
-	_mounted.append(player)
+	mount(player)
 	player.global_position = Vector3(5.0, 0.0, 5.0)
 
 	var spawner := _spawner(6, 0.0)
@@ -151,10 +139,8 @@ func test_replacements_are_not_all_in_the_same_place() -> void:
 
 
 func test_the_main_scene_keeps_replacements_away_from_the_player() -> void:
-	var tree := Engine.get_main_loop() as SceneTree
 	var world: Node = load(MAIN_SCENE).instantiate()
-	tree.root.add_child(world)
-	_mounted.append(world)
+	mount(world)
 
 	var spawner: WandererSpawner = world.get_node("Wanderers")
 	assert_true(spawner.respawn, "the world would run out")
