@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/item_definition.gd" id="1_item"]
+[ext_resource type="Texture2D" path="res://assets/items/gold.svg" id="2_icon"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"gold"
+display_name = "Gold"
+max_stack = 999
+icon = ExtResource("2_icon")
+colour = Color(0.94, 0.76, 0.28, 1)
+world_scene_path = "res://items/gold.tscn"
+description = "Coins. What everything else is priced in."

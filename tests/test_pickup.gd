@@ -28,7 +28,11 @@ func _mushroom_at(where: Vector3) -> Node3D:
 	return mushroom
 
 
-## A collector with a body, a bag and a scripted hand on the key.
+## A collector with a body, a bag, and the router that owns the key.
+##
+## The collector stopped reading input when merchants arrived on the same key --
+## two components watching F means standing between a mushroom and a merchant
+## does both. These tests drive the router, which is what the game does.
 func _collector_at(where: Vector3) -> PickupCollector:
 	var body := Node3D.new()
 	_mount(body)
@@ -38,20 +42,32 @@ func _collector_at(where: Vector3) -> PickupCollector:
 	body.add_child(inventory)
 
 	var collector := PickupCollector.new()
+	collector.name = "Collector"
 	collector.body = body
 	collector.inventory = inventory
-	collector.input_source = ScriptedInputSource.new()
 	body.add_child(collector)
+
+	var router := InteractionRouter.new()
+	router.name = "Router"
+	router.body = body
+	router.collector = collector
+	router.input_source = ScriptedInputSource.new()
+	body.add_child(router)
 	return collector
+
+
+func _router_for(collector: PickupCollector) -> InteractionRouter:
+	return collector.get_parent().get_node("Router")
 
 
 func _press_interact(collector: PickupCollector) -> void:
 	# A press is a release and a press: the rising edge is what acts.
-	var source: ScriptedInputSource = collector.input_source
+	var router := _router_for(collector)
+	var source: ScriptedInputSource = router.input_source
 	source.interact(false)
-	collector.step()
+	router.step()
 	source.interact(true)
-	collector.step()
+	router.step()
 
 
 func test_the_mushroom_scene_is_pickable() -> void:
@@ -108,7 +124,7 @@ func test_walking_past_without_pressing_takes_nothing() -> void:
 	var collector := _collector_at(Vector3.ZERO)
 
 	for _frame in 10:
-		collector.step()
+		_router_for(collector).step()
 	assert_eq(collector.inventory.count_of(&"mushroom"), 0, "it picked itself up")
 
 
@@ -118,9 +134,10 @@ func test_holding_the_key_picks_up_once() -> void:
 	_mushroom_at(Vector3(0.7, 0.0, 0.0))
 	var collector := _collector_at(Vector3.ZERO)
 
-	(collector.input_source as ScriptedInputSource).interact(true)
+	var router := _router_for(collector)
+	(router.input_source as ScriptedInputSource).interact(true)
 	for _frame in 20:
-		collector.step()
+		router.step()
 	assert_eq(collector.inventory.count_of(&"mushroom"), 1, "a held key emptied the patch")
 
 
@@ -197,6 +214,9 @@ func test_the_player_is_assembled_to_pick_things_up() -> void:
 	assert_not_null(collector, "the player cannot pick anything up")
 	assert_not_null(collector.inventory, "the collector has nowhere to put things")
 	assert_eq(collector.body, world.get_node("Player"), "reach is measured from the wrong place")
+	var router: InteractionRouter = world.get_node_or_null("Player/Router")
+	assert_not_null(router, "nothing owns the interact key")
+	assert_eq(router.collector, collector, "the router cannot pick anything up")
 	assert_not_null(
-		collector.input_source, "nothing gave the collector an input source, so F does nothing"
+		router.input_source, "nothing gave the router an input source, so F does nothing"
 	)

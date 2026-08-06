@@ -3,7 +3,7 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 35 — A chat box**. The planned
+Last updated after **Feature 36 — Gold, merchants and a store**. The planned
 vertical slice (features 1–11) was completed long ago; everything since is
 built on top of it.
 
@@ -128,7 +128,8 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 32 | Dropping items, item icons, and stack counts | done | `b45e62d` |
 | 33 | Larger, layered terrain with slope-blended textures | done | `e4daf04` |
 | 34 | Generated background music, and a bench that crafts soup | done | `31a71dd` |
-| 35 | A chat box on F12, networked | done | — |
+| 35 | A chat box on F12, networked | done | `b7b05c8` |
+| 36 | Gold, merchants, and a store screen | done | — |
 
 **The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
@@ -143,7 +144,9 @@ click punches — hit a wanderer enough and it blows up. Red mushrooms grow in
 the grass: walk up to one, press **F** to pick it up, **I** to see what you are
 carrying — drag a stack onto another slot to move it, or out of the panel to
 put it back on the ground. There is a workbench in the second room: stand at it,
-press **E**, and three mushrooms become soup. **F12** opens a chat box.
+press **E**, and three mushrooms become soup. Gold-hatted **merchants** stand
+outside — walk up and press **F** to sell mushrooms and soup, or buy a sword.
+**F12** opens a chat box.
 Something is playing in the background. Health and stamina are on screen, and both come back on their own if
 you leave them alone.
 
@@ -1198,6 +1201,40 @@ punching, picking up and using at once rather than each learning what a chat
 box is. The test that matters most is the one asserting that hiding the box
 while typing gives the keyboard back.
 
+### 36. Gold, merchants, and a store
+
+**Gold is an `ItemDefinition`, not a wallet.** `Purse` wraps the three questions
+a price needs asked, and everything else comes free: coins stack, appear in the
+bag with an icon, can be dropped and picked up, and merchants carry theirs in
+the same `InventoryComponent` the player uses -- so a merchant running out of
+money is the inventory system working rather than a special case.
+
+`Trade` is static functions over two `Inventory` objects, checked in full before
+anything moves, so there is no partial state to unwind. A merchant cannot pay
+past their purse (400 gold each, which is what stops a respawning mushroom
+patch being a money printer), and paying can free the slot the goods land in --
+the same rule crafting uses, because refusing a trade that would obviously work
+is a rule nobody can work out from the outside.
+
+**One key, one owner.** Merchants were asked for on F, which was already the
+pickup key. Two components watching one key means standing between a mushroom
+and a merchant does both, so `InteractionRouter` now owns F: it searches both
+groups at their own reaches, takes whichever is genuinely nearest, and
+dispatches. `PickupCollector` kept every public method and stopped watching the
+keyboard. The workbench stays on E -- operating a fixture is a different verb,
+and a bench cannot be mistaken for a mushroom.
+
+**Merchants look different**: a nameplate, a gold hat, and a `ModelTint` that
+sets `material_overlay` rather than `material_override` -- an override replaces
+the model's materials and turns a textured robot into a flat silhouette. The
+tint walks the tree for meshes rather than naming them, because an imported glb
+has whatever structure the exporter felt like. They also do not wander, because
+a merchant who walks off while you read their prices is one you stop visiting.
+
+Offers are duplicated per merchant on ready. Two merchants from one scene would
+otherwise share a `stock` counter -- sixth appearance of the shared-resource
+trap, and the first time it was written defensively rather than discovered.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -1234,6 +1271,14 @@ needs and this repo does not have:
   with holes in them, which is all a top-down camera needs to see into.
 - **A character of our own.** The player is a CC0 robot standing in for one. It
   animates and it is the right height; it is not the art direction.
+- **A test runner that fails on script errors.** Moving the interact key broke
+  five pickup tests with `SCRIPT ERROR: Invalid assignment ...`, and the suite
+  reported **all passing** -- a script error aborts a test body without failing
+  an assertion. Those five tests were doing nothing and nothing said so. This is
+  the most valuable thing on this list: a suite that logs a script error must
+  not be able to report success.
+- **A sword that does anything.** It can be bought, carried, dropped and picked
+  up. It is not equippable and does not change the punch.
 - **Player names.** Chat shows "Player 2" and your own line says "You". Real
   names want accounts, and accounts want a server that is not this one.
 - **Chat moderation of any kind.** Text is sanitised so it cannot break the

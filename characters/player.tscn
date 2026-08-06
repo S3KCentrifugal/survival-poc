@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://scripts/components/movement_component.gd" id="1_movement"]
 [ext_resource type="Resource" path="res://resources/movement/player_movement.tres" id="2_config"]
@@ -19,6 +19,7 @@
 [ext_resource type="Script" path="res://scripts/components/pickup_collector.gd" id="18_collector"]
 [ext_resource type="Script" path="res://scripts/components/item_dropper.gd" id="19_dropper"]
 [ext_resource type="Script" path="res://scripts/components/interactor.gd" id="20_interactor"]
+[ext_resource type="Script" path="res://scripts/components/interaction_router.gd" id="21_router"]
 [ext_resource type="Script" path="res://scripts/components/network_entity.gd" id="90_netent"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
@@ -94,6 +95,12 @@ distance = 1.0
 script = ExtResource("20_interactor")
 body = NodePath("..")
 reach = 2.6
+
+[node name="Router" type="Node" parent="." node_paths=PackedStringArray("body", "collector")]
+script = ExtResource("21_router")
+body = NodePath("..")
+collector = NodePath("../Collector")
+merchant_reach = 2.8
 
 [node name="SaveId" type="Node" parent="."]
 script = ExtResource("11_save_id")

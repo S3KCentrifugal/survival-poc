@@ -22,6 +22,10 @@ extends Node3D
 ## without a second path through the code.
 @export var player_collector: PickupCollector
 
+## Owns the interact key and decides whether a press meant the mushroom or the
+## merchant. The collector no longer reads input itself.
+@export var player_router: InteractionRouter
+
 ## Uses whatever the player is standing next to. The same source again -- a
 ## workbench is operated by intent like anything else.
 @export var player_interactor: Interactor
@@ -148,8 +152,8 @@ func _wire_input() -> void:
 		player_movement.input_source = _player_input
 	if player_attack != null:
 		player_attack.input_source = _player_input
-	if player_collector != null:
-		player_collector.input_source = _player_input
+	if player_router != null:
+		player_router.input_source = _player_input
 	if player_interactor != null:
 		player_interactor.input_source = _player_input
 	if player_dropper != null:

@@ -13,8 +13,10 @@ extends CanvasLayer
 @export var health: HealthComponent
 @export var stamina: StaminaComponent
 
-## What is in reach, so the HUD can say what F would do. Optional.
-@export var collector: PickupCollector
+## What F would act on, so the HUD can say so. The **router**, not the
+## collector: the router is what owns the key, and asking the collector means
+## the prompt can never say "Trade with Merchant".
+@export var router: InteractionRouter
 
 ## What can be used, so the HUD can say what E would do. Optional.
 @export var interactor: Interactor
@@ -40,8 +42,8 @@ extends CanvasLayer
 func _ready() -> void:
 	if health != null:
 		health.changed.connect(_on_health_changed)
-	if collector != null:
-		collector.target_changed.connect(_on_pickup_target_changed)
+	if router != null:
+		router.target_changed.connect(_on_interact_target_changed)
 	if interactor != null:
 		interactor.target_changed.connect(_on_use_target_changed)
 	_refresh_prompt()
@@ -131,9 +133,9 @@ func _refresh_prompt() -> void:
 	if prompt_label == null:
 		return
 	var lines: Array[String] = []
-	var pickup := collector.target() if collector != null else null
-	if pickup != null:
-		lines.append("[F]  %s" % pickup.prompt_text())
+	var reachable := router.prompt_text() if router != null else ""
+	if not reachable.is_empty():
+		lines.append("[F]  %s" % reachable)
 	var usable := interactor.target() if interactor != null else null
 	if usable != null:
 		lines.append("[E]  %s" % usable.prompt_text())
@@ -142,7 +144,7 @@ func _refresh_prompt() -> void:
 	prompt_label.text = "\n".join(lines)
 
 
-func _on_pickup_target_changed(_pickup: PickupComponent) -> void:
+func _on_interact_target_changed(_target: Node) -> void:
 	_refresh_prompt()
 
 

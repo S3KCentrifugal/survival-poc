@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="TradeOffer" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/trade_offer.gd" id="1_offer"]
+[ext_resource type="Resource" path="res://resources/items/soup.tres" id="2_soup"]
+
+[resource]
+script = ExtResource("1_offer")
+item = ExtResource("2_soup")
+direction = 1
+price = 9
+stock = -1

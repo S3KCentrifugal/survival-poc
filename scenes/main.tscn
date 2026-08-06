@@ -30,6 +30,9 @@
 [ext_resource type="Resource" path="res://resources/audio/ambient_music.tres" id="28_music_config"]
 [ext_resource type="Script" path="res://scripts/chat/chat_service.gd" id="29_chat_service"]
 [ext_resource type="PackedScene" path="res://ui/chat_box.tscn" id="30_chat_box"]
+[ext_resource type="PackedScene" path="res://ui/store_screen.tscn" id="31_store"]
+[ext_resource type="Script" path="res://scripts/world/merchant_post.gd" id="32_post"]
+[ext_resource type="PackedScene" path="res://characters/merchant.tscn" id="33_merchant"]
 
 ; local_to_scene on all three, and it is load-bearing. Sub-resources are
 ; SHARED between instantiations of a scene by default, so without it two
@@ -80,13 +83,14 @@ sky = SubResource("Sky_o5qli")
 ambient_light_source = 3
 tonemap_mode = 2
 
-[node name="Main" type="Node3D" unique_id=159748148 node_paths=PackedStringArray("terrain", "player", "player_movement", "player_attack", "player_collector", "player_dropper", "player_interactor", "camera", "companion", "companion_follow", "workbench")]
+[node name="Main" type="Node3D" unique_id=159748148 node_paths=PackedStringArray("terrain", "player", "player_movement", "player_attack", "player_collector", "player_router", "player_dropper", "player_interactor", "camera", "companion", "companion_follow", "workbench")]
 script = ExtResource("3_root")
 terrain = NodePath("Terrain")
 player = NodePath("Player")
 player_movement = NodePath("Player/Movement")
 player_attack = NodePath("Player/Attack")
 player_collector = NodePath("Player/Collector")
+player_router = NodePath("Player/Router")
 player_dropper = NodePath("Player/Dropper")
 player_interactor = NodePath("Player/Interactor")
 camera = NodePath("PlayerCamera")
@@ -162,6 +166,19 @@ keep_away_from = NodePath("../Player")
 [node name="Workbench" parent="." instance=ExtResource("26_workbench")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, 0, 0)
 
+; One outside the base door and one out in the field, both facing back toward
+; where the player comes from.
+[node name="Merchants" type="Node3D" parent="." node_paths=PackedStringArray("terrain")]
+script = ExtResource("32_post")
+scene = ExtResource("33_merchant")
+terrain = NodePath("../Terrain")
+positions = Array[Vector2]([Vector2(8, 6), Vector2(-14, 18)])
+facings = Array[float]([200.0, 20.0])
+starting_gold = 400
+starting_items = Dictionary[String, int]({
+"res://resources/items/sword.tres": 2
+})
+
 [node name="Chat" type="Node" parent="." node_paths=PackedStringArray("session", "network")]
 script = ExtResource("29_chat_service")
 session = NodePath("../Session")
@@ -199,12 +216,17 @@ inventory = NodePath("../Player/Inventory")
 interactor = NodePath("../Player/Interactor")
 world_root = NodePath("..")
 
+[node name="StoreScreen" parent="." instance=ExtResource("31_store") node_paths=PackedStringArray("inventory", "router", "world_root")]
+inventory = NodePath("../Player/Inventory")
+router = NodePath("../Player/Router")
+world_root = NodePath("..")
+
 [node name="ChatBox" parent="." instance=ExtResource("30_chat_box") node_paths=PackedStringArray("service", "world_root")]
 service = NodePath("../Chat")
 world_root = NodePath("..")
 
-[node name="PlayerHud" parent="." instance=ExtResource("14_hud") node_paths=PackedStringArray("health", "stamina", "collector", "interactor")]
-collector = NodePath("../Player/Collector")
+[node name="PlayerHud" parent="." instance=ExtResource("14_hud") node_paths=PackedStringArray("health", "stamina", "router", "interactor")]
+router = NodePath("../Player/Router")
 interactor = NodePath("../Player/Interactor")
 health = NodePath("../Player/Health")
 stamina = NodePath("../Player/Stamina")

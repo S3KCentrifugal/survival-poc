@@ -181,6 +181,11 @@ then left alone.
   180-degree half-arc misses the thing directly behind. Compare angles with a
   small tolerance, never exactly. The symptom is a check that works everywhere
   except at the boundary, which is exactly where the test is.
+- **A script error inside a test does not fail the suite.** GDScript aborts the
+  test body and the runner records no failed assertion, so the run reports
+  `all passing` while five tests did nothing. After any refactor that changes a
+  component's properties, read the output for `SCRIPT ERROR`, not just the
+  count at the bottom.
 - **Never bound a check with "whichever enum value is currently last".**
   `if kind > Kind.DESPAWN: return NONE` was correct the day it was written and
   silently dropped every message of the next kind added -- with no error,

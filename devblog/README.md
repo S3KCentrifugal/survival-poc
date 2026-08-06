@@ -45,6 +45,7 @@ rather than an edit to the old one.
 | 033 | [Terrain with somewhere to stand](033-terrain-with-somewhere-to-stand.md) | Four noise layers, tuning against numbers, and a navmesh conclusion remembered wrong |
 | 034 | [Music nobody wrote, and soup](034-music-and-soup.md) | Synthesised music, testing a loop seam, and a bench buried under its own floor |
 | 035 | [A chat box, and a range check that aged badly](035-a-chat-box.md) | Sanitising other people's text, a length byte you must not trust, and typing that walked the character |
+| 036 | [Gold, merchants, and one key with one owner](036-gold-and-merchants.md) | Currency as an item, all-or-nothing trades, and five tests that had stopped testing anything |
 
 Numbers follow the **feature** order, not the order posts get written — 012 is
 the twelfth feature, and 002–011 and 025–027 below are still owed. The three

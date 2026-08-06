@@ -1,0 +1,108 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/store_screen.gd" id="1_screen"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dim"]
+bg_color = Color(0, 0, 0, 0.45)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.11, 0.12, 0.14, 0.97)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.42, 0.36, 0.2, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+content_margin_left = 24.0
+content_margin_top = 18.0
+content_margin_right = 24.0
+content_margin_bottom = 18.0
+
+[node name="StoreScreen" type="CanvasLayer" node_paths=PackedStringArray("buy_rows", "sell_rows", "title_label", "gold_label", "status_label")]
+layer = 3
+script = ExtResource("1_screen")
+buy_rows = NodePath("Dim/Centre/Panel/Layout/Columns/Buying/Rows")
+sell_rows = NodePath("Dim/Centre/Panel/Layout/Columns/Selling/Rows")
+title_label = NodePath("Dim/Centre/Panel/Layout/Title")
+gold_label = NodePath("Dim/Centre/Panel/Layout/Gold")
+status_label = NodePath("Dim/Centre/Panel/Layout/Status")
+
+[node name="Dim" type="PanelContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dim")
+
+[node name="Centre" type="CenterContainer" parent="Dim"]
+layout_mode = 2
+
+[node name="Panel" type="PanelContainer" parent="Dim/Centre"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Layout" type="VBoxContainer" parent="Dim/Centre/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Dim/Centre/Panel/Layout"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Merchant"
+horizontal_alignment = 1
+
+[node name="Gold" type="Label" parent="Dim/Centre/Panel/Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.82, 0.42, 1)
+text = "Your gold: 0"
+horizontal_alignment = 1
+
+[node name="Columns" type="HBoxContainer" parent="Dim/Centre/Panel/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Selling" type="VBoxContainer" parent="Dim/Centre/Panel/Layout/Columns"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Heading" type="Label" parent="Dim/Centre/Panel/Layout/Columns/Selling"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.66, 0.7, 0.74, 1)
+text = "You sell"
+horizontal_alignment = 1
+
+[node name="Rows" type="VBoxContainer" parent="Dim/Centre/Panel/Layout/Columns/Selling"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Buying" type="VBoxContainer" parent="Dim/Centre/Panel/Layout/Columns"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Heading" type="Label" parent="Dim/Centre/Panel/Layout/Columns/Buying"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.66, 0.7, 0.74, 1)
+text = "You buy"
+horizontal_alignment = 1
+
+[node name="Rows" type="VBoxContainer" parent="Dim/Centre/Panel/Layout/Columns/Buying"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Status" type="Label" parent="Dim/Centre/Panel/Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.66, 0.7, 1)
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Hint" type="Label" parent="Dim/Centre/Panel/Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.54, 0.58, 1)
+theme_override_font_sizes/font_size = 12
+text = "F or Escape to close"
+horizontal_alignment = 1

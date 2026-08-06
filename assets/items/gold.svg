@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Three coins, because one disc reads as a button. -->
+  <ellipse cx="22" cy="44" rx="16" ry="6" fill="#a8791f"/>
+  <ellipse cx="22" cy="41" rx="16" ry="6" fill="#e8b53a"/>
+  <ellipse cx="22" cy="41" rx="10" ry="3.4" fill="#f6d97a"/>
+  <ellipse cx="42" cy="40" rx="16" ry="6" fill="#a8791f"/>
+  <ellipse cx="42" cy="37" rx="16" ry="6" fill="#e8b53a"/>
+  <ellipse cx="42" cy="37" rx="10" ry="3.4" fill="#f6d97a"/>
+  <ellipse cx="32" cy="26" rx="17" ry="6.5" fill="#a8791f"/>
+  <ellipse cx="32" cy="22" rx="17" ry="6.5" fill="#f0c249"/>
+  <ellipse cx="32" cy="22" rx="11" ry="3.8" fill="#fae59c"/>
+</svg>

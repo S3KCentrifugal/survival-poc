@@ -263,7 +263,8 @@ func test_both_prompts_show_together() -> void:
 	world.add_child(mushroom)
 	mushroom.global_position = player.global_position + Vector3(0.4, 0.0, 0.0)
 
-	(world.get_node("Player/Collector") as PickupCollector).step()
+	# The router owns F now, so it is what the prompt asks.
+	(world.get_node("Player/Router") as InteractionRouter).step()
 	(world.get_node("Player/Interactor") as Interactor).step()
 
 	assert_true(hud.prompt_label.text.contains("[F]"), "the mushroom prompt is missing")

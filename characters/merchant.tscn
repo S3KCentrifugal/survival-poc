@@ -1,0 +1,96 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/characters/godot_robot/3DGodotRobot.glb" id="1_model"]
+[ext_resource type="Script" path="res://scripts/components/health_component.gd" id="2_health"]
+[ext_resource type="Resource" path="res://resources/health/player_health.tres" id="3_health_config"]
+[ext_resource type="Script" path="res://scripts/components/inventory_component.gd" id="4_inventory"]
+[ext_resource type="Script" path="res://scripts/components/merchant_component.gd" id="5_merchant"]
+[ext_resource type="Script" path="res://scripts/components/model_tint.gd" id="6_tint"]
+[ext_resource type="Resource" path="res://resources/trade/buys_mushrooms.tres" id="7_mushrooms"]
+[ext_resource type="Resource" path="res://resources/trade/buys_soup.tres" id="8_soup"]
+[ext_resource type="Resource" path="res://resources/trade/sells_sword.tres" id="9_sword"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
+radius = 0.4
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hat"]
+albedo_color = Color(0.85, 0.65, 0.18, 1)
+metallic = 0.6
+roughness = 0.35
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_brim"]
+material = SubResource("StandardMaterial3D_hat")
+top_radius = 0.34
+bottom_radius = 0.34
+height = 0.03
+radial_segments = 16
+rings = 1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_crown"]
+material = SubResource("StandardMaterial3D_hat")
+top_radius = 0.17
+bottom_radius = 0.2
+height = 0.18
+radial_segments = 16
+rings = 1
+
+[sub_resource type="LabelSettings" id="LabelSettings_name"]
+font_size = 48
+outline_size = 16
+outline_color = Color(0, 0, 0, 0.85)
+font_color = Color(1, 0.86, 0.45, 1)
+
+; Does not wander. A merchant who walks off while you are reading their prices
+; is a merchant you stop visiting -- and "some of the characters are merchants"
+; is answered by there being merchants among the wanderers, not by them
+; behaving identically.
+[node name="Merchant" type="CharacterBody3D"]
+floor_snap_length = 0.5
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_body")
+
+; Turned to face the body's -Z, same as every other character. See devblog 016.
+[node name="Model" parent="." instance=ExtResource("1_model")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
+
+[node name="Tint" type="Node" parent="." node_paths=PackedStringArray("model")]
+script = ExtResource("6_tint")
+model = NodePath("../Model")
+tint = Color(1, 0.78, 0.25, 0.42)
+emission = 0.18
+
+[node name="HatBrim" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.72, 0)
+mesh = SubResource("CylinderMesh_brim")
+
+[node name="HatCrown" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.82, 0)
+mesh = SubResource("CylinderMesh_crown")
+
+[node name="Nameplate" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.25, 0)
+pixel_size = 0.005
+billboard = 1
+double_sided = true
+no_depth_test = true
+text = "Merchant"
+label_settings = SubResource("LabelSettings_name")
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("2_health")
+config = ExtResource("3_health_config")
+
+[node name="Stock" type="Node" parent="."]
+script = ExtResource("4_inventory")
+capacity = 24
+
+[node name="Merchant" type="Node" parent="." node_paths=PackedStringArray("inventory", "actor")]
+script = ExtResource("5_merchant")
+offers = Array[Resource]([ExtResource("7_mushrooms"), ExtResource("8_soup"), ExtResource("9_sword")])
+inventory = NodePath("../Stock")
+actor = NodePath("..")
+display_name = "Merchant"
+verb = "Trade with"

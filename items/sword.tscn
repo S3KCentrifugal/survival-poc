@@ -1,0 +1,46 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/components/pickup_component.gd" id="1_pickup"]
+[ext_resource type="Resource" path="res://resources/items/sword.tres" id="2_item"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_blade"]
+albedo_color = Color(0.78, 0.82, 0.87, 1)
+metallic = 0.9
+roughness = 0.2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_grip"]
+albedo_color = Color(0.36, 0.25, 0.15, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="BoxMesh_blade"]
+material = SubResource("StandardMaterial3D_blade")
+size = Vector3(0.06, 0.02, 0.62)
+
+[sub_resource type="BoxMesh" id="BoxMesh_guard"]
+material = SubResource("StandardMaterial3D_grip")
+size = Vector3(0.2, 0.03, 0.05)
+
+[sub_resource type="BoxMesh" id="BoxMesh_grip"]
+material = SubResource("StandardMaterial3D_grip")
+size = Vector3(0.05, 0.03, 0.18)
+
+; Lying flat on the ground, like anything else dropped there.
+[node name="Sword" type="Node3D"]
+
+[node name="Blade" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0.2)
+mesh = SubResource("BoxMesh_blade")
+
+[node name="Guard" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, -0.13)
+mesh = SubResource("BoxMesh_guard")
+
+[node name="Grip" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, -0.24)
+mesh = SubResource("BoxMesh_grip")
+
+[node name="Pickup" type="Node" parent="." node_paths=PackedStringArray("actor")]
+script = ExtResource("1_pickup")
+definition = ExtResource("2_item")
+amount = 1
+actor = NodePath("..")

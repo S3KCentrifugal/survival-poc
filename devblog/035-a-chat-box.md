@@ -141,4 +141,5 @@ in the chat wants it.
 
 ---
 
-Next: nothing scheduled. Posts 002–011 and 025–027 are still owed.
+Next: [036 — Gold, merchants, and one key with one
+owner](036-gold-and-merchants.md). Posts 002–011 and 025–027 are still owed.
