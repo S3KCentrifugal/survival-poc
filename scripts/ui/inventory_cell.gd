@@ -20,10 +20,12 @@ var _empty: bool = true
 
 
 func _init() -> void:
-	custom_minimum_size = Vector2(84, 84)
+	custom_minimum_size = Vector2(UiTokens.SLOT_SIZE, UiTokens.SLOT_SIZE)
 	# Its own StyleBox. A shared one is the trap this project has met five
 	# times now: recolouring a slot would recolour every slot.
 	add_theme_stylebox_override(&"panel", _style())
+	# An empty slot and a full one have to be distinguishable at a glance, which
+	# is what the fill difference below is for.
 
 	var stack := VBoxContainer.new()
 	stack.name = "Stack"
@@ -32,7 +34,7 @@ func _init() -> void:
 
 	var frame := Control.new()
 	frame.name = "Frame"
-	frame.custom_minimum_size = Vector2(48, 48)
+	frame.custom_minimum_size = Vector2(UiTokens.SPACE_2XL + UiTokens.SPACE_LG, UiTokens.SPACE_2XL + UiTokens.SPACE_LG)
 	frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	stack.add_child(frame)
@@ -60,8 +62,11 @@ func _init() -> void:
 	_count = Label.new()
 	_count.name = "Count"
 	_count.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	# Outlined, because the count sits over an icon and has to stay legible on
+	# whatever colour that icon happens to be.
 	_count.add_theme_color_override(&"font_outline_color", Color(0, 0, 0, 0.85))
-	_count.add_theme_constant_override(&"outline_size", 5)
+	_count.add_theme_constant_override(&"outline_size", UiTokens.SPACE_XS)
+	_count.add_theme_font_size_override(&"font_size", UiTokens.TEXT_SMALL)
 	_count.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	stack.add_child(_count)
 
@@ -71,7 +76,7 @@ func show_slot(slot: InventorySlot) -> void:
 	_empty = slot == null or slot.is_empty()
 	if _empty:
 		_icon.texture = null
-		_swatch.color = Color(1.0, 1.0, 1.0, 0.04)
+		_swatch.color = Color(1.0, 1.0, 1.0, 0.03)
 		_count.text = ""
 		tooltip_text = ""
 		return
@@ -167,10 +172,10 @@ func _preview() -> Control:
 
 
 func _style() -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.13, 0.14, 0.16, 0.9)
-	style.border_color = Color(0.3, 0.33, 0.37)
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(3)
-	style.set_content_margin_all(6)
-	return style
+	return UiTokens.box(
+		UiTokens.SURFACE_SUNKEN,
+		UiTokens.RADIUS_SM,
+		UiTokens.BORDER,
+		UiTokens.BORDER_WIDTH,
+		UiTokens.SPACE_XS
+	)

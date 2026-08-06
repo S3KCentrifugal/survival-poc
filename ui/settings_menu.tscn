@@ -1,27 +1,10 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/settings_menu.gd" id="1_settings"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.08, 0.09, 0.1, 0.97)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.32, 0.36, 0.4, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
-content_margin_left = 20.0
-content_margin_top = 16.0
-content_margin_right = 20.0
-content_margin_bottom = 16.0
 
 [node name="SettingsMenu" type="PanelContainer" node_paths=PackedStringArray("rows", "apply_button", "defaults_button", "back_button")]
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 script = ExtResource("1_settings")
 rows = NodePath("Layout/Scroll/Rows")
 apply_button = NodePath("Layout/Buttons/Apply")
@@ -31,9 +14,9 @@ back_button = NodePath("Layout/Buttons/Back")
 [node name="Layout" type="VBoxContainer" parent="."]
 custom_minimum_size = Vector2(580, 540)
 layout_mode = 2
-theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="Layout"]
+theme_type_variation = &"Title"
 layout_mode = 2
 text = "Settings"
 horizontal_alignment = 1
@@ -45,12 +28,10 @@ size_flags_vertical = 3
 [node name="Rows" type="VBoxContainer" parent="Layout/Scroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 8
 
 [node name="Buttons" type="HBoxContainer" parent="Layout"]
 layout_mode = 2
 alignment = 2
-theme_override_constants/separation = 10
 
 [node name="Defaults" type="Button" parent="Layout/Buttons"]
 custom_minimum_size = Vector2(150, 34)
@@ -58,11 +39,13 @@ layout_mode = 2
 text = "Reset defaults"
 
 [node name="Back" type="Button" parent="Layout/Buttons"]
+theme_type_variation = &"QuietButton"
 custom_minimum_size = Vector2(110, 34)
 layout_mode = 2
 text = "Back"
 
 [node name="Apply" type="Button" parent="Layout/Buttons"]
+theme_type_variation = &"PrimaryButton"
 custom_minimum_size = Vector2(110, 34)
 layout_mode = 2
 text = "Apply"

@@ -166,11 +166,16 @@ func test_a_cell_shows_the_item_icon() -> void:
 	assert_eq(screen.cell(0).icon(), _mushroom().icon)
 
 
-## An 84-pixel cell must not be forced wider by the art inside it.
+## A cell must not be forced wider by the art inside it, and its size comes
+## from the design tokens rather than a number typed into the script.
 func test_a_cell_stays_the_size_it_asked_for() -> void:
 	var screen := _screen()
 	screen.inventory.collect(_mushroom(), 1)
-	assert_eq(screen.cell(0).custom_minimum_size, Vector2(84, 84))
+	assert_eq(
+		screen.cell(0).custom_minimum_size,
+		Vector2(UiTokens.SLOT_SIZE, UiTokens.SLOT_SIZE),
+		"the icon resized the cell"
+	)
 
 
 func test_emptying_a_cell_clears_its_icon() -> void:

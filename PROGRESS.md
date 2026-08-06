@@ -3,7 +3,7 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 39 — A refactoring pass**. The planned
+Last updated after **Feature 40 — A design system for the interface**. The planned
 vertical slice (features 1–11) was completed long ago; everything since is
 built on top of it.
 
@@ -43,7 +43,8 @@ grow. Do not over-engineer.
 - Static typing everywhere, including typed collections
 
 `CLAUDE.md` holds the enforceable version of this plus the engine traps.
-**`MULTIPLAYER.md`** holds the networking architecture: the authority model, the
+**`UI.md`** holds the interface guidelines: which ones, from where, and what is
+deliberately not done yet. **`MULTIPLAYER.md`** holds the networking architecture: the authority model, the
 replication plan, the path to an MMO, and the order the work should happen in.
 
 ## Working process
@@ -132,7 +133,8 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 36 | Gold, merchants, and a store screen | done | `c7ca19a` |
 | 37 | Levels and experience, and a heavy attack on right click | done | `4ccec09` |
 | 38 | Fix: panels that could not be closed | done | `21554d0` |
-| 39 | Refactoring pass: interaction, panels, test framework | done | — |
+| 39 | Refactoring pass: interaction, panels, test framework | done | `50c690f` |
+| 40 | A design system for the interface | done | — |
 
 **The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
@@ -1335,6 +1337,35 @@ purpose stay green.
 lines. `PickupCollector`, `Interactor` and `Proximity` were deleted outright,
 and `scripts/ui/` lost four files that were never UI.
 
+### 40. An interface with rules
+
+The screens looked hand-tuned because they were: **84 per-node theme overrides
+across 10 scenes, 6 arbitrary font sizes and 10 near-identical panel colours**,
+each set on the day its screen was written.
+
+`UI.md` names the guidelines and where each comes from -- Nielsen's heuristics
+for behaviour, WCAG 2.2 AA for the measurable parts, the Game Accessibility
+Guidelines for what WCAG assumes away, Fitts's law for target size. A guideline
+you cannot trace is a preference.
+
+`UiTokens` holds every number: a 4 px spacing grid, a six-step type scale, the
+palette, radii, control heights, durations. `UiThemeBuilder` generates the
+project-wide `Theme` from them, which is committed rather than hand-authored.
+The rule: **the theme owns appearance, a scene owns arrangement** -- a colour
+override in a `.tscn` is a bug and a test fails on it, a `separation` override
+is layout and is fine.
+
+**The tests caught three things in the palette I had just shipped**: danger red
+at 4.25:1 on the raised surface (I had only checked the panel surface), a focus
+ring at 2.16:1 against the accent -- invisible on the one blue button in the
+game -- and a wrong structural assumption about the pause menu. All three are
+invisible at a glance, which is why they are numbers in a test.
+
+The shop was rebuilt around hierarchy: both purses in the header rather than a
+line under the buttons, full-width left-aligned rows in one order, disabled rows
+keeping their borders and explaining themselves in place. The accent came back
+off the rows -- it means "this is the answer", and a shop has no single answer.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -1379,6 +1410,9 @@ needs and this repo does not have:
   `ExperienceComponent` listens rather than reaching.
 - **A sword that does anything.** It can be bought, carried, dropped and picked
   up. It is not equippable and does not change the punch.
+- **Interface scaling, a text-size setting, reduced motion, or controller
+  navigation.** Focus *styling* is correct; nothing sets up focus neighbours,
+  so a pad cannot walk the UI. All four are listed in `UI.md`.
 - **Player names.** Chat shows "Player 2" and your own line says "You". Real
   names want accounts, and accounts want a server that is not this one.
 - **Chat moderation of any kind.** Text is sanitised so it cannot break the

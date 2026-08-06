@@ -37,7 +37,14 @@ signal closed
 @export var buy_rows: VBoxContainer
 @export var sell_rows: VBoxContainer
 @export var title_label: Label
-@export var gold_label: Label
+@export var subtitle_label: Label
+
+## Both purses, side by side in the header. The two numbers a trade depends on
+## are the first thing anyone checks, so they belong where the eye lands rather
+## than in a line under the buttons.
+@export var player_gold_label: Label
+@export var merchant_gold_label: Label
+
 @export var status_label: Label
 
 var _merchant: MerchantComponent
@@ -70,6 +77,8 @@ func show_merchant(merchant: MerchantComponent) -> void:
 		return
 	if title_label != null:
 		title_label.text = merchant.display_name
+	if subtitle_label != null:
+		subtitle_label.text = "Trading post"
 	_build_rows()
 	refresh()
 	set_open(true)
@@ -107,10 +116,10 @@ func refresh() -> void:
 			offer.item.description if refusal == Trade.Refusal.NONE else Trade.reason(refusal)
 		)
 
-	if gold_label != null:
-		gold_label.text = "Your gold: %d      %s has: %d" % [
-			Purse.balance(inventory.inventory()), _merchant.display_name, _merchant.gold()
-		]
+	if player_gold_label != null:
+		player_gold_label.text = str(Purse.balance(inventory.inventory()))
+	if merchant_gold_label != null:
+		merchant_gold_label.text = str(_merchant.gold())
 
 
 ## Trades one at [param index]. Returns how many changed hands.
@@ -185,18 +194,31 @@ func _build_rows() -> void:
 			continue
 
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(320, 40)
+		button.custom_minimum_size = Vector2(0, UiTokens.CONTROL_HEIGHT + UiTokens.SPACE_SM)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		# Left-aligned: a row of prices is read as a list, and centred text in a
+		# list gives the eye no edge to run down.
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		# No accent on a list row. The accent means "this is the answer", and a
+		# shop has no single answer -- spending it on every row spends it on
+		# nothing.
 		button.pressed.connect(trade.bind(_buttons.size()))
 		rows.add_child(button)
 		_buttons.append(button)
 		_offers.append(offer)
 
 
+## Item, then price, then the number that decides whether you can.
+##
+## One order for every row so the eye can run down a column rather than
+## re-reading each line to find the price.
 func _label_for(offer: TradeOffer) -> String:
-	var held := inventory.count_of(offer.item.id)
 	if offer.direction == TradeOffer.Direction.SELLS:
-		return "Buy  %s" % offer.label()
-	return "Sell  %s   (you have %d)" % [offer.label(), held]
+		var stock := "" if offer.is_unlimited() else "     %d in stock" % offer.stock
+		return "%s     %d gold%s" % [offer.item.display_name, offer.price, stock]
+	return "%s     %d gold each     you have %d" % [
+		offer.item.display_name, offer.price, inventory.count_of(offer.item.id)
+	]
 
 
 func _say(text: String) -> void:

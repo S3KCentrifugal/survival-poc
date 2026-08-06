@@ -115,4 +115,5 @@ learn about it.
 
 ---
 
-Next: nothing scheduled. Posts 002–011 and 025–027 are still owed.
+Next: [040 — An interface with rules](040-an-interface-with-rules.md). Posts
+002–011 and 025–027 are still owed.

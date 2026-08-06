@@ -106,6 +106,38 @@ Do not duplicate `PROGRESS.md`. That file is the *current* state — kept accura
 and rewritten as things change. The dev blog is the *history* — appended to and
 then left alone.
 
+## Interface
+
+**`UI.md` is the reasoning; this is the rule.** Every guideline there names its
+source — Nielsen's heuristics, WCAG 2.2 AA, the Game Accessibility Guidelines,
+Fitts's law — because a guideline you cannot trace is a preference.
+
+- **The theme owns appearance; a scene owns arrangement.** Setting
+  `theme_override_colors/*`, `fonts/*`, `font_sizes/*` or `styles/*` in a
+  `.tscn` is a bug and a test fails on it. `theme_override_constants/separation`
+  is fine: that is layout. Need a different look — add a **type variation** to
+  the theme (`Title`, `Card`, `PrimaryButton`, `HealthBar`) and ask for it by
+  name.
+- **Every number comes from `UiTokens`.** Spacing is the 4 px scale, type is the
+  six-step scale, colour is the palette. A literal size or colour in a UI script
+  is the thing that produced 84 per-node overrides across 10 scenes.
+- **The theme is generated, not hand-edited.** Change `UiTokens`, then rerun
+  `UiThemeBuilder.save()` and commit `resources/ui/game_theme.tres`. Editing the
+  `.tres` puts a second copy of a token where nobody will look for it.
+- **Contrast is measured.** 4.5:1 body, 3:1 large and interactive boundaries,
+  against **every** surface a colour can appear on — the first palette here
+  passed on the panel and failed on the raised surface that buttons sit on.
+  `UiTokens.contrast()` exists so this is a test, not an opinion.
+- **Nothing is said in colour alone.** ~4% of players cannot separate red from
+  green. A disabled control says *why* in its tooltip, next to itself.
+- **Disabled keeps its border.** Without one it reads as a label and nobody
+  knows there was anything to enable.
+- **Focus must be visible and distinct from hover**, or a keyboard player is
+  lost. It is also the thing most easily broken by a palette change.
+- **Modals use `ModalPanel`.** Scrim, cursor released, gameplay input
+  suspended, Escape and the opening key both close. They do **not** pause —
+  pausing belongs to the pause menu alone.
+
 ## Traps specific to this project
 
 - **`class_name` globals only resolve after an import pass.** They live in

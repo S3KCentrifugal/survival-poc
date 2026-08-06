@@ -22,6 +22,14 @@ window/size/viewport_height=1080
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
+[gui]
+
+; One theme for every Control in the game. Godot walks up the tree for a theme
+; item, so setting it here styles buttons that do not exist yet -- which is the
+; point: the default has to be right, because the default is what most things
+; use. Built from UiTokens by UiThemeBuilder; see UI.md.
+theme/custom="res://resources/ui/game_theme.tres"
+
 [input]
 
 move_forward={
