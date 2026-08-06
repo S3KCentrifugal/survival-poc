@@ -92,6 +92,22 @@ func is_exhausted() -> bool:
 
 ## Sets the bar directly, for a debug console or a scripted scene. Announces the
 ## change like any other, so a bar redraws.
+## Takes a lump sum out. Returns whether it was paid in full.
+##
+## Different from [method request_drain], which is the per-second cost of
+## sprinting: this is one price for one action. Refuses outright rather than
+## taking what it can -- a heavy attack that half-happens for half the stamina
+## is not a thing anyone wants to explain.
+func spend(amount: float) -> bool:
+	_ensure_stamina()
+	if amount <= 0.0:
+		return true
+	if current() < amount:
+		return false
+	set_current(current() - amount)
+	return true
+
+
 func set_current(value: float) -> void:
 	_ensure_stamina()
 	var was_exhausted := _stamina.is_exhausted()

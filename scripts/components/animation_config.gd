@@ -24,5 +24,10 @@ extends Resource
 @export var run_animation: StringName = &"run"
 @export var jump_animation: StringName = &"jump"
 @export var punch_animation: StringName = &"punch"
+
+## The heavy attack. A different clip, not the punch played slowly: "make it
+## obvious this one is stronger" is answered by a different move, and the rig
+## already has a kick.
+@export var heavy_animation: StringName = &"heavy"
 @export var hurt_animation: StringName = &"hurt"
 @export var fall_animation: StringName = &"fall"

@@ -100,6 +100,9 @@ const BUTTON_INTERACT: int = 1 << 3
 ## Bit 4. Four bits still spare after this one.
 const BUTTON_USE: int = 1 << 4
 
+## Bit 5. Three bits spare.
+const BUTTON_HEAVY_ATTACK: int = 1 << 5
+
 ## Flag bits on a snapshot entity.
 const FLAG_ON_FLOOR: int = 1 << 0
 const FLAG_SPRINTING: int = 1 << 1
@@ -318,6 +321,8 @@ static func buttons_of(state: InputState) -> int:
 		buttons |= BUTTON_INTERACT
 	if state.use:
 		buttons |= BUTTON_USE
+	if state.heavy_attack:
+		buttons |= BUTTON_HEAVY_ATTACK
 	return buttons
 
 
@@ -334,6 +339,7 @@ static func input_state_from(decoded: Dictionary) -> InputState:
 	state.attack = (buttons & BUTTON_ATTACK) != 0
 	state.interact = (buttons & BUTTON_INTERACT) != 0
 	state.use = (buttons & BUTTON_USE) != 0
+	state.heavy_attack = (buttons & BUTTON_HEAVY_ATTACK) != 0
 	return state
 
 

@@ -3,7 +3,7 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 36 — Gold, merchants and a store**. The planned
+Last updated after **Feature 37 — Levels and a heavy attack**. The planned
 vertical slice (features 1–11) was completed long ago; everything since is
 built on top of it.
 
@@ -129,7 +129,8 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 33 | Larger, layered terrain with slope-blended textures | done | `e4daf04` |
 | 34 | Generated background music, and a bench that crafts soup | done | `31a71dd` |
 | 35 | A chat box on F12, networked | done | `b7b05c8` |
-| 36 | Gold, merchants, and a store screen | done | — |
+| 36 | Gold, merchants, and a store screen | done | `c7ca19a` |
+| 37 | Levels and experience, and a heavy attack on right click | done | — |
 
 **The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
@@ -140,7 +141,9 @@ turns it, the wheel zooms. Shift sprints until the bar runs out. Go through the
 internal doorway, out of the building and across to the tower. Outside is 256 m
 of grassland with rolling hills and rocky high ground. F3 for the
 readout, backtick for the console, Escape for the menu. Space jumps twice, left
-click punches — hit a wanderer enough and it blows up. Red mushrooms grow in
+click punches and **right click kicks** — much harder, much slower, and it
+costs stamina. Hit a wanderer enough and it blows up; hitting things earns
+experience, and your level and progress are on the HUD. Red mushrooms grow in
 the grass: walk up to one, press **F** to pick it up, **I** to see what you are
 carrying — drag a stack onto another slot to move it, or out of the panel to
 put it back on the ground. There is a workbench in the second room: stand at it,
@@ -1235,6 +1238,39 @@ Offers are duplicated per merchant on ready. Two merchants from one scene would
 otherwise share a `stock` counter -- sixth appearance of the shared-resource
 trap, and the first time it was written defensively rather than discovered.
 
+### 37. Levels, and a swing worth waiting for
+
+**Thirty levels from three numbers.** `ExperienceTable` is a `RefCounted` over a
+curve config, so the properties that matter are assertions: the cumulative
+curve never goes backwards, each level costs at least as much as the last, the
+exact total for level N reads back as level N, and a growth of exactly 1.0
+still rises rather than plateauing. A capped character shows a **full** bar --
+an empty one at max level looks like somebody who just lost their progress.
+
+Experience comes from damage (0.5 per point) as well as kills (25 bonus), so a
+fight you lose is worth something and the number moves while you are watching
+it. The kill bonus rides on a `killed` signal emitted by the **attacker**, not
+the victim: `HealthComponent.died` cannot say who did it, and the attacker is
+the only one holding both ends. Levels are announced one signal per level
+crossed, so a kill spanning two emits twice.
+
+**Right click is a heavy attack** using the rig's `Kick` clip -- found by
+reading the imported animation list rather than assuming, the same way the
+`-loop` suffix trap was. It trades in four directions, each with a test on the
+*relationship* rather than the number: 34 damage against 12, 1.15 s against
+0.35, 2.3 m reach against 1.8, and 70 degrees of arc against 110. Further but
+narrower, because a heavy that also forgives your aim is strictly better and
+leaves no decision. It costs 25 stamina, refused rather than weakened.
+
+A light punch cannot be thrown during the heavy's recovery. Without that, a jab
+cancels the commitment and you pay none of the cost -- the standard way this
+pair of moves gets broken.
+
+**The new binding exposed a latent bug.** The inventory, shop and bench released
+the cursor but not the keyboard, so the character stayed playable behind the
+panel. Harmless until clicking "Sell" also kicked whoever stood behind it. All
+three now call `set_input_suspended`, the mechanism the chat box already had.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -1277,6 +1313,12 @@ needs and this repo does not have:
   an assertion. Those five tests were doing nothing and nothing said so. This is
   the most valuable thing on this list: a suite that logs a script error must
   not be able to report success.
+- **Anything that a level unlocks.** Levels are earned and displayed; nothing
+  reads them. Stat growth, gated recipes and a merchant who stocks better
+  things at level 10 are all the obvious next step and none are built.
+- **Experience for anything but fighting.** Crafting soup and selling to a
+  merchant award nothing. Both are one `connect` away, which is why
+  `ExperienceComponent` listens rather than reaching.
 - **A sword that does anything.** It can be bought, carried, dropped and picked
   up. It is not equippable and does not change the punch.
 - **Player names.** Chat shows "Player 2" and your own line says "You". Real

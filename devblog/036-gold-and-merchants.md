@@ -134,4 +134,6 @@ finally being learned rather than survived.
 
 ---
 
-Next: nothing scheduled. Posts 002–011 and 025–027 are still owed.
+Next: [037 — Levels, and a swing worth waiting
+for](037-levels-and-a-heavier-swing.md). Posts 002–011 and 025–027 are still
+owed.

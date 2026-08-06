@@ -225,17 +225,19 @@ world_root = NodePath("..")
 service = NodePath("../Chat")
 world_root = NodePath("..")
 
-[node name="PlayerHud" parent="." instance=ExtResource("14_hud") node_paths=PackedStringArray("health", "stamina", "router", "interactor")]
+[node name="PlayerHud" parent="." instance=ExtResource("14_hud") node_paths=PackedStringArray("health", "stamina", "experience", "router", "interactor")]
 router = NodePath("../Player/Router")
 interactor = NodePath("../Player/Interactor")
 health = NodePath("../Player/Health")
 stamina = NodePath("../Player/Stamina")
+experience = NodePath("../Player/Experience")
 
 [node name="DebugOverlay" parent="." instance=ExtResource("7_overlay") node_paths=PackedStringArray("body", "movement", "health", "stamina", "animation", "day_night")]
 body = NodePath("../Player")
 movement = NodePath("../Player/Movement")
 health = NodePath("../Player/Health")
 stamina = NodePath("../Player/Stamina")
+experience = NodePath("../Player/Experience")
 animation = NodePath("../Player/Animation")
 day_night = NodePath("../DayNight")
 
@@ -244,6 +246,7 @@ world_root = NodePath("..")
 player = NodePath("../Player")
 health = NodePath("../Player/Health")
 stamina = NodePath("../Player/Stamina")
+experience = NodePath("../Player/Experience")
 movement = NodePath("../Player/Movement")
 day_night = NodePath("../DayNight")
 terrain = NodePath("../Terrain")

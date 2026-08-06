@@ -25,6 +25,11 @@ var attack: bool = false
 ## read twice, recorded, or eventually arrive from a network peer.
 var jump: bool = false
 
+## Whether the heavy attack button is *held*. Its own field rather than a
+## modifier on [member attack], because they are two buttons and either can be
+## held without the other.
+var heavy_attack: bool = false
+
 ## Whether the interact key is *held*. A state like the rest; picking a
 ## mushroom up once per press is the collector's business, not this object's.
 var interact: bool = false
@@ -59,6 +64,7 @@ func copy() -> InputState:
 	other.sprint = sprint
 	other.jump = jump
 	other.attack = attack
+	other.heavy_attack = heavy_attack
 	other.interact = interact
 	other.use = use
 	other.aim_point = aim_point
@@ -71,6 +77,7 @@ func clear() -> void:
 	sprint = false
 	jump = false
 	attack = false
+	heavy_attack = false
 	interact = false
 	use = false
 	aim_point = Vector3.ZERO

@@ -75,6 +75,11 @@ func set_open(open: bool) -> void:
 	visible = open
 	if world_root != null:
 		world_root.set_mouse_captured(not open)
+		# And the keyboard and buttons with it. Releasing only the cursor left
+		# the character playable behind the panel -- harmless while the only
+		# bindings were keys you would not press, and immediately visible once
+		# right click became an attack.
+		world_root.set_input_suspended(open)
 	if open:
 		opened.emit(_merchant)
 	else:

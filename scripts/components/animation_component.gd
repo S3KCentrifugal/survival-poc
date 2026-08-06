@@ -62,7 +62,8 @@ func step() -> void:
 		on_floor(),
 		vertical_speed(),
 		is_punching(),
-		is_hurt()
+		is_hurt(),
+		is_heavy_attacking()
 	)
 	if next == previous:
 		return
@@ -107,6 +108,11 @@ func is_sprinting() -> bool:
 
 func is_punching() -> bool:
 	return attack != null and attack.is_attacking()
+
+
+## Whether the swing showing is the heavy one, so a different clip plays.
+func is_heavy_attacking() -> bool:
+	return attack != null and attack.is_heavy_attacking()
 
 
 func is_hurt() -> bool:

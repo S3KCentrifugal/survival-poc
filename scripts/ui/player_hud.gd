@@ -13,6 +13,9 @@ extends CanvasLayer
 @export var health: HealthComponent
 @export var stamina: StaminaComponent
 
+## What the level and the experience bar are drawn from.
+@export var experience: ExperienceComponent
+
 ## What F would act on, so the HUD can say so. The **router**, not the
 ## collector: the router is what owns the key, and asking the collector means
 ## the prompt can never say "Trade with Merchant".
@@ -24,6 +27,12 @@ extends CanvasLayer
 @export var health_bar: ProgressBar
 @export var stamina_bar: ProgressBar
 @export var health_label: Label
+
+@export var experience_bar: ProgressBar
+
+## Reads "Level 4". Its own label rather than text inside the bar, because the
+## number is the thing you glance at and the bar is the thing you watch.
+@export var level_label: Label
 
 ## Says "Pick up Mushroom" when something is in reach. Hidden otherwise -- a
 ## prompt that is always on screen is a prompt nobody reads.
@@ -47,6 +56,9 @@ func _ready() -> void:
 	if interactor != null:
 		interactor.target_changed.connect(_on_use_target_changed)
 	_refresh_prompt()
+	if experience != null:
+		experience.gained.connect(_on_experience_gained)
+		experience.levelled_up.connect(_on_levelled_up)
 	if stamina != null:
 		stamina.changed.connect(_on_stamina_changed)
 		stamina.exhausted.connect(_refresh_stamina_colour)
@@ -62,6 +74,7 @@ func refresh() -> void:
 	if stamina != null:
 		_on_stamina_changed(stamina.current(), stamina.maximum())
 	_refresh_stamina_colour()
+	_refresh_experience()
 
 
 ## Fraction the health bar is showing, 0 to 1. For tests, and for anything that
@@ -72,6 +85,42 @@ func health_fraction() -> float:
 
 func stamina_fraction() -> float:
 	return _fraction_of(stamina_bar)
+
+
+func experience_fraction() -> float:
+	return _fraction_of(experience_bar)
+
+
+## What the level reads, for a test.
+func level_text() -> String:
+	return "" if level_label == null else level_label.text
+
+
+## Redraws the level and the bar.
+##
+## The bar shows progress *through the current level*, not lifetime total. A bar
+## that never resets tells you nothing about how close the next level is, which
+## is the only question anyone asks of it.
+func _refresh_experience() -> void:
+	if experience == null:
+		return
+	if experience_bar != null:
+		experience_bar.max_value = 1.0
+		experience_bar.value = experience.progress()
+	if level_label != null:
+		level_label.text = (
+			"Level %d  (max)" % experience.level()
+			if experience.is_capped()
+			else "Level %d      %d xp to next" % [experience.level(), experience.remaining()]
+		)
+
+
+func _on_experience_gained(_amount: int, _total: int) -> void:
+	_refresh_experience()
+
+
+func _on_levelled_up(_level: int) -> void:
+	_refresh_experience()
 
 
 func _on_health_changed(current: float, maximum: float) -> void:

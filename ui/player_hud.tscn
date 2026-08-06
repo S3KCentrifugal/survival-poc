@@ -1,9 +1,16 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/player_hud.gd" id="1_hud"]
 
 [sub_resource type="SystemFont" id="SystemFont_ui"]
 font_names = PackedStringArray("sans-serif", "Sans", "DejaVu Sans")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_experience"]
+bg_color = Color(0.36, 0.62, 0.86, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_track"]
 bg_color = Color(0.06, 0.06, 0.07, 0.72)
@@ -31,13 +38,15 @@ corner_radius_top_right = 2
 corner_radius_bottom_right = 2
 corner_radius_bottom_left = 2
 
-[node name="PlayerHud" type="CanvasLayer" node_paths=PackedStringArray("health_bar", "stamina_bar", "health_label", "prompt_label")]
+[node name="PlayerHud" type="CanvasLayer" node_paths=PackedStringArray("health_bar", "stamina_bar", "health_label", "prompt_label", "experience_bar", "level_label")]
 layer = 1
 script = ExtResource("1_hud")
 health_bar = NodePath("Anchor/Bars/Health")
 stamina_bar = NodePath("Anchor/Bars/Stamina")
 health_label = NodePath("Anchor/Bars/Health/Value")
 prompt_label = NodePath("Prompt/Text")
+experience_bar = NodePath("Anchor/Bars/Experience")
+level_label = NodePath("Anchor/Bars/Level")
 
 [node name="Anchor" type="MarginContainer" parent="."]
 anchor_top = 1.0
@@ -85,6 +94,25 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_stamina_fill")
 max_value = 100.0
 value = 100.0
 show_percentage = false
+
+[node name="Experience" type="ProgressBar" parent="Anchor/Bars"]
+custom_minimum_size = Vector2(300, 8)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_track")
+theme_override_styles/fill = SubResource("StyleBoxFlat_experience")
+max_value = 1.0
+step = 0.001
+value = 0.0
+show_percentage = false
+
+[node name="Level" type="Label" parent="Anchor/Bars"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.84, 0.95, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = SubResource("SystemFont_ui")
+theme_override_font_sizes/font_size = 13
+text = "Level 1"
 
 [node name="Prompt" type="MarginContainer" parent="."]
 anchors_preset = 12

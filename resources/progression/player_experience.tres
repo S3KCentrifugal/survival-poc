@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ExperienceConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/experience_config.gd" id="1_config"]
+
+[resource]
+script = ExtResource("1_config")
+first_level_cost = 60
+growth = 1.18
+max_level = 30
+per_damage = 0.5
+per_kill = 25.0

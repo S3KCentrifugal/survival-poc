@@ -12,6 +12,7 @@ const ACTION_MOVE_BACK: StringName = &"move_back"
 const ACTION_SPRINT: StringName = &"sprint"
 const ACTION_JUMP: StringName = &"jump"
 const ACTION_ATTACK: StringName = &"attack"
+const ACTION_HEAVY_ATTACK: StringName = &"heavy_attack"
 const ACTION_INTERACT: StringName = &"interact"
 const ACTION_USE: StringName = &"use"
 
@@ -25,6 +26,7 @@ const REQUIRED_ACTIONS: Array[StringName] = [
 	ACTION_SPRINT,
 	ACTION_JUMP,
 	ACTION_ATTACK,
+	ACTION_HEAVY_ATTACK,
 	ACTION_INTERACT,
 	ACTION_USE,
 ]
@@ -82,6 +84,9 @@ func poll() -> InputState:
 	state.sprint = Input.is_action_pressed(ACTION_SPRINT)
 	state.jump = Input.is_action_pressed(ACTION_JUMP)
 	state.attack = _attack_intent()
+	# Not passed through _attack_intent: that exists to swallow the click that
+	# recaptures the cursor, and the cursor is recaptured with the left button.
+	state.heavy_attack = Input.is_action_pressed(ACTION_HEAVY_ATTACK)
 	state.interact = Input.is_action_pressed(ACTION_INTERACT)
 	state.use = Input.is_action_pressed(ACTION_USE)
 

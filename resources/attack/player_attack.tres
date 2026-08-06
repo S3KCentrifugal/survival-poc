@@ -5,3 +5,8 @@
 [resource]
 script = ExtResource("1_config")
 cooldown = 0.35
+heavy_cooldown = 1.15
+heavy_damage = 34.0
+heavy_reach = 2.3
+heavy_arc_degrees = 70.0
+heavy_stamina_cost = 25.0

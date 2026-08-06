@@ -43,6 +43,11 @@ func attack(held: bool) -> void:
 	state.attack = held
 
 
+## Holds or releases the heavy attack button.
+func heavy_attack(held: bool) -> void:
+	state.heavy_attack = held
+
+
 ## Holds or releases the interact key.
 func interact(held: bool) -> void:
 	state.interact = held

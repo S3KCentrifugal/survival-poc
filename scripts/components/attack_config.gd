@@ -31,5 +31,31 @@ extends Resource
 @export_range(1, 32, 1) var max_targets: int = 8
 
 
+@export_group("Heavy")
+## Seconds between heavy attacks, and how long one shows.
+##
+## Long enough to play most of the rig's 1.29 s kick rather than cutting it into
+## a jab the way [member cooldown] cuts the punch. The wait *is* the cost: a
+## heavy attack you can throw as fast as a light one is just a better light one.
+@export_range(0.1, 5.0, 0.05) var heavy_cooldown: float = 1.15
+
+@export_range(0.0, 1000.0, 1.0) var heavy_damage: float = 34.0
+
+## A kick reaches further than a fist.
+@export_range(0.2, 6.0, 0.1) var heavy_reach: float = 2.3
+
+## Narrower than the punch. The trade for the damage is that you have to mean
+## it -- a heavy that also forgives your aim is strictly better in every way.
+@export_range(10.0, 360.0, 5.0) var heavy_arc_degrees: float = 70.0
+
+## Stamina a heavy attack spends. Zero makes it free, which makes the light
+## attack pointless.
+@export_range(0.0, 200.0, 1.0) var heavy_stamina_cost: float = 25.0
+
+
 func arc_radians() -> float:
 	return deg_to_rad(arc_degrees)
+
+
+func heavy_arc_radians() -> float:
+	return deg_to_rad(heavy_arc_degrees)

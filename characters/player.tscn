@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3]
+[gd_scene load_steps=25 format=3]
 
 [ext_resource type="Script" path="res://scripts/components/movement_component.gd" id="1_movement"]
 [ext_resource type="Resource" path="res://resources/movement/player_movement.tres" id="2_config"]
@@ -20,6 +20,8 @@
 [ext_resource type="Script" path="res://scripts/components/item_dropper.gd" id="19_dropper"]
 [ext_resource type="Script" path="res://scripts/components/interactor.gd" id="20_interactor"]
 [ext_resource type="Script" path="res://scripts/components/interaction_router.gd" id="21_router"]
+[ext_resource type="Script" path="res://scripts/progression/experience_component.gd" id="22_experience"]
+[ext_resource type="Resource" path="res://resources/progression/player_experience.tres" id="23_experience_config"]
 [ext_resource type="Script" path="res://scripts/components/network_entity.gd" id="90_netent"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
@@ -57,10 +59,11 @@ script = ExtResource("14_hurt")
 health = NodePath("../Health")
 stagger_seconds = 0.4
 
-[node name="Attack" type="Node" parent="." node_paths=PackedStringArray("body")]
+[node name="Attack" type="Node" parent="." node_paths=PackedStringArray("body", "stamina")]
 script = ExtResource("12_attack")
 config = ExtResource("13_attack_config")
 body = NodePath("..")
+stamina = NodePath("../Stamina")
 
 [node name="Animation" type="Node" parent="." node_paths=PackedStringArray("body", "movement", "attack", "hurt", "animation_player")]
 script = ExtResource("9_animation")
@@ -101,6 +104,11 @@ script = ExtResource("21_router")
 body = NodePath("..")
 collector = NodePath("../Collector")
 merchant_reach = 2.8
+
+[node name="Experience" type="Node" parent="." node_paths=PackedStringArray("attack")]
+script = ExtResource("22_experience")
+config = ExtResource("23_experience_config")
+attack = NodePath("../Attack")
 
 [node name="SaveId" type="Node" parent="."]
 script = ExtResource("11_save_id")
