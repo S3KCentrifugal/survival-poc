@@ -14,9 +14,17 @@ extends RefCounted
 ## The one item everything is priced in.
 const GOLD_ID: StringName = &"gold"
 
+## Where the currency's definition lives.
+##
+## A path rather than an export, because this is a static helper with no node to
+## export from -- but it is a constant in one place instead of a `load()` spelt
+## out at each call site, so changing the currency is one edit and swapping it
+## for an exported reference later is a small one.
+const GOLD_PATH: String = "res://resources/items/gold.tres"
+
 
 static func definition() -> ItemDefinition:
-	return load("res://resources/items/gold.tres")
+	return load(GOLD_PATH)
 
 
 static func balance(inventory: Inventory) -> int:

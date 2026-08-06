@@ -20,6 +20,13 @@ signal closed
 ## Watched so the shop opens when a merchant is hailed.
 @export var router: InteractionRouter
 
+## Owns opening, closing, the cursor, the keyboard and the close keys. Held
+## rather than inherited: the panel keeps its own contents and delegates the
+## four things every modal panel does the same way.
+@export var modal: ModalPanel
+
+## Given to the component above, which is what releases the cursor and the
+## keyboard. Optional, so a panel can be tested with no world around it.
 @export var world_root: WorldRoot
 
 @export var buy_rows: VBoxContainer
@@ -37,32 +44,17 @@ var _offers: Array[TradeOffer] = []
 
 
 func _ready() -> void:
-	process_mode = Node.PROCESS_MODE_ALWAYS
-	visible = false
+	if modal != null:
+		# The world wires the panel; the panel configures its own component. Same
+		# shape as the pause menu handing its SettingsController a path -- a
+		# child is ready before its parent, so a component that read this for
+		# itself would read it too early.
+		modal.world_root = world_root
+		modal.closed.connect(_on_closed)
 	if router != null:
 		router.merchant_hailed.connect(_on_hailed)
 	if inventory != null:
 		inventory.changed.connect(refresh)
-
-
-## Handled in [method Node._input] rather than `_unhandled_input`, and this is
-## not a style choice. `_unhandled_input` runs in reverse tree order, and the
-## pause menu happens to sit after this panel -- so Escape reached the menu
-## first and opened it *over* an open shop, which could then never be closed.
-## Tree order is an invisible dependency and a bad one to rest on. `_input` runs
-## before all of it, and an open modal panel is exactly the thing that should
-## win its own close key.
-##
-## Returns immediately when hidden, so a closed panel costs one comparison.
-func _input(event: InputEvent) -> void:
-	if not visible:
-		return
-	var key := event as InputEventKey
-	if key == null or not key.pressed or key.echo:
-		return
-	if key.keycode == KEY_ESCAPE or key.keycode == KEY_F:
-		set_open(false)
-		get_viewport().set_input_as_handled()
 
 
 ## Opens the shop on [param merchant], or closes it.
@@ -76,28 +68,21 @@ func show_merchant(merchant: MerchantComponent) -> void:
 	_build_rows()
 	refresh()
 	set_open(true)
+	opened.emit(merchant)
 
 
 func set_open(open: bool) -> void:
-	if open == visible:
-		return
-	visible = open
-	if world_root != null:
-		world_root.set_mouse_captured(not open)
-		# And the keyboard and buttons with it. Releasing only the cursor left
-		# the character playable behind the panel -- harmless while the only
-		# bindings were keys you would not press, and immediately visible once
-		# right click became an attack.
-		world_root.set_input_suspended(open)
-	if open:
-		opened.emit(_merchant)
-	else:
-		_merchant = null
-		closed.emit()
+	if modal != null:
+		modal.set_open(open)
 
 
 func is_open() -> bool:
-	return visible
+	return modal != null and modal.is_open()
+
+
+func _on_closed() -> void:
+	_merchant = null
+	closed.emit()
 
 
 func merchant() -> MerchantComponent:

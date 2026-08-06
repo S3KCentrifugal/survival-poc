@@ -18,7 +18,11 @@ signal closed
 ## Watched so the panel opens when a bench is used.
 @export var interactor: Interactor
 
-## Released while the panel is open and taken back on close.
+## Owns opening, closing, the cursor, the keyboard and the close keys.
+@export var modal: ModalPanel
+
+## Given to the component above, which is what releases the cursor and the
+## keyboard. Optional, so a panel can be tested with no world around it.
 @export var world_root: WorldRoot
 
 @export var rows: VBoxContainer
@@ -32,8 +36,13 @@ var _bench: WorkbenchComponent
 
 
 func _ready() -> void:
-	process_mode = Node.PROCESS_MODE_ALWAYS
-	visible = false
+	if modal != null:
+		# The world wires the panel; the panel configures its own component. Same
+		# shape as the pause menu handing its SettingsController a path -- a
+		# child is ready before its parent, so a component that read this for
+		# itself would read it too early.
+		modal.world_root = world_root
+		modal.closed.connect(_on_closed)
 	if interactor != null:
 		interactor.used.connect(_on_used)
 	if inventory != null:
@@ -44,26 +53,6 @@ func _ready() -> void:
 
 ## Escape closes it, and so does the use key. Handled as unhandled input so the
 ## console and the pause menu get first refusal.
-## Handled in [method Node._input] rather than `_unhandled_input`, and this is
-## not a style choice. `_unhandled_input` runs in reverse tree order, and the
-## pause menu happens to sit after this panel -- so Escape reached the menu
-## first and opened it *over* an open shop, which could then never be closed.
-## Tree order is an invisible dependency and a bad one to rest on. `_input` runs
-## before all of it, and an open modal panel is exactly the thing that should
-## win its own close key.
-##
-## Returns immediately when hidden, so a closed panel costs one comparison.
-func _input(event: InputEvent) -> void:
-	if not visible:
-		return
-	var key := event as InputEventKey
-	if key == null or not key.pressed or key.echo:
-		return
-	if key.keycode == KEY_ESCAPE or key.keycode == KEY_E:
-		set_open(false)
-		get_viewport().set_input_as_handled()
-
-
 ## Opens the panel on [param bench], or closes it.
 func show_bench(bench: WorkbenchComponent) -> void:
 	_bench = bench
@@ -75,28 +64,21 @@ func show_bench(bench: WorkbenchComponent) -> void:
 	_build_rows()
 	refresh()
 	set_open(true)
+	opened.emit(bench)
 
 
 func set_open(open: bool) -> void:
-	if open == visible:
-		return
-	visible = open
-	if world_root != null:
-		world_root.set_mouse_captured(not open)
-		# And the keyboard and buttons with it. Releasing only the cursor left
-		# the character playable behind the panel -- harmless while the only
-		# bindings were keys you would not press, and immediately visible once
-		# right click became an attack.
-		world_root.set_input_suspended(open)
-	if open:
-		opened.emit(_bench)
-	else:
-		_bench = null
-		closed.emit()
+	if modal != null:
+		modal.set_open(open)
 
 
 func is_open() -> bool:
-	return visible
+	return modal != null and modal.is_open()
+
+
+func _on_closed() -> void:
+	_bench = null
+	closed.emit()
 
 
 ## The bench currently open, or null.

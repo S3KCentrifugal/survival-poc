@@ -1,5 +1,6 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
+[ext_resource type="Script" path="res://scripts/ui/modal_panel.gd" id="9_modal"]
 [ext_resource type="Script" path="res://scripts/ui/crafting_screen.gd" id="1_screen"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dim"]
@@ -21,9 +22,10 @@ content_margin_top = 18.0
 content_margin_right = 24.0
 content_margin_bottom = 18.0
 
-[node name="CraftingScreen" type="CanvasLayer" node_paths=PackedStringArray("rows", "title_label", "status_label")]
+[node name="CraftingScreen" type="CanvasLayer" node_paths=PackedStringArray("modal", "rows", "title_label", "status_label")]
 layer = 3
 script = ExtResource("1_screen")
+modal = NodePath("Modal")
 rows = NodePath("Dim/Centre/Panel/Layout/Recipes")
 title_label = NodePath("Dim/Centre/Panel/Layout/Title")
 status_label = NodePath("Dim/Centre/Panel/Layout/Status")
@@ -70,3 +72,8 @@ theme_override_colors/font_color = Color(0.5, 0.54, 0.58, 1)
 theme_override_font_sizes/font_size = 12
 text = "E or Escape to close"
 horizontal_alignment = 1
+
+[node name="Modal" type="Node" parent="." node_paths=PackedStringArray("panel")]
+script = ExtResource("9_modal")
+panel = NodePath("..")
+close_keys = Array[int]([4194305, 69])

@@ -26,8 +26,13 @@ signal dropped(definition: ItemDefinition, amount: int)
 ## panel does nothing rather than deleting what you dragged.
 @export var dropper: ItemDropper
 
-## Released while the screen is open and taken back on close. Optional, so the
-## screen can be tested with no world around it.
+## Owns opening, closing, the cursor, the keyboard and the close keys. Held
+## rather than inherited: the panel keeps its own contents and delegates the
+## four things every modal panel does the same way.
+@export var modal: ModalPanel
+
+## Given to the component above, which is what releases the cursor and the
+## keyboard. Optional, so a panel can be tested with no world around it.
 @export var world_root: WorldRoot
 
 @export var grid: GridContainer
@@ -48,9 +53,14 @@ var _cells: Array[InventoryCell] = []
 
 
 func _ready() -> void:
-	# Has to keep running if anything else ever pauses while this is open.
-	process_mode = Node.PROCESS_MODE_ALWAYS
-	visible = false
+	if modal != null:
+		# The world wires the panel; the panel configures its own component. Same
+		# shape as the pause menu handing its SettingsController a path -- a
+		# child is ready before its parent, so a component that read this for
+		# itself would read it too early.
+		modal.world_root = world_root
+		modal.closed.connect(closed.emit)
+		modal.opened.connect(_on_opened)
 	if grid != null:
 		grid.columns = columns
 	if inventory != null:
@@ -75,41 +85,18 @@ func _unhandled_input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 
 
-## Closing is [method Node._input], which runs before all of that. An open modal
-## panel has to win its own close key: `_unhandled_input` runs in reverse tree
-## order and the pause menu sits after this one, so Escape opened the menu over
-## the open bag instead of closing it.
-func _input(event: InputEvent) -> void:
-	if not visible:
-		return
-	var key := event as InputEventKey
-	if key == null or not key.pressed or key.echo:
-		return
-	if key.keycode == KEY_ESCAPE or key.keycode == toggle_key:
-		set_open(false)
-		get_viewport().set_input_as_handled()
-
-
 func set_open(open: bool) -> void:
-	if open == visible:
-		return
-	visible = open
-	if world_root != null:
-		world_root.set_mouse_captured(not open)
-		# And the keyboard and buttons with it. Releasing only the cursor left
-		# the character playable behind the panel -- harmless while the only
-		# bindings were keys you would not press, and immediately visible once
-		# right click became an attack.
-		world_root.set_input_suspended(open)
-	if open:
-		refresh()
-		opened.emit()
-	else:
-		closed.emit()
+	if modal != null:
+		modal.set_open(open)
 
 
 func is_open() -> bool:
-	return visible
+	return modal != null and modal.is_open()
+
+
+func _on_opened() -> void:
+	refresh()
+	opened.emit()
 
 
 ## Rebuilds every cell from the bag.

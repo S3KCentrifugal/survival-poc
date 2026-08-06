@@ -1,5 +1,6 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
+[ext_resource type="Script" path="res://scripts/ui/modal_panel.gd" id="9_modal"]
 [ext_resource type="Script" path="res://scripts/ui/inventory_screen.gd" id="1_screen"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dim"]
@@ -21,9 +22,10 @@ content_margin_top = 16.0
 content_margin_right = 20.0
 content_margin_bottom = 16.0
 
-[node name="InventoryScreen" type="CanvasLayer" node_paths=PackedStringArray("grid", "drop_zone", "empty_label", "title_label")]
+[node name="InventoryScreen" type="CanvasLayer" node_paths=PackedStringArray("modal", "grid", "drop_zone", "empty_label", "title_label")]
 layer = 3
 script = ExtResource("1_screen")
+modal = NodePath("Modal")
 grid = NodePath("Dim/Centre/Panel/Rows/Grid")
 drop_zone = NodePath("Dim")
 empty_label = NodePath("Dim/Centre/Panel/Rows/Empty")
@@ -72,3 +74,8 @@ theme_override_colors/font_color = Color(0.5, 0.54, 0.58, 1)
 theme_override_font_sizes/font_size = 12
 text = "Drag a stack to move it, or out of this panel to drop it.    I to close"
 horizontal_alignment = 1
+
+[node name="Modal" type="Node" parent="." node_paths=PackedStringArray("panel")]
+script = ExtResource("9_modal")
+panel = NodePath("..")
+close_keys = Array[int]([4194305, 73])
