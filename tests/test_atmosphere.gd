@@ -84,8 +84,21 @@ func test_there_is_ambient_light_at_night_at_all() -> void:
 	assert_eq(_air().ambient_energy(NIGHT_ELEVATION), ArtTokens.AMBIENT_NIGHT)
 
 
-func test_night_is_never_brighter_than_day() -> void:
-	assert_true(_air().ambient_energy(NIGHT_ELEVATION) < _air().ambient_energy(NOON_ELEVATION))
+## The *energy* is higher at night than by day, deliberately: after the sun
+## goes the ambient is the only light there is, so it has to carry the whole
+## frame rather than fill the shadows in one. What must still hold is that the
+## light it actually contributes is lower, which is the colour's doing.
+func test_night_contributes_less_light_than_day_despite_a_higher_energy() -> void:
+	var air := _air()
+	var at_night := (
+		air.ambient_energy(NIGHT_ELEVATION)
+		* UiTokens.luminance(air.ambient_color(NIGHT_ELEVATION))
+	)
+	var by_day := (
+		air.ambient_energy(NOON_ELEVATION)
+		* UiTokens.luminance(air.ambient_color(NOON_ELEVATION))
+	)
+	assert_true(at_night < by_day, "night contributes %f against day's %f" % [at_night, by_day])
 
 
 ## `ART.md` rule 6: night is blue and quiet, never black, and never warm -- a

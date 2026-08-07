@@ -147,4 +147,4 @@ shape.
 
 ---
 
-Next: Phase 2 — a stylised material system, which now carries rule 3.
+Next: [045 — One shader for everything](045-one-shader-for-everything.md).

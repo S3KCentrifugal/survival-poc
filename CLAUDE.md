@@ -176,12 +176,17 @@ techniques that produce it are nearly free, and what they cost is decisions.
   opposite.
 - **No outlines, ever.** Decided, and it means silhouette has to come from
   luminance instead. **A character sits at least 3:1 against what is immediately
-  behind them** — luminance, not hue, because two things of equal luminance do
-  not separate at a glance for anybody. Every shot still measures 1.0–1.2:1,
-  which is the largest single failing in the project's visuals. It is an
-  *albedo* problem: the whole of Phase 1's environment work moved it by nothing,
-  because the rule is about mass and lighting the air is not. Rim light is an
-  edge cue on top, never the fix.
+  behind them** — luminance, not hue. This is a rule about *mass*: lighting the
+  air moved it by nothing, and rim light is an edge cue worth about 0.3:1. What
+  carries it is `SurfacePalette`'s **value bands** — ground low, characters high,
+  every surface pulled toward its band. Currently 2.5:1 rendered from a 6.8:1
+  palette; aim the palette well past the target, because tonemapping takes a cut.
+- **Every surface is drawn by the shared shader family.**
+  `shaders/stylised.gdshaderinc` is the shading; `stylised.gdshader` and
+  `terrain.gdshader` both include it. A surface lit by its own maths is how one
+  world starts looking like two. Imported glTF materials are converted by
+  `StylisedSurface` as a **surface override** — never by editing the material,
+  which is shared by every instance of the model.
 - **Shadows take the sky's hue.** A shadow is a surface lit by skylight, not an
   absence of light. Black shadows is what an untuned renderer looks like.
 - **One neutral palette, tinted per region.** Never a hand-picked palette per
@@ -359,6 +364,17 @@ techniques that produce it are nearly free, and what they cost is decisions.
   Before trusting any performance number, change the thing it claims to measure
   by an order of magnitude and check that the number follows; if it does not, the
   number is worse than nothing, because somebody will quote it.
+- **Writing `ALPHA` in a spatial shader makes it transparent, and transparent
+  materials cast no shadows.** Not a mode you set — merely assigning `ALPHA`,
+  even `ALPHA = 1.0`, moves the material to the transparent pipeline. Every
+  shadow in the game silently disappeared, and the shadow pass fell from ~190
+  draw calls to ~30, which reads as a batching win rather than as a bug. Nothing
+  errors. If the surface is opaque, never touch `ALPHA`.
+- **Godot applies `ALBEDO` to `DIFFUSE_LIGHT` itself; a custom `light()` must
+  not.** The docs' Lambert example is ambiguous on the point, and multiplying it
+  in again squares it: the surface darkens, its contrast against the background
+  drops, and it still looks broadly plausible. Check a custom `light()` against a
+  rendered frame before believing it.
 - **`StringName` comparison sorts by interned pointer, not by text.** `<`, `>`
   and therefore `Array.sort()` return allocation order, which is stable within a
   run and changes the moment an unrelated system interns a new name — so a test

@@ -1,5 +1,10 @@
 shader_type spatial;
 
+// Shares its shading with everything else in the game. Before this the terrain
+// was the only surface in the world drawn with its own lighting, which is the
+// quickest way to make a world look like two worlds.
+#include "res://shaders/stylised.gdshaderinc"
+
 // Ground textured by what the ground is doing: grass where it is flat, rock
 // where it is steep, dirt in between.
 //
@@ -48,6 +53,18 @@ uniform vec3 dirt_tint : source_color = vec3(0.95, 0.88, 0.76);
 uniform vec3 rock_tint : source_color = vec3(0.88, 0.88, 0.9);
 uniform float terrain_roughness : hint_range(0.0, 1.0) = 0.92;
 uniform float normal_strength : hint_range(0.0, 2.0) = 0.8;
+
+group_uniforms value_band;
+// ART.md rule 3. The ground is the floor of the value structure and the thing
+// every character is read against, so this is the more important half of the
+// contrast: pulling the ground down separates it from the actors standing on
+// it far more cheaply than pushing the actors up, which clips and desaturates.
+uniform float band_value : hint_range(0.0, 1.0) = 0.06;
+uniform float band_strength : hint_range(0.0, 1.0) = 0.85;
+
+group_uniforms shading;
+uniform float ramp_softness : hint_range(0.01, 0.5) = 0.22;
+uniform float ramp_lift : hint_range(0.0, 1.0) = 0.1;
 
 varying vec3 world_position;
 varying vec3 world_normal;
@@ -102,9 +119,17 @@ void fragment() {
 
 	vec3 mapped = mix(mix(grass_n, dirt_n, to_dirt), rock_n, to_rock);
 
-	ALBEDO = albedo;
+	ALBEDO = stylised_to_band(albedo, band_value, band_strength);
 	NORMAL_MAP = mapped;
 	NORMAL_MAP_DEPTH = normal_strength;
 	ROUGHNESS = terrain_roughness;
 	SPECULAR = 0.15;
+}
+
+
+// The same ramp every other surface uses. ALBEDO is applied by the compositor,
+// not here -- see shaders/stylised.gdshader.
+void light() {
+	float shade = stylised_ramp(dot(normalize(NORMAL), normalize(LIGHT)), ramp_softness, ramp_lift);
+	DIFFUSE_LIGHT += LIGHT_COLOR * ATTENUATION * shade;
 }

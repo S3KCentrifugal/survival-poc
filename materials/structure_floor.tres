@@ -1,6 +1,21 @@
-[gd_resource type="StandardMaterial3D" format=3]
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
 
+[ext_resource type="Shader" path="res://shaders/stylised.gdshader" id="1_stylised"]
+
+; The shared shader family, in the structure value band. Was a
+; StandardMaterial3D; a world where the buildings are lit by different maths
+; from the ground and the characters is a world that reads as three worlds.
 [resource]
 resource_name = "structure_floor"
-albedo_color = Color(0.42, 0.39, 0.36, 1)
-roughness = 0.95
+shader = ExtResource("1_stylised")
+shader_parameter/albedo = Color(0.42, 0.39, 0.36, 1)
+shader_parameter/has_albedo_texture = false
+shader_parameter/roughness = 0.95
+shader_parameter/specular_amount = 0.1
+shader_parameter/band_value = 0.2
+shader_parameter/band_strength = 0.7
+shader_parameter/ramp_softness = 0.22
+shader_parameter/ramp_lift = 0.1
+shader_parameter/rim_color = Color(0.62, 0.76, 1, 1)
+shader_parameter/rim_strength = 0.22
+shader_parameter/rim_power = 3.4

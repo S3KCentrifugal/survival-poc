@@ -105,9 +105,18 @@ squint at it. The blue robot sits at the luminance of grass, of the building
 walls, and of the floor, and no amount of lighting the air around it changes
 that.
 
-The answer is the character's own albedo and shading — Phase 2's material system
-and Phase 5. Rim light belongs there too, as an edge cue on top, rather than
-here as the fix.
+The answer is the character's own albedo and shading. Phase 2 built it: every
+surface is assigned a **value band** and pulled toward it, ground low and
+characters high, so the gap between the bands is the silhouette.
+
+At the palette level the structure separates **6.8:1**. On screen the same shot
+measures **2.5:1**, up from 1.0:1 — the difference is lighting and AgX, which
+compress a contrast on its way to the frame. That is why the bands aim well past
+3:1 rather than at it, and it is why 2.5:1 is where this currently stands rather
+than 3.0.
+
+Rim light is here as an edge cue on top, at low strength. It is worth about
+0.3:1 on the measurement and it is not what carries the rule.
 
 *Notan; Game Accessibility Guidelines; WCAG 2.2 arithmetic.*
 
@@ -175,8 +184,16 @@ targets alongside the golden image and the draw-call budget:
 | `hue_count` | 1 | `max_hue_count`, on every shot |
 | `dark_fraction` | 6, 7 | `max_dark_fraction`, on every daylit shot |
 | `bright_fraction` | 7 | reported; no shot clips yet |
-| `subject_contrast` | 3 | `min_subject_contrast` — **not set on any shot yet**, see below |
+| `subject_contrast` | 3 | `min_subject_contrast`, on `player-close` — the only shot where the character is large enough for it to mean anything |
 | `low/high_luminance` | 7 | reported only; the right range is style |
+
+**Subject contrast needs a subject.** The measure samples a disc inside the
+character against a ring of background, both sized from the character's own
+on-screen height. When the character is ten pixels tall — every wide shot — those
+are two- and four-pixel samples dominated by the antialiased edge, and the number
+compresses toward 1:1 whatever is true. So only `player-close` enforces the
+target; the figure is still reported everywhere, and should be read as
+uninformative on the vistas.
 
 **The readable floor is calibrated, not chosen.** `FrameLook.DARK` began at 0.015
 relative luminance, guessed before there was any frame to check it against, and
@@ -195,43 +212,41 @@ golden image cannot, because a golden only knows whether something *changed*.
 
 ## Where we actually are
 
-After Phase 1 (the atmosphere) and before Phase 2 (materials). The "before"
-column is the same build measured with the same, recalibrated, floor.
+After Phase 2. Every figure is enforced by `shots.sh check`.
 
-| Shot | Dark before | Dark now | Hues | Subject contrast |
-|---|---|---|---|---|
-| `world-noon` | 0% | 0% | 7 | **1.2:1** |
-| `base-exterior` | 0% | 0% | 7 | **1.1:1** |
-| `terrain-detail` | 0% | 0% | 6 | — |
-| `hud-gameplay` | 0% | 0% | 5 | **1.2:1** |
-| `player-close` | 0% | 0% | 2 | **1.0:1** |
-| `world-dusk` | **64%** | **0%** | 4 | 1.0:1 |
-| `world-night` | **78%** | **14%** | 5 | 1.0:1 |
+| Shot | Dark | Hues | Subject contrast |
+|---|---|---|---|
+| `world-noon` | 0% | 7 | — *(subject too small to measure)* |
+| `base-exterior` | 0% | 7 | — |
+| `terrain-detail` | 0% | 4 | — |
+| `hud-gameplay` | 0% | 6 | — |
+| `player-close` | 0% | 5 | **2.5:1** *(was 1.0:1)* |
+| `world-dusk` | 0% | 5 | — |
+| `world-night` | 15% | 1 | — |
 
-**Night and dusk are fixed.** Both were failures of the ambient term rather than
-of taste: Godot's sky ambient reads the rendered sky, this project's night sky is
-black by design, so the ambient at night was in effect zero and every surface not
-facing the moon rendered black. Dusk failed for a neighbouring reason — the sun's
-light stops the instant it crosses the horizon and the whole world went with it,
-while the sky above stayed orange.
+**Rule 3 is most of the way there.** `player-close` went from 1.0:1 to 2.5:1
+against a 3:1 target, and it is now the first shot in the project that enforces
+anything about silhouette. The remaining gap is not a missing technique: the
+palette separates 6.8:1 and the screen gives back 2.5:1, because lighting and
+tonemapping compress it. Closing it further means either a character model that
+is not inherently pale — this one's albedo is mostly white and light blue — or a
+ground darker than night readability allows.
 
-**The character still does not read against the world.** Unchanged by every bit
-of Phase 1, for the reason now written into rule 3: this is a rule about mass,
-and the environment cannot change what value a character's own albedo reads as.
-It is the largest failing on the board and it moves in Phase 2.
+**Night and dusk stay fixed** through a ground that is now materially darker,
+which cost a higher night ambient to pay for.
 
-**The palette got busier**, from 2–5 hues to 2–7. That is fog doing its job — it
-lays the sky's colour over everything with distance — but it is worth watching,
-because rule 1 is the one that gets harder as more is added rather than easier.
-
-Mean luminance came down across the board (0.23 → 0.17 by day) with AgX
-replacing Filmic. Nothing is crushed and nothing is blown, so this is the
-compressed mid-range rule 7 asks for rather than an underexposure.
+**The palette held.** 1–7 hues, where the ceiling is 3–9 per shot. Sharing one
+shader family across terrain, structures and characters is most of why: every
+surface is now drawn from the same small set of decisions.
 
 ---
 
 ## What is deliberately not here
 
+- **A shared *shader*, not a shared *look* for characters.** The stylised
+  shader gives every surface the same ramp, rim and value band. It does not fix
+  a model whose albedo is nearly white to begin with, which is why the robot
+  still reads pale. `ART.md` cannot make a placeholder into a character.
 - **`ArtTokens` covers the air, not the sun or the sky.** It arrived in Phase 1
   holding the ambient, fog and tonemapping numbers, which were previously
   nowhere at all. The sun's colour and energy stay in `DayNightConfig` and the

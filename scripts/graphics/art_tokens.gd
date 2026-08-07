@@ -46,7 +46,7 @@ const EXPOSURE_NIGHT: float = 1.45
 ## of its night frame below the readable floor because the ambient term at
 ## night was, in effect, zero.
 const AMBIENT_DAY: float = 1.0
-const AMBIENT_NIGHT: float = 0.75
+const AMBIENT_NIGHT: float = 1.05
 
 ## How much of the ambient comes from the sky cubemap rather than
 ## [constant AMBIENT_NIGHT_COLOR].
@@ -115,3 +115,49 @@ const FOG_SKY_TINT: float = 0.85
 ## Air is not as colourful as the sky it scatters, and a fully saturated orange
 ## fog at sunset reads as a filter over the lens rather than as distance.
 const FOG_DESATURATION: float = 0.35
+
+# --- Surfaces -----------------------------------------------------------------
+## The value structure. `ART.md` rule 3, as numbers.
+##
+## Target relative luminance per kind of surface, before any light falls on it.
+## The gap between the ground band and the character band *is* the silhouette:
+## the project measured 1.0-1.2:1 in every shot because the robot's albedo sits
+## at almost exactly the luminance of grass, walls and floor, and Phase 1 proved
+## that lighting cannot move a number about what surfaces are.
+##
+## Ground sits low, structures in the middle so a wall still reads against a
+## field, and characters well above both. Ground to character is 4:1 rather than
+## the 3:1 the rule asks for, because tonemapping compresses a contrast on its
+## way to the screen and a target set at exactly the minimum arrives under it.
+const VALUE_GROUND: float = 0.038
+const VALUE_STRUCTURE: float = 0.20
+const VALUE_PROP: float = 0.15
+const VALUE_CHARACTER: float = 0.55
+
+## How firmly each kind is pulled into its band.
+##
+## Never 1.0. At full strength every surface in a band renders at exactly one
+## brightness, which flattens a character into a paper cut-out and throws away
+## the shading that says what shape it is. The band is somewhere to sit near.
+const VALUE_STRENGTH_GROUND: float = 0.85
+const VALUE_STRENGTH_CHARACTER: float = 0.70
+const VALUE_STRENGTH_OTHER: float = 0.70
+
+# --- Shading ------------------------------------------------------------------
+## How wide the steps in the diffuse ramp are.
+##
+## Wide, because `ART.md` is painterly rather than cel-shaded. Narrow this and
+## the look becomes Wind Waker, which was considered and rejected.
+const RAMP_SOFTNESS: float = 0.22
+
+## How lit the darkest facing is before ambient. Never zero: a surface facing
+## away from the sun is still lit by the sky, which is rule 4.
+const RAMP_SHADOW_LIFT: float = 0.10
+
+## The rim. An edge cue, explicitly not the fix for rule 3 -- see `ART.md`.
+##
+## Tinted toward the sky, because the thing physically wrapping a silhouette
+## outdoors is skylight.
+const RIM_COLOR: Color = Color(0.62, 0.76, 1.0)
+const RIM_STRENGTH: float = 0.22
+const RIM_POWER: float = 3.4

@@ -280,21 +280,28 @@ already listed.
 
 Cost: unchanged. Fog, ambient and tonemapping are all free at these counts.
 
-### Phase 2 — A stylised material system *(next)*
+### Phase 2 — A stylised material system — **done**
 
-One shared shader family replacing per-object `StandardMaterial3D`: ramp-based
-diffuse, rim light, triplanar for terrain and cliffs, and a shared palette so
-every surface is drawn from the same set of colours. Mirrors what `UiTokens` did
-for the interface — the same argument, one layer down.
+Devblog 045. `shaders/stylised.gdshaderinc` holds the shading every surface
+shares; `stylised.gdshader` draws characters, structures and props; the terrain
+shader includes the same file so it is lit by the same maths. `SurfacePalette`
+owns the value bands, `StylisedSurface` converts imported glTF materials at load
+without touching the cached originals.
 
-**It now carries rule 3**, which Phase 1 established the environment cannot
-satisfy. The character reads at 1.0–1.2:1 against everything it stands in front
-of, against a 3:1 target, because its albedo happens to sit at the luminance of
-grass, walls and floor. That is an albedo and shading problem: a value structure
-that puts characters and ground in different bands, with rim light on top as an
-edge cue rather than as the fix.
+**Rule 3 moved from 1.0:1 to 2.5:1**, against a 3:1 target, and is enforced on
+`player-close` — the first shot in the project to assert anything about
+silhouette. The palette separates 6.8:1; the screen gives back 2.5:1 because
+lighting and AgX compress it. What is left is the model, whose albedo is mostly
+white and light blue, and the ground, which cannot go darker without breaking
+night readability.
 
-### Phase 3 — Foliage and world density
+Triplanar was already done — the terrain shader has sampled cliffs that way
+since the terrain feature — so this phase spent its effort on shading and the
+value structure instead.
+
+Cost: unchanged. Same draw calls and primitives as before, in both passes.
+
+### Phase 3 — Foliage and world density *(next)*
 
 The biggest perceived jump for an outdoor game, and the biggest performance
 risk. Grass, shrubs and trees as `MultiMeshInstance3D` scattered from the same

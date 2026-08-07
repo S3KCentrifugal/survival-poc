@@ -32,3 +32,7 @@ shader_parameter/dirt_tint = Color(0.95, 0.88, 0.76, 1)
 shader_parameter/rock_tint = Color(0.88, 0.88, 0.9, 1)
 shader_parameter/terrain_roughness = 0.92
 shader_parameter/normal_strength = 0.8
+shader_parameter/band_value = 0.038
+shader_parameter/band_strength = 0.85
+shader_parameter/ramp_softness = 0.22
+shader_parameter/ramp_lift = 0.1

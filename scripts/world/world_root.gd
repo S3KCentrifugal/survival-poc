@@ -31,6 +31,14 @@ extends Node3D
 ## Where the player starts, on the ground plane. Height comes from the terrain.
 @export var spawn_point: Vector2 = Vector2.ZERO
 
+## Whether to take the cursor when the world loads.
+##
+## On for a game, off for anything rendering the world without a player at the
+## keyboard. A tool that grabs the mouse it cannot have makes X11 log an error
+## into the middle of its own output, and one that succeeds leaves the desktop
+## without a cursor when it exits.
+@export var capture_mouse_on_load: bool = true
+
 ## Placed the same way as the player, a few metres off so it does not start
 ## standing inside them.
 @export var companion: CharacterBody3D
@@ -160,4 +168,5 @@ func _wire_camera() -> void:
 	# Snap rather than ease, or the view sweeps in from the world origin on
 	# every load -- and swing round behind the player while we are at it.
 	camera.snap_to_target()
-	set_mouse_captured(true)
+	if capture_mouse_on_load:
+		set_mouse_captured(true)

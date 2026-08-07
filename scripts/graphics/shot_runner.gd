@@ -216,6 +216,10 @@ func _build_world(shot: ShotConfig) -> String:
 	var world_root := _world as WorldRoot
 	if world_root != null:
 		world_root.spawn_point = shot.player_position
+		# Before `_ready`, because by the time freeze() could release the cursor
+		# the world has already tried to take it -- which X11 logs as an error
+		# in the middle of the shot report.
+		world_root.capture_mouse_on_load = false
 
 	_viewport.add_child(_world)
 	freeze(_world, shot)

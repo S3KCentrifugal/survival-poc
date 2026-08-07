@@ -10,6 +10,7 @@
 [ext_resource type="Resource" path="res://resources/trade/buys_mushrooms.tres" id="7_mushrooms"]
 [ext_resource type="Resource" path="res://resources/trade/buys_soup.tres" id="8_soup"]
 [ext_resource type="Resource" path="res://resources/trade/sells_sword.tres" id="9_sword"]
+[ext_resource type="Script" path="res://scripts/graphics/stylised_surface.gd" id="94_stylised"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -56,6 +57,15 @@ shape = SubResource("CapsuleShape3D_body")
 ; Turned to face the body's -Z, same as every other character. See devblog 016.
 [node name="Model" parent="." instance=ExtResource("1_model")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
+
+
+; Draws the imported model through the shared stylised shader, in the character
+; value band. Rule 3: the gap between this band and the ground's is what makes a
+; silhouette read, and it is the only thing that does -- there are no outlines.
+[node name="Surface" type="Node" parent="Model" node_paths=PackedStringArray("model")]
+script = ExtResource("94_stylised")
+model = NodePath("..")
+band = 3
 
 [node name="Tint" type="Node" parent="." node_paths=PackedStringArray("model")]
 script = ExtResource("6_tint")

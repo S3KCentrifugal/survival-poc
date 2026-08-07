@@ -5,14 +5,14 @@
 [resource]
 script = ExtResource("1_shot")
 shot_name = &"player-close"
-description = "The player at arm's length. Character shading, materials and silhouette."
+description = "The player at arm's length, outdoors on grass. Character shading, and whether a silhouette reads against the ground it stands on."
 resolution = Vector2i(1280, 720)
 camera_position = Vector3(2.6, 1.5, 2.2)
 camera_target = Vector3(0, 1.0, 0)
 fov = 42.0
 anchor_to_player = true
 must_show_player = true
-player_position = Vector2(-3, 0)
+player_position = Vector2(26, -20)
 time_of_day = 0.38
 show_interface = false
 draw_call_budget = 44
@@ -20,4 +20,5 @@ primitive_budget = 250000
 shadow_draw_call_budget = 115
 shadow_primitive_budget = 880000
 max_dark_fraction = 0.12
-max_hue_count = 5
+max_hue_count = 7
+min_subject_contrast = 2.2

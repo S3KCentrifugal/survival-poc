@@ -3,7 +3,7 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 44 — Light and atmosphere**. The planned
+Last updated after **Feature 45 — A stylised material system**. The planned
 vertical slice (features 1–11) was completed long ago; everything since is
 built on top of it.
 
@@ -142,7 +142,8 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 41 | Build and Steam playtest pipeline | done | `e8affc9` |
 | 42 | Repeatable screenshots, golden images and a render budget | done | `d99fec4` |
 | 43 | An art direction, with numbers under it | done | `93b09b5` |
-| 44 | Light and atmosphere | done | — |
+| 44 | Light and atmosphere | done | `1009bf1` |
+| 45 | A stylised material system | done | — |
 
 **The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
@@ -1485,6 +1486,31 @@ the claim can be checked rather than taken.
 does not change what value a character's albedo reads as. `ART.md` rule 3 has
 been corrected and the fix moves to Phase 2.
 
+### 45. A stylised material system
+
+`GRAPHICS.md` Phase 2, and the phase that carries `ART.md` rule 3. Devblog 045.
+
+`shaders/stylised.gdshaderinc` holds the shading every surface shares -- the
+value band, the ramp, the rim. `stylised.gdshader` draws characters, structures
+and props; `terrain.gdshader` includes the same file, so the ground is lit by the
+same maths as the things standing on it. `StylisedSurface` converts imported
+glTF materials at load, as a surface override rather than by editing the cached
+original.
+
+**The player went from 1.0:1 to 2.5:1 against the world**, against a 3:1 target,
+and `player-close` is the first shot in the project to enforce anything about
+silhouette. `SurfacePalette` assigns every surface a brightness band -- ground
+low, characters high -- and the gap between the bands is what makes a shape read
+when there are no outlines. The palette separates 6.8:1 and the screen returns
+2.5, because lighting and tonemapping compress it; the rest is the model, whose
+albedo is mostly white and light blue.
+
+Three bugs, each of which produced a plausible picture: writing `ALPHA` moved
+every material onto the transparent pipeline and silently stopped all shadow
+casting; a custom `light()` multiplying `ALBEDO` squared it, because Godot
+already applies it; and the palette maths scaled sRGB channels by a ratio derived
+from linear luminance, returning 0.41 when asked for 0.25.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -1536,11 +1562,13 @@ needs and this repo does not have:
 - **Anything about the shadow pass**, which draws three to four times the
   primitives the visible pass does and renders the whole heightfield regardless
   of the camera. Measured and budgeted; not yet improved. `GRAPHICS.md` Phase 7.
-- **A character you can pick out of the grass.** 1.0-1.2:1 luminance contrast
-  against a 3:1 target, unchanged by Phase 1 because it is an albedo problem.
-  `GRAPHICS.md` Phase 2, and the largest single failing in the visuals.
-- **Stylised materials of any kind.** Everything is stock `StandardMaterial3D`;
-  there is no ramp, no rim, no shared surface palette. `GRAPHICS.md` Phase 2.
+- **The last of rule 3.** 2.5:1 against a 3:1 target. Closing it needs either a
+  character model that is not inherently pale or a ground darker than night
+  readability allows -- `GRAPHICS.md` Phase 5, and a person.
+- **Foliage of any kind.** No grass, no shrubs, no trees; the world is a
+  textured heightfield with buildings on it. `GRAPHICS.md` Phase 3, and the
+  biggest perceived jump still available.
+- **Water.** `GRAPHICS.md` Phase 4.
 - **Controller support of any kind.** The blocker for Steam Deck Verified and
   the biggest gap in the playtest. `InputSource` is the seam.
 - **Code signing, macOS, and a dedicated server build.** All three are in
