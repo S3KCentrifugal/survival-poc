@@ -104,6 +104,7 @@ func _capture(result: ShotResult) -> int:
 	if not _write(result.image, path):
 		return 1
 	print("%s  -> %s" % [_cost(result), ProjectSettings.globalize_path(path)])
+	print("%s" % _look(result))
 	return 0
 
 
@@ -113,6 +114,7 @@ func _bless(result: ShotResult) -> int:
 	if not _write(golden, result.shot.golden_path()):
 		return 1
 	print("%s  blessed %dx%d" % [_cost(result), golden.get_width(), golden.get_height()])
+	print("%s" % _look(result))
 	return 0
 
 
@@ -131,9 +133,15 @@ func _check(result: ShotResult) -> int:
 	var actual := ImageDiff.to_golden(result.image, shot.golden_height)
 	var diff := ImageDiff.compare(actual, expected)
 	var budget_ok := result.within_budget()
+	var look_problems := result.look_problems()
 
-	if diff.within(shot.mean_tolerance, shot.changed_tolerance) and budget_ok:
+	if (
+		diff.within(shot.mean_tolerance, shot.changed_tolerance)
+		and budget_ok
+		and look_problems.is_empty()
+	):
 		print("%s  ok  %s" % [_cost(result), diff.summary()])
+		print("%s" % _look(result))
 		return 0
 
 	# Written next to each other on purpose: three files in one directory beats
@@ -146,6 +154,8 @@ func _check(result: ShotResult) -> int:
 	)
 	if not budget_ok:
 		print("%s: OVER BUDGET -- %s" % [shot.shot_name, result.over_budget_reason()])
+	if not look_problems.is_empty():
+		print("%s: BREAKS ART.md -- %s" % [shot.shot_name, look_problems])
 	if not diff.within(shot.mean_tolerance, shot.changed_tolerance):
 		print("%s: CHANGED -- %s" % [shot.shot_name, diff.summary()])
 	print("       see %s/%s.*.png" % [ProjectSettings.globalize_path(CAPTURE_DIR), shot.shot_name])
@@ -160,6 +170,16 @@ func _check(result: ShotResult) -> int:
 ## that means nothing is worse than no number, because somebody will quote it.
 func _cost(result: ShotResult) -> String:
 	return "%-22s %s" % [result.shot.shot_name, result.cost()]
+
+
+## The art-direction figures, printed under every shot whether or not the shot
+## sets a target for them.
+##
+## Reported rather than only checked, because most of them have no defensible
+## target yet and the way one gets found is by watching the number move across a
+## phase of work. See `ART.md`.
+func _look(result: ShotResult) -> String:
+	return "%-22s %s" % ["", result.look.summary()]
 
 
 func _selected(wanted: PackedStringArray) -> Array[ShotConfig]:

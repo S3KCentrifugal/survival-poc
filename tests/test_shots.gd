@@ -327,3 +327,68 @@ func test_something_is_watching_the_character() -> void:
 	for shot: ShotConfig in ShotConfig.all():
 		found = found or shot.must_show_player
 	assert_true(found, "no shot asserts the player is even in it")
+
+
+func _looked(shot: ShotConfig, dark: float, hues: int, contrast: float) -> ShotResult:
+	var result := ShotResult.new()
+	result.shot = shot
+	result.look.dark_fraction = dark
+	result.look.hue_count = hues
+	result.look.subject_contrast = contrast
+	result.look.subject_measured = contrast > 0.0
+	return result
+
+
+## Every shot reports the art-direction figures; only some enforce them, and the
+## ones that do have to be shots the current build already satisfies -- a target
+## set at what is currently wrong is a target that ratifies it.
+func test_every_shot_bounds_how_many_hues_it_may_be_built_from() -> void:
+	for shot: ShotConfig in ShotConfig.all():
+		assert_true(shot.max_hue_count > 0, "%s does not bound its palette" % shot.shot_name)
+
+
+## The two exceptions, named rather than left to be noticed: they are 71% and
+## 100% below the readable floor today, which is the gap ART.md exists to state.
+func test_the_shots_that_do_not_bound_darkness_are_the_night_ones() -> void:
+	var unbounded: Array[String] = []
+	for shot: ShotConfig in ShotConfig.all():
+		if shot.max_dark_fraction <= 0.0:
+			unbounded.append(String(shot.shot_name))
+	unbounded.sort()
+	assert_eq(unbounded, ["world-dusk", "world-night"] as Array[String],
+		"a daylit shot stopped bounding how dark it may get: %s" % str(unbounded))
+
+
+func test_a_frame_within_every_target_passes() -> void:
+	assert_eq(_looked(ShotConfig.named(&"world-noon"), 0.01, 5, 0.0).look_problems(), "")
+
+
+func test_a_frame_crushed_to_black_is_caught() -> void:
+	var reason := _looked(ShotConfig.named(&"world-noon"), 0.6, 5, 0.0).look_problems()
+	assert_true(reason.contains("too dark"), reason)
+
+
+func test_a_frame_scattered_across_the_colour_wheel_is_caught() -> void:
+	var reason := _looked(ShotConfig.named(&"world-noon"), 0.01, 11, 0.0).look_problems()
+	assert_true(reason.contains("hues"), reason)
+
+
+## No shot sets this target yet -- every one of them measures 1.0-1.3:1 today,
+## and ART.md records 3:1 as what Phase 1 has to reach. The check has to work
+## before then, or it lands untested on the day it matters.
+func test_a_character_nobody_can_pick_out_of_the_grass_is_caught() -> void:
+	var shot := _shot()
+	shot.must_show_player = true
+	shot.min_subject_contrast = 3.0
+	var reason := _looked(shot, 0.0, 2, 1.2).look_problems()
+	assert_true(reason.contains("stands out"), reason)
+	assert_eq(_looked(shot, 0.0, 2, 4.5).look_problems(), "")
+
+
+## Asking how far the player stands out without asking for them to be in frame
+## is a target that can only ever pass by accident.
+func test_a_subject_target_without_a_subject_is_refused() -> void:
+	var shot := _shot()
+	shot.min_subject_contrast = 3.0
+	shot.must_show_player = false
+	assert_false(shot.problems().is_empty())

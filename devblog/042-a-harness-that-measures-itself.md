@@ -195,4 +195,4 @@ those alone, and a phase of visual work without them would be unfalsifiable.
 
 ---
 
-Next: `ART.md`, then Phase 1 — light and atmosphere.
+Next: [043 — Rules for a look](043-rules-for-a-look.md).

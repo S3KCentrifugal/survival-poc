@@ -164,6 +164,34 @@ Fitts's law — because a guideline you cannot trace is a preference.
   suspended, Escape and the opening key both close. They do **not** pause —
   pausing belongs to the pause menu alone.
 
+## Art
+
+**`ART.md` is the reasoning; this is the rule.** The look is **painterly and
+atmospheric** — the Breath of the Wild lineage. Cohesion, not fidelity: the
+techniques that produce it are nearly free, and what they cost is decisions.
+
+- **Fog is the art direction, not an effect.** Depth comes from aerial
+  perspective — distant things lose contrast, lose saturation, and shift toward
+  the sky colour. Making distant geometry *more* detailed to sell scale does the
+  opposite.
+- **No outlines, ever.** Decided, and it means silhouette has to come from
+  luminance instead. **A character sits at least 3:1 against what is immediately
+  behind them** — luminance, not hue, because two things of equal luminance do
+  not separate at a glance for anybody. Every shot currently measures 1.0–1.3:1,
+  which is the largest single failing in the project's visuals.
+- **Shadows take the sky's hue.** A shadow is a surface lit by skylight, not an
+  absence of light. Black shadows is what an untuned renderer looks like.
+- **One neutral palette, tinted per region.** Never a hand-picked palette per
+  biome; that is how regions stop looking like the same game.
+- **Night is blue, quiet and playable**, never black. No more than 45% of a
+  night frame below the readable floor. `world-night` is at 100% today.
+- **Every number lives in `ArtTokens`** once it exists (Phase 1), generated into
+  whatever consumes it — the same rule, and the same reason, as `UiTokens`. A
+  colour typed into a shader is the 84-per-node-overrides mistake one layer down.
+- **A rule that can be measured is measured.** `FrameLook` runs on every shot
+  and `shots.sh check` enforces the per-shot targets. It cannot tell you a frame
+  looks good; it catches crushed, blown, incoherent and unreadable.
+
 ## Traps specific to this project
 
 - **`class_name` globals only resolve after an import pass.** They live in
@@ -349,8 +377,11 @@ for the bill.
   bless it. Do not add a camera argument to the tool.
 - **`check` is not in `run_tests.sh` and cannot be.** `--headless` has no
   rendering device. The suite covers the logic — `ImageDiff`, `FrameStats`,
-  `RenderBudget`, `ShotConfig.problems()`, `ShotRunner.freeze()` — and
-  `shots.sh` covers the pixels. Run both before a visual change lands.
+  `RenderBudget`, `FrameLook`, `ShotConfig.problems()`, `ShotRunner.freeze()` —
+  and `shots.sh` covers the pixels. Run both before a visual change lands.
+- **Every shot reports its art-direction figures**, whether or not it enforces
+  them: mean luminance, how much is crushed or blown, how many hues, and how far
+  the player stands out from what is behind them. See `ART.md`.
 - **A frame's cost is counted, never timed.** Draw calls and primitives, visible
   and shadow. No millisecond figure on this machine survived being checked: a
   36× resolution change made the renderer's own GPU timer report 4K as *cheaper*

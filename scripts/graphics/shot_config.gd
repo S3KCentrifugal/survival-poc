@@ -134,6 +134,29 @@ extends Resource
 
 @export var shadow_primitive_budget: int = 0
 
+@export_group("Look")
+## Most of the frame that may sit below [constant FrameLook.DARK]. 0 is no
+## target.
+##
+## The night-readability rule from `ART.md`, as a number. Night is meant to look
+## like night and still be playable; a frame that is almost entirely under this
+## threshold is one the player is walking through blind.
+@export var max_dark_fraction: float = 0.0
+
+## Most distinct hues the frame may be built from. 0 is no target.
+##
+## Cohesion is most of what the art direction is asking for, and this is the
+## countable part of it. A frame drawing on four hues reads as designed; one
+## drawing on eleven reads as assembled from whatever was to hand.
+@export var max_hue_count: int = 0
+
+## Least luminance contrast between the player and what is behind them, as a
+## ratio. 0 is no target.
+##
+## Only meaningful with [member must_show_player] set, since there is otherwise
+## no subject to measure.
+@export var min_subject_contrast: float = 0.0
+
 @export_group("Golden")
 ## Height the golden is stored at. Width follows the aspect ratio.
 @export var golden_height: int = 270
@@ -166,6 +189,10 @@ func problems() -> PackedStringArray:
 		])
 	if mean_tolerance <= 0.0 or changed_tolerance <= 0.0:
 		found.append("a zero tolerance demands pixel-exact equality, which no renderer gives")
+	if min_subject_contrast > 0.0 and not must_show_player:
+		found.append(
+			"asks how far the player stands out without asking for them to be in frame"
+		)
 	return found
 
 

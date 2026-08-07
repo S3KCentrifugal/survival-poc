@@ -35,6 +35,22 @@ var shadow_draw_calls: FrameStats = FrameStats.new()
 
 var shadow_primitives: FrameStats = FrameStats.new()
 
+## What can be measured about how the frame looks, as opposed to what it cost.
+##
+## Measured at golden size rather than full resolution: it is the image the
+## goldens compare, it is seven times faster to walk, and no measurement here is
+## sensitive to the difference.
+var look: FrameLook = FrameLook.new()
+
+## Where the player is on screen, normalised 0-1, or negative if they are not
+## in frame. Normalised so it survives being scaled to golden size.
+var subject_point: Vector2 = -Vector2.ONE
+
+## How tall the player appears, as a share of the frame height. Normalised for
+## the same reason, and needed because a subject measurement taken with a disc
+## the wrong size measures the background instead.
+var subject_height: float = 0.0
+
 ## Empty when the shot worked.
 var error: String = ""
 
@@ -69,6 +85,34 @@ func over_budget_reason() -> String:
 static func _note(into: PackedStringArray, measured: FrameStats, budget: int, what: String) -> void:
 	if not measured.within_budget(budget):
 		into.append("%.0f %s against %d allowed" % [measured.median(), what, budget])
+
+
+## Why the frame breaks the art direction, in English, or an empty string.
+##
+## Separate from [method over_budget_reason] because they are different
+## failures with different fixes: one says the frame costs too much, this says
+## it is the wrong picture. `ART.md` is what these numbers are checking.
+func look_problems() -> String:
+	if shot == null:
+		return ""
+	var found := PackedStringArray()
+	if not look.is_readable(shot.max_dark_fraction):
+		found.append("%.0f%% of the frame is too dark to read, against %.0f%% allowed" % [
+			look.dark_fraction * 100.0, shot.max_dark_fraction * 100.0
+		])
+	if not look.is_coherent(shot.max_hue_count):
+		found.append("%d distinct hues against %d allowed" % [
+			look.hue_count, shot.max_hue_count
+		])
+	if not look.subject_stands_out(shot.min_subject_contrast):
+		found.append(
+			"the player stands out at %.1f:1 against %.1f:1 required" % [
+				look.subject_contrast, shot.min_subject_contrast
+			]
+			if look.subject_measured
+			else "the player could not be found in the frame to measure"
+		)
+	return ", ".join(found)
 
 
 ## "  88 draws + 155 shadow    207k prims +  665k shadow", for a tool's output.

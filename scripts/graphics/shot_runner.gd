@@ -49,6 +49,9 @@ const SHOT_MSAA: Viewport.MSAA = Viewport.MSAA_4X
 ## Never drawn in a shot, however the shot is configured. See [method freeze].
 const DEVELOPER_LAYERS: Array[StringName] = [&"DebugOverlay", &"DevConsole"]
 
+## How tall the player is, in metres, for projecting their on-screen size.
+const PLAYER_HEIGHT: float = 1.8
+
 var _viewport: SubViewport
 var _world: Node
 var _camera: Camera3D
@@ -92,9 +95,54 @@ func take(shot: ShotConfig) -> ShotResult:
 		result.error = "the viewport produced no texture -- is this a --headless run?"
 	else:
 		result.image = texture.get_image()
+		_locate_subject(result)
+		_look_at(result, shot)
 
 	_tear_down()
 	return result
+
+
+## Where the player is on screen, normalised, or negative if they are not in it.
+##
+## Normalised rather than in pixels so it survives being scaled to golden size,
+## and taken at chest height for the same reason [method _player_is_in_frame]
+## is -- the origin sits between the feet, which is a point the ground very
+## often covers.
+func _locate_subject(result: ShotResult) -> void:
+	var player := _world.get_node_or_null("Player") as Node3D
+	if player == null or _camera == null:
+		return
+	var chest := player.global_position + Vector3.UP
+	if not _camera.is_position_in_frustum(chest):
+		return
+	var size := Vector2(_viewport.size)
+	result.subject_point = _camera.unproject_position(chest) / size
+	# Projected rather than assumed: how tall a character looks depends on how
+	# far away they are, and a measurement taken with a fixed disc reports the
+	# grass behind a distant one.
+	var feet := _camera.unproject_position(player.global_position)
+	var head := _camera.unproject_position(player.global_position + Vector3.UP * PLAYER_HEIGHT)
+	result.subject_height = absf(feet.y - head.y) / size.y
+
+
+## Measures the look of the frame, at golden size.
+##
+## Golden size rather than full resolution: it is the image the goldens compare,
+## it is seven times fewer pixels to walk in GDScript, and nothing measured here
+## is sensitive to the difference.
+func _look_at(result: ShotResult, shot: ShotConfig) -> void:
+	var reduced := ImageDiff.to_golden(result.image, shot.golden_height)
+	if reduced == null:
+		return
+	var subject := -Vector2i.ONE
+	var subject_height := 0
+	if result.subject_point.x >= 0.0:
+		subject = Vector2i(
+			int(result.subject_point.x * reduced.get_width()),
+			int(result.subject_point.y * reduced.get_height())
+		)
+		subject_height = int(result.subject_height * reduced.get_height())
+	result.look = FrameLook.measure(reduced, subject, subject_height)
 
 
 ## Everything a shot needs the world not to do.

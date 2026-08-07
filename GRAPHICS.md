@@ -228,23 +228,45 @@ the GPU timer that measures nothing, and `Window.size` reporting the old size in
 the frame a window goes fullscreen — which had the cap computing against a
 resolution the game had already left.
 
-### Phase 0.5 — `ART.md` *(next, and it needs a person)*
+### Phase 0.5 — `ART.md` — **done**
 
-The palette, the light direction, how stylised the shading is, whether there are
-outlines. Section 2.4 argues for it; Phase 0 shipping without it is the reason
-it is now the blocking item. An agent cannot pick these alone, and every phase
-below is unfalsifiable until they are written down.
+Devblog 043. The direction is **painterly and atmospheric**, no outlines, a
+neutral palette tinted per region, and a night that is blue and quiet rather
+than black. Eight rules, each naming its source, and every rule that can be a
+number is one: `FrameLook` measures hue count, crushed and blown fractions, the
+range the frame uses, and how far the player separates in luminance from what is
+immediately behind them. `shots.sh check` enforces the per-shot targets next to
+the golden and the draw-call budget.
 
-### Phase 1 — Light and atmosphere *(largest win, no assets)*
+Measuring the current build against its own new rules found three things:
 
-Environment work only: tonemapping (AgX or ACES rather than the current
-Filmic), exposure, a colour-grading LUT, distance fog tuned per time of day,
-SSAO, subtle bloom on highlights only, and a proper three-point-ish rig — key
-sun, sky ambient, and a bounce term.
+- **The character does not read against the world anywhere** — 1.0–1.3:1 against
+  a 3:1 target. The blue robot sits at almost exactly the luminance of grass,
+  walls and floor, so it separates by hue alone, which is to say by nothing at a
+  glance. Largest single failing, and Phase 1's rim light is the answer.
+- **Night is absent rather than dark** — 100% of the night frame below the
+  readable floor, mean luminance 0.002. There is no ambient term at night.
+- **Dusk is already night** — 71% dark at the time of day that should be the
+  best-looking in the game.
 
-This is where a scene stops looking like a renderer and starts looking like a
-place. It costs no art and it is fully within an agent's reach because every
-knob is a number in a resource.
+### Phase 1 — Light and atmosphere *(next; largest win, no assets)*
+
+Environment work only, and `ART.md` now says what it is aiming at. In priority
+order, which is the order the measurements put them in:
+
+1. **A night and dusk that exist.** An ambient floor and a moon key light, so
+   `world-night` comes under 45% dark and `world-dusk` stops being brown. Rule 6.
+2. **Rim light**, to get the character from 1.1:1 to 3:1 against the background.
+   Rule 3, and the largest failing on the board.
+3. **Sky-tinted ambient**, so shadows stop being black. Rule 4.
+4. **Distance fog tuned per time of day**, which is the art direction itself.
+   Rule 2.
+5. Tonemapping (AgX rather than the current Filmic), exposure and a grading LUT.
+   Rule 7.
+
+`ArtTokens` arrives with the first of these, per rule 8. Every knob is a number
+in a resource, which is why this phase is fully within an agent's reach — and
+every one of the five has a measurement that says whether it worked.
 
 ### Phase 2 — A stylised material system
 
@@ -265,10 +287,16 @@ Phase 0's budget to be trustworthy before it starts.
 A stylised shader: depth-based colour, foam at intersections, a moving normal.
 Cheap, high impact, and it gives the terrain somewhere to drain to.
 
-### Phase 5 — Characters and outlines
+### Phase 5 — Characters
 
-Inverted-hull or depth-edge outlines, better shading on the existing rig. The
-robot stays; this is about how it is *lit* and *read*, not replacing it.
+**No outlines.** That was an open question when this plan was written and
+`ART.md` has since closed it: outlines expose every facet of a low-poly
+silhouette, and the inverted-hull form costs a draw call per object. Separation
+comes from luminance instead, which is rule 3 and is measured.
+
+So this phase is ramp shading and a proper rim on the existing rig, plus
+whatever it takes to hold 3:1 against every background rather than only against
+grass. The robot stays; this is about how it is *lit* and *read*.
 
 ### Phase 6 — Effects and juice
 

@@ -3,7 +3,7 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 42 — Repeatable screenshots, golden images and a render budget**. The planned
+Last updated after **Feature 43 — An art direction, with numbers under it**. The planned
 vertical slice (features 1–11) was completed long ago; everything since is
 built on top of it.
 
@@ -44,7 +44,8 @@ grow. Do not over-engineer.
 
 `CLAUDE.md` holds the enforceable version of this plus the engine traps.
 **`GRAPHICS.md`** holds the plan for raising the visuals, and what an
-autonomous agent can and cannot verify about a look.
+autonomous agent can and cannot verify about a look. **`ART.md`** holds the art
+direction those phases are checked against.
 **`DEPLOY.md`** holds the shipping pipeline and the manual Steam steps.
 **`UI.md`** holds the interface guidelines: which ones, from where, and what is
 deliberately not done yet. **`MULTIPLAYER.md`** holds the networking architecture: the authority model, the
@@ -139,7 +140,8 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 39 | Refactoring pass: interaction, panels, test framework | done | `50c690f` |
 | 40 | A design system for the interface | done | `134d64e` |
 | 41 | Build and Steam playtest pipeline | done | `e8affc9` |
-| 42 | Repeatable screenshots, golden images and a render budget | done | — |
+| 42 | Repeatable screenshots, golden images and a render budget | done | `d99fec4` |
+| 43 | An art direction, with numbers under it | done | — |
 
 **The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
@@ -1423,6 +1425,33 @@ fixing a real bug: fullscreen on a 6144x3456 display was rendering 21
 megapixels. 1080p, 1440p and the Deck are untouched; this display now renders
 5.3 MP instead of 21.2. Off is a setting, on is the default.
 
+### 43. An art direction, with numbers under it
+
+`ART.md`, in the shape `UI.md` already proved: eight rules, each naming its
+source, and every rule that can be a number is one. Devblog 043.
+
+The look is **painterly and atmospheric** -- the Breath of the Wild lineage.
+Cohesion rather than fidelity, fog as the art direction rather than an effect,
+**no outlines**, shadows tinted by the sky, one neutral palette shifted per
+region, and a night that is blue and quiet rather than black.
+
+`FrameLook` measures a rendered frame for the four things a golden cannot see:
+how many hues it is built from, how much is crushed or blown, how much of the
+range it uses, and how far the player separates in luminance from what is
+immediately behind them. `shots.sh check` enforces the per-shot targets next to
+the golden and the draw-call budget.
+
+Pointed at the existing build, it found three things nobody had seen:
+
+- **The player does not read against the world anywhere** -- 1.0-1.3:1 in every
+  shot against a 3:1 target. The blue robot sits at almost exactly the luminance
+  of grass, walls and floor, so it separates by hue alone. Largest single
+  failing, and it is invisible to the eye because "blue on grey" looks fine
+  until the grey is a hillside.
+- **Night is absent rather than dark** -- 100% of the night frame below the
+  readable floor, mean luminance 0.002. There is no ambient term at night.
+- **Dusk is already night** -- 71% dark at the time of day that should look best.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -1467,9 +1496,6 @@ needs and this repo does not have:
   `ExperienceComponent` listens rather than reaching.
 - **A sword that does anything.** It can be bought, carried, dropped and picked
   up. It is not equippable and does not change the punch.
-- **An art direction.** `GRAPHICS.md` Phase 0.5, and the blocking item for
-  every visual phase after it. The palette, the light direction and how
-  stylised the shading is are decisions, not code.
 - **Any timing measurement.** Counts are budgeted and reliable; milliseconds
   are not available on this machine at all -- neither frames per second, nor
   wall-clock frame time, nor the renderer's own per-viewport GPU timer, which

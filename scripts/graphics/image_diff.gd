@@ -72,8 +72,8 @@ static func compare(a: Image, b: Image, threshold: float = PIXEL_THRESHOLD) -> I
 
 	# Byte arrays rather than get_pixel(): a 480x270 golden is 130k pixels and
 	# a per-pixel call into the engine for each one turns a check into a wait.
-	var left := _as_rgb8(a).get_data()
-	var right := _as_rgb8(b).get_data()
+	var left := as_rgb8(a).get_data()
+	var right := as_rgb8(b).get_data()
 	var count := mini(left.size(), right.size()) / 3
 
 	var total: float = 0.0
@@ -124,8 +124,8 @@ func within(
 static func difference_image(a: Image, b: Image, gain: float = 8.0) -> Image:
 	if a == null or b == null or a.get_size() != b.get_size():
 		return null
-	var left := _as_rgb8(a).get_data()
-	var right := _as_rgb8(b).get_data()
+	var left := as_rgb8(a).get_data()
+	var right := as_rgb8(b).get_data()
 	var out := PackedByteArray()
 	out.resize(mini(left.size(), right.size()))
 	for at in out.size():
@@ -146,7 +146,7 @@ static func difference_image(a: Image, b: Image, gain: float = 8.0) -> Image:
 static func to_golden(source: Image, height: int) -> Image:
 	if source == null or source.is_empty() or height <= 0:
 		return null
-	var scaled := _as_rgb8(source)
+	var scaled := as_rgb8(source)
 	if scaled.get_height() != height:
 		var width := maxi(int(round(source.get_width() * float(height) / source.get_height())), 1)
 		scaled.resize(width, height, Image.INTERPOLATE_LANCZOS)
@@ -166,7 +166,11 @@ func summary() -> String:
 
 ## A copy in RGB8. Copied rather than converted in place -- the caller's golden
 ## is very often a cached resource, and converting it would edit everyone's.
-static func _as_rgb8(source: Image) -> Image:
+##
+## Public because [FrameLook] needs the same guarantee: every measurement in the
+## project reads pixels the same way, or two numbers about one frame disagree
+## because one of them was looking at an alpha channel.
+static func as_rgb8(source: Image) -> Image:
 	var copy := Image.new()
 	copy.copy_from(source)
 	if copy.get_format() != Image.FORMAT_RGB8:
