@@ -33,6 +33,7 @@
 [ext_resource type="PackedScene" path="res://ui/store_screen.tscn" id="31_store"]
 [ext_resource type="Script" path="res://scripts/world/merchant_post.gd" id="32_post"]
 [ext_resource type="PackedScene" path="res://characters/merchant.tscn" id="33_merchant"]
+[ext_resource type="Script" path="res://scripts/graphics/atmosphere_component.gd" id="34_atmosphere"]
 
 ; local_to_scene on all three, and it is load-bearing. Sub-resources are
 ; SHARED between instantiations of a scene by default, so without it two
@@ -135,6 +136,15 @@ sun = NodePath("../Sun")
 [node name="Sky" type="Node" parent="." node_paths=PackedStringArray("day_night", "environment")]
 script = ExtResource("21_sky")
 config = ExtResource("20_sky_config")
+day_night = NodePath("../DayNight")
+environment = NodePath("../WorldEnvironment")
+
+; The ambient term, the fog and the tonemapper -- everything about the air, as
+; opposed to the sky it is made of. Reads the SAME SkyConfig the sky shader
+; does, so the fog is never a colour the sky is not wearing. See ART.md.
+[node name="Atmosphere" type="Node" parent="." node_paths=PackedStringArray("day_night", "environment")]
+script = ExtResource("34_atmosphere")
+sky_config = ExtResource("20_sky_config")
 day_night = NodePath("../DayNight")
 environment = NodePath("../WorldEnvironment")
 

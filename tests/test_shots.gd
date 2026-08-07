@@ -347,16 +347,25 @@ func test_every_shot_bounds_how_many_hues_it_may_be_built_from() -> void:
 		assert_true(shot.max_hue_count > 0, "%s does not bound its palette" % shot.shot_name)
 
 
-## The two exceptions, named rather than left to be noticed: they are 71% and
-## 100% below the readable floor today, which is the gap ART.md exists to state.
-func test_the_shots_that_do_not_bound_darkness_are_the_night_ones() -> void:
-	var unbounded: Array[String] = []
+## There were two exceptions, and there are none. `world-dusk` and `world-night`
+## carried no darkness ceiling because they measured 71% and 100% below the
+## readable floor, and a target set at what is currently wrong is a target that
+## ratifies it. Phase 1 brought them to 0% and 14%, so both are bounded now and
+## the exception is gone rather than grandfathered.
+func test_every_shot_bounds_how_dark_it_may_get() -> void:
 	for shot: ShotConfig in ShotConfig.all():
-		if shot.max_dark_fraction <= 0.0:
-			unbounded.append(String(shot.shot_name))
-	unbounded.sort()
-	assert_eq(unbounded, ["world-dusk", "world-night"] as Array[String],
-		"a daylit shot stopped bounding how dark it may get: %s" % str(unbounded))
+		assert_true(
+			shot.max_dark_fraction > 0.0,
+			"%s may be crushed to black without anything objecting" % shot.shot_name
+		)
+
+
+## And the night shots are held to `ART.md` rule 6's own figure rather than to
+## whatever they happen to measure.
+func test_the_night_shots_are_held_to_the_rule_rather_than_to_their_own_reading() -> void:
+	var night := ShotConfig.named(&"world-night")
+	assert_true(night.max_dark_fraction <= 0.45, "night is allowed to be darker than the rule")
+	assert_true(night.max_dark_fraction > 0.0)
 
 
 func test_a_frame_within_every_target_passes() -> void:

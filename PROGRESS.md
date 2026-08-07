@@ -3,7 +3,7 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 43 — An art direction, with numbers under it**. The planned
+Last updated after **Feature 44 — Light and atmosphere**. The planned
 vertical slice (features 1–11) was completed long ago; everything since is
 built on top of it.
 
@@ -141,7 +141,8 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 40 | A design system for the interface | done | `134d64e` |
 | 41 | Build and Steam playtest pipeline | done | `e8affc9` |
 | 42 | Repeatable screenshots, golden images and a render budget | done | `d99fec4` |
-| 43 | An art direction, with numbers under it | done | — |
+| 43 | An art direction, with numbers under it | done | `93b09b5` |
+| 44 | Light and atmosphere | done | — |
 
 **The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
@@ -1452,6 +1453,38 @@ Pointed at the existing build, it found three things nobody had seen:
   readable floor, mean luminance 0.002. There is no ambient term at night.
 - **Dusk is already night** -- 71% dark at the time of day that should look best.
 
+### 44. Light and atmosphere
+
+`GRAPHICS.md` Phase 1, the first change to what the game actually looks like.
+`ArtTokens` holds the numbers, `Atmosphere` makes the per-elevation decisions,
+`AtmosphereComponent` pushes them onto the `Environment`. Devblog 044.
+
+**Night went from 78% below the readable floor to 14%.** The cause was one
+setting doing exactly what it says: ambient light came from the rendered sky,
+and this project's night sky is deliberately near-black, so the ambient at night
+was near-black too. Below the horizon it now comes from a flat moonlight blue
+instead, and the moon is an actual key light rather than 0.05 energy.
+
+**Dusk went from 64% to 0%.** The sun's light stopped the instant it crossed the
+horizon and took the world with it, while the sky shader kept painting an orange
+sunset above a black field. Skylight now persists through an afterglow band
+below the horizon, which is what a lit sky dome does.
+
+Also: aerial perspective (fog drawn from the sky's own horizon colour, thicker at
+dawn and dusk), sky-tinted ambient so shadows are blue rather than black, and AgX
+replacing Filmic. Cost is unchanged -- all of it is free at 88 draw calls.
+
+**The measurement had to be recalibrated to see its own fix.** `FrameLook.DARK`
+was 0.015, guessed before there was a frame to check it against, and it called
+the black-screen night 100% dark and the playable one 90%. Re-derived against
+those two frames, 0.004 separates them 78% to 11%. Both frames are committed, so
+the claim can be checked rather than taken.
+
+**Subject contrast did not move**, and was never going to: 1.0-1.2:1 against a
+3:1 target. Rule 3 is about mass, and rim light is an edge; lighting the air
+does not change what value a character's albedo reads as. `ART.md` rule 3 has
+been corrected and the fix moves to Phase 2.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -1500,9 +1533,14 @@ needs and this repo does not have:
   are not available on this machine at all -- neither frames per second, nor
   wall-clock frame time, nor the renderer's own per-viewport GPU timer, which
   reports 4K as cheaper than 720p. See `GRAPHICS.md` Part 0.
-- **Anything about the shadow pass**, which costs three times what the visible
-  pass does and renders the whole heightfield regardless of the camera. Now
-  measured and budgeted; not yet improved. `GRAPHICS.md` Phase 7.
+- **Anything about the shadow pass**, which draws three to four times the
+  primitives the visible pass does and renders the whole heightfield regardless
+  of the camera. Measured and budgeted; not yet improved. `GRAPHICS.md` Phase 7.
+- **A character you can pick out of the grass.** 1.0-1.2:1 luminance contrast
+  against a 3:1 target, unchanged by Phase 1 because it is an albedo problem.
+  `GRAPHICS.md` Phase 2, and the largest single failing in the visuals.
+- **Stylised materials of any kind.** Everything is stock `StandardMaterial3D`;
+  there is no ramp, no rim, no shared surface palette. `GRAPHICS.md` Phase 2.
 - **Controller support of any kind.** The blocker for Steam Deck Verified and
   the biggest gap in the playtest. `InputSource` is the seam.
 - **Code signing, macOS, and a dedicated server build.** All three are in

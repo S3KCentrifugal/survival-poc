@@ -249,31 +249,50 @@ Measuring the current build against its own new rules found three things:
 - **Dusk is already night** — 71% dark at the time of day that should be the
   best-looking in the game.
 
-### Phase 1 — Light and atmosphere *(next; largest win, no assets)*
+### Phase 1 — Light and atmosphere — **done**
 
-Environment work only, and `ART.md` now says what it is aiming at. In priority
-order, which is the order the measurements put them in:
+Devblog 044. `ArtTokens` for the air, `Atmosphere` for the per-elevation
+decisions, `AtmosphereComponent` to push them onto the `Environment`. What
+landed and what it bought:
 
-1. **A night and dusk that exist.** An ambient floor and a moon key light, so
-   `world-night` comes under 45% dark and `world-dusk` stops being brown. Rule 6.
-2. **Rim light**, to get the character from 1.1:1 to 3:1 against the background.
-   Rule 3, and the largest failing on the board.
-3. **Sky-tinted ambient**, so shadows stop being black. Rule 4.
-4. **Distance fog tuned per time of day**, which is the art direction itself.
-   Rule 2.
-5. Tonemapping (AgX rather than the current Filmic), exposure and a grading LUT.
-   Rule 7.
+- **A night that exists.** 78% of the frame below the readable floor → **14%**.
+  The bug was that Godot's sky ambient reads the rendered sky, and this
+  project's night sky is black by design, so the ambient at night was in effect
+  zero. Below the horizon the ambient now comes from a flat moonlight blue
+  instead. Rule 6, met and enforced.
+- **A dusk that exists.** 64% → **0%**. The sun's light stops the instant it
+  crosses the horizon and the old code took the whole world with it, leaving an
+  orange sky over a black ground. Skylight now persists through an afterglow
+  band below the horizon, which is what a lit sky dome actually does.
+- **Sky-tinted ambient**, so shadows are blue rather than black. Rule 4, and
+  visible in `player-close`.
+- **Aerial perspective**, fog drawn from the sky's own horizon colour and
+  thickened at dawn and dusk. Rule 2 — and the most visible single change in the
+  vista shots, where the hills now recede.
+- **AgX tonemapping** replacing Filmic, with exposure lifted at night. Day mean
+  luminance 0.23 → 0.17, nothing crushed, nothing blown. Rule 7.
 
-`ArtTokens` arrives with the first of these, per rule 8. Every knob is a number
-in a resource, which is why this phase is fully within an agent's reach — and
-every one of the five has a measurement that says whether it worked.
+**Rim light was on this list and should not have been.** It was listed as the
+answer to rule 3 and it is not: the whole environment moved subject contrast by
+nothing (1.0–1.3:1 → 1.0–1.2:1), because rule 3 is about mass and a rim is an
+edge. It moves to Phase 2 with the materials, where it belongs and where it was
+already listed.
 
-### Phase 2 — A stylised material system
+Cost: unchanged. Fog, ambient and tonemapping are all free at these counts.
+
+### Phase 2 — A stylised material system *(next)*
 
 One shared shader family replacing per-object `StandardMaterial3D`: ramp-based
 diffuse, rim light, triplanar for terrain and cliffs, and a shared palette so
 every surface is drawn from the same set of colours. Mirrors what `UiTokens` did
 for the interface — the same argument, one layer down.
+
+**It now carries rule 3**, which Phase 1 established the environment cannot
+satisfy. The character reads at 1.0–1.2:1 against everything it stands in front
+of, against a 3:1 target, because its albedo happens to sit at the luminance of
+grass, walls and floor. That is an albedo and shading problem: a value structure
+that puts characters and ground in different bands, with rim light on top as an
+edge cue rather than as the fix.
 
 ### Phase 3 — Foliage and world density
 

@@ -20,4 +20,4 @@ primitive_budget = 260000
 shadow_draw_call_budget = 160
 shadow_primitive_budget = 900000
 max_dark_fraction = 0.12
-max_hue_count = 6
+max_hue_count = 7

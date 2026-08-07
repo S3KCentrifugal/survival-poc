@@ -17,9 +17,29 @@ extends RefCounted
 
 ## Relative luminance below which a pixel carries no readable detail.
 ##
-## Linear, not sRGB: 0.015 is roughly sRGB 0.13, which is where a dark surface
-## stops being a surface and starts being a silhouette.
-const DARK: float = 0.015
+## Linear, not sRGB: 0.004 is about sRGB 0.07.
+##
+## [b]Calibrated, after being guessed wrong.[/b] The first value here was 0.015,
+## picked before there was any frame to check it against. It turned out not to
+## discriminate at all: it called the pre-Phase-1 night frame -- a black screen
+## you genuinely could not play in -- 100% dark, and the frame that replaced it,
+## which is plainly readable, 90% dark. A measure that gives the same answer
+## either side of the fix it exists to verify is not a measure.
+##
+## Re-derived from those two frames, which bracket the thing being asked about:
+##
+## [codeblock]
+##                    <0.0005  <0.0010  <0.0020  <0.0040  <0.0080  <0.0150
+## night, unplayable      67%      72%      78%      78%     100%     100%
+## night, readable         0%       0%       0%      11%      86%      90%
+## dusk, before            0%       0%       0%      64%      67%      71%
+## dusk, after             0%       0%       0%       0%      20%      51%
+## [/codeblock]
+##
+## 0.004 separates them with room on both sides. Everything from 0.008 up is
+## measuring how dark a night is, which is not the question -- night is supposed
+## to be dark. The question is whether anything in it can be made out.
+const DARK: float = 0.004
 
 ## Above this a pixel is blown out and its detail is gone for good.
 const BRIGHT: float = 0.95

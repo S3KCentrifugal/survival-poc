@@ -95,7 +95,19 @@ of players who cannot tell red from green. `FrameLook.subject_contrast` measures
 exactly this, on a disc inside the character against a ring of what is behind
 them.
 
-Rim light is the intended answer, and it is free.
+**Rim light is not the answer, and saying it was here was a mistake.** Phase 1
+did the whole environment — ambient, fog, tonemapping, a night and a dusk — and
+moved this number by nothing at all: 1.0–1.3:1 before, 1.0–1.2:1 after. The
+reason is that this rule is about *mass*, not edges. A rim is a bright line a
+few pixels wide; it makes an outline legible against a busy background, which is
+worth having, but it does not change what value the character reads as when you
+squint at it. The blue robot sits at the luminance of grass, of the building
+walls, and of the floor, and no amount of lighting the air around it changes
+that.
+
+The answer is the character's own albedo and shading — Phase 2's material system
+and Phase 5. Rim light belongs there too, as an edge cue on top, rather than
+here as the fix.
 
 *Notan; Game Accessibility Guidelines; WCAG 2.2 arithmetic.*
 
@@ -125,6 +137,8 @@ still be a thing you can walk around in. The moon does by night what the sun
 does by day: it is a key light, dimmer and bluer, not an absence of one.
 
 > **No more than 45% of a night frame may sit below the readable floor.**
+
+Met as of Phase 1, and enforced: `world-night` measures 14%.
 
 The alternative was considered and rejected: genuinely dark nights make torches
 matter enormously, and they need a portable light source the game does not have.
@@ -164,6 +178,15 @@ targets alongside the golden image and the draw-call budget:
 | `subject_contrast` | 3 | `min_subject_contrast` — **not set on any shot yet**, see below |
 | `low/high_luminance` | 7 | reported only; the right range is style |
 
+**The readable floor is calibrated, not chosen.** `FrameLook.DARK` began at 0.015
+relative luminance, guessed before there was any frame to check it against, and
+it turned out not to discriminate: it called the pre-Phase-1 night — a black
+screen — 100% dark, and the night that replaced it, which is plainly playable,
+90% dark. A measure that gives the same answer either side of the fix it exists
+to verify is not a measure. Re-derived against those two frames, 0.004 separates
+them 78% to 11%. Anything from 0.008 up is measuring how dark a night is, which
+is not the question; night is supposed to be dark.
+
 What it cannot do is say whether a frame looks good. It catches four ways of
 being objectively wrong — crushed, blown, incoherent, unreadable — which a
 golden image cannot, because a golden only knows whether something *changed*.
@@ -172,48 +195,50 @@ golden image cannot, because a golden only knows whether something *changed*.
 
 ## Where we actually are
 
-Measured on the committed shots, before any of the rules above have been
-implemented. These are the numbers Phase 1 has to move.
+After Phase 1 (the atmosphere) and before Phase 2 (materials). The "before"
+column is the same build measured with the same, recalibrated, floor.
 
-| Shot | Mean luminance | Dark | Hues | Subject contrast |
+| Shot | Dark before | Dark now | Hues | Subject contrast |
 |---|---|---|---|---|
-| `world-noon` | 0.232 | 0% | 5 | **1.2:1** |
-| `base-exterior` | 0.235 | 0% | 5 | **1.2:1** |
-| `terrain-detail` | 0.202 | 0% | 4 | — |
-| `hud-gameplay` | 0.189 | 2% | 4 | **1.1:1** |
-| `player-close` | 0.324 | 0% | 2 | **1.1:1** |
-| `world-dusk` | 0.037 | **71%** | 2 | 1.0:1 |
-| `world-night` | 0.002 | **100%** | 1 | 1.0:1 |
+| `world-noon` | 0% | 0% | 7 | **1.2:1** |
+| `base-exterior` | 0% | 0% | 7 | **1.1:1** |
+| `terrain-detail` | 0% | 0% | 6 | — |
+| `hud-gameplay` | 0% | 0% | 5 | **1.2:1** |
+| `player-close` | 0% | 0% | 2 | **1.0:1** |
+| `world-dusk` | **64%** | **0%** | 4 | 1.0:1 |
+| `world-night` | **78%** | **14%** | 5 | 1.0:1 |
 
-Three things fall out of that table, and none of them were visible before it
-existed.
+**Night and dusk are fixed.** Both were failures of the ambient term rather than
+of taste: Godot's sky ambient reads the rendered sky, this project's night sky is
+black by design, so the ambient at night was in effect zero and every surface not
+facing the moon rendered black. Dusk failed for a neighbouring reason — the sun's
+light stops the instant it crosses the horizon and the whole world went with it,
+while the sky above stayed orange.
 
-**The character does not read against the world, anywhere.** 1.0–1.3:1 in every
-shot, against a target of 3:1. The blue robot sits at very nearly the luminance
-of grass, of the building walls, and of the floor — so it is separated from the
-background by hue alone, which is to say by nothing at a glance. This is the
-single largest failing and it is rule 3.
+**The character still does not read against the world.** Unchanged by every bit
+of Phase 1, for the reason now written into rule 3: this is a rule about mass,
+and the environment cannot change what value a character's own albedo reads as.
+It is the largest failing on the board and it moves in Phase 2.
 
-**Night is not dark, it is absent.** 100% of `world-night` is below the readable
-floor and its mean luminance is 0.002. It is not a stylistic choice that went
-too far; there is simply no ambient term at night.
+**The palette got busier**, from 2–5 hues to 2–7. That is fog doing its job — it
+lays the sky's colour over everything with distance — but it is worth watching,
+because rule 1 is the one that gets harder as more is added rather than easier.
 
-**Dusk is already night.** 71% dark at a time of day that should be the most
-attractive lighting in the game. The day/night curve falls off far too early,
-which means the sunset — the cheapest beautiful thing in any outdoor game — is
-currently a few minutes of brown before black.
-
-The palette is in better shape than expected: 2–5 hues everywhere, 43–76%
-sitting in one dominant hue. Rule 1 is close to satisfied by accident, mostly
-because the world is grass. It will get harder, not easier.
+Mean luminance came down across the board (0.23 → 0.17 by day) with AgX
+replacing Filmic. Nothing is crushed and nothing is blown, so this is the
+compressed mid-range rule 7 asks for rather than an underexposure.
 
 ---
 
 ## What is deliberately not here
 
-- **No `ArtTokens` yet.** Rule 8 says where the numbers go; Phase 1 puts them
-  there. Writing a palette before anything consumes it produces a palette that
-  is wrong in ways nobody can see.
+- **`ArtTokens` covers the air, not the sun or the sky.** It arrived in Phase 1
+  holding the ambient, fog and tonemapping numbers, which were previously
+  nowhere at all. The sun's colour and energy stay in `DayNightConfig` and the
+  sky's palette in `SkyConfig` — both are resources the light and the sky shader
+  already read, and copying them into `ArtTokens` would put a second version of
+  each somewhere nobody looks, which is the exact failure rule 8 exists to
+  prevent.
 - **No `min_subject_contrast` on any shot.** Every shot fails it today, and a
   target set to what is currently wrong is a target that ratifies it. It goes in
   when Phase 1 lands the rim light, and `test_a_character_nobody_can_pick_out_of_the_grass_is_caught`

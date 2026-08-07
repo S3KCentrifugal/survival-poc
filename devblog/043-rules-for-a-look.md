@@ -143,6 +143,4 @@ same thing.
 
 ---
 
-Next: Phase 1 — light and atmosphere. In the order the measurements put them:
-night and dusk, then rim light, then sky-tinted ambient, then fog, then
-tonemapping.
+Next: [044 — A night you can see in](044-a-night-you-can-see-in.md).

@@ -177,17 +177,26 @@ techniques that produce it are nearly free, and what they cost is decisions.
 - **No outlines, ever.** Decided, and it means silhouette has to come from
   luminance instead. **A character sits at least 3:1 against what is immediately
   behind them** — luminance, not hue, because two things of equal luminance do
-  not separate at a glance for anybody. Every shot currently measures 1.0–1.3:1,
-  which is the largest single failing in the project's visuals.
+  not separate at a glance for anybody. Every shot still measures 1.0–1.2:1,
+  which is the largest single failing in the project's visuals. It is an
+  *albedo* problem: the whole of Phase 1's environment work moved it by nothing,
+  because the rule is about mass and lighting the air is not. Rim light is an
+  edge cue on top, never the fix.
 - **Shadows take the sky's hue.** A shadow is a surface lit by skylight, not an
   absence of light. Black shadows is what an untuned renderer looks like.
 - **One neutral palette, tinted per region.** Never a hand-picked palette per
   biome; that is how regions stop looking like the same game.
 - **Night is blue, quiet and playable**, never black. No more than 45% of a
-  night frame below the readable floor. `world-night` is at 100% today.
-- **Every number lives in `ArtTokens`** once it exists (Phase 1), generated into
-  whatever consumes it — the same rule, and the same reason, as `UiTokens`. A
-  colour typed into a shader is the 84-per-node-overrides mistake one layer down.
+  night frame below the readable floor; `world-night` measures 14%, and the
+  target is enforced. Ambient below the horizon comes from a flat moonlight
+  colour, not from the sky — Godot's sky ambient reads the rendered sky, and a
+  black sky is a black ambient.
+- **Every number about the air lives in `ArtTokens`** — ambient, fog,
+  tonemapping — the same rule, and the same reason, as `UiTokens`. A colour typed
+  into a shader is the 84-per-node-overrides mistake one layer down. The sun
+  stays in `DayNightConfig` and the sky in `SkyConfig`; do not copy either into
+  `ArtTokens`, because a second version of a number nobody looks at is the thing
+  the rule prevents.
 - **A rule that can be measured is measured.** `FrameLook` runs on every shot
   and `shots.sh check` enforces the per-shot targets. It cannot tell you a frame
   looks good; it catches crushed, blown, incoherent and unreadable.
