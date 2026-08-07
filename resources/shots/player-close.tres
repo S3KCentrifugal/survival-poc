@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ShotConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/graphics/shot_config.gd" id="1_shot"]
+
+[resource]
+script = ExtResource("1_shot")
+shot_name = &"player-close"
+description = "The player at arm's length. Character shading, materials and silhouette."
+resolution = Vector2i(1280, 720)
+camera_position = Vector3(2.6, 1.5, 2.2)
+camera_target = Vector3(0, 1.0, 0)
+fov = 42.0
+anchor_to_player = true
+must_show_player = true
+player_position = Vector2(-3, 0)
+time_of_day = 0.38
+show_interface = false
+draw_call_budget = 44
+primitive_budget = 250000
+shadow_draw_call_budget = 115
+shadow_primitive_budget = 880000

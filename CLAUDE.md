@@ -43,11 +43,12 @@ then disagrees across projects.
 ```bash
 ./run_tests.sh    # headless suite; exits non-zero on failure
 ./run.sh          # play it (extra args pass through to Godot)
+./shots.sh check  # render the named shots, compare against tests/golden/
 ./build.sh        # export Linux + Windows into <games-root>/exports/
 gd                # open in the editor at the pinned version (toolkit wrapper)
 ```
 
-All three take `GODOT=/path/to/godot` to override the pinned engine, which is
+All of them take `GODOT=/path/to/godot` to override the pinned engine, which is
 how CI points them at one it downloaded itself.
 
 Both scripts import the project on first run — a fresh clone has no `.godot/`,
@@ -307,6 +308,20 @@ Fitts's law — because a guideline you cannot trace is a preference.
   while the real rule changed. If an override contains an `if`, that `if` is
   the thing you meant to test. Push the seam down to the dependency
   (`is_grounded()`), not to the behaviour.
+- **`Window.size` does not update in the frame the window mode changes.**
+  Setting `mode` to a fullscreen mode and reading `size` immediately after still
+  reports the size it had as a window — so anything derived from "how big is the
+  screen we are about to fill" is computed for a resolution the game is no longer
+  at. Nothing errors: fullscreen works, the game runs, the number is merely
+  wrong. Ask the settings which surface is about to be filled and only fall back
+  to the window.
+- **A renderer statistic that looks stable can still be measuring nothing.**
+  `viewport_get_measured_render_time_gpu()` reported the same figure to a
+  hundredth of a millisecond across runs and did not move with a 36-fold change
+  in pixel count — 4K read *cheaper* than 720p. Reproducibility is not validity.
+  Before trusting any performance number, change the thing it claims to measure
+  by an order of magnitude and check that the number follows; if it does not, the
+  number is worse than nothing, because somebody will quote it.
 - **`StringName` comparison sorts by interned pointer, not by text.** `<`, `>`
   and therefore `Array.sort()` return allocation order, which is stable within a
   run and changes the moment an unrelated system interns a new name — so a test
@@ -316,32 +331,53 @@ Fitts's law — because a guideline you cannot trace is a preference.
 
 ### Rendering a frame to inspect
 
-```gdscript
-extends SceneTree
-var _frames: int = 0
-
-func _process(_delta: float) -> bool:
-	_frames += 1
-	if _frames == 1:
-		root.add_child(load("res://scenes/main.tscn").instantiate())
-		return false
-	if _frames < 30:   # let the renderer settle
-		return false
-	await process_frame
-	root.get_texture().get_image().save_png("/tmp/frame.png")
-	return true
-```
+**Use `shots.sh`. Do not write a throwaway capture script.** There is a
+committed harness, and the reason it exists is that the throwaway scripts kept
+being wrong in ways that produced a plausible-looking picture — see devblog 042
+for the bill.
 
 ```bash
-/home/rob/games/engine/current/godot --path . --resolution 1280x720 --script _shot.gd
+./shots.sh list                 # what shots exist
+./shots.sh capture world-noon   # render one into .shots/, full size
+./shots.sh check                # compare every shot against its golden
+./shots.sh bless world-noon     # accept what is rendered as the new golden
 ```
 
-Delete the throwaway script afterwards; it is a tool, not part of the project.
+- **A shot is a `ShotConfig` in `resources/shots/`**: camera, target, field of
+  view, time of day, RNG seed, where the player stands, whether the interface is
+  drawn, frames to settle, frames to count. Need a new view — add a `.tres` and
+  bless it. Do not add a camera argument to the tool.
+- **`check` is not in `run_tests.sh` and cannot be.** `--headless` has no
+  rendering device. The suite covers the logic — `ImageDiff`, `FrameStats`,
+  `RenderBudget`, `ShotConfig.problems()`, `ShotRunner.freeze()` — and
+  `shots.sh` covers the pixels. Run both before a visual change lands.
+- **A frame's cost is counted, never timed.** Draw calls and primitives, visible
+  and shadow. No millisecond figure on this machine survived being checked: a
+  36× resolution change made the renderer's own GPU timer report 4K as *cheaper*
+  than 720p, and wall-clock frame time is pinned at ~20 ms by the desktop
+  whatever is on screen. Do not reintroduce one.
+- **The shadow pass is the larger half** — every shot measured draws three to
+  four times as many primitives into the shadow map as into the frame, because
+  the sun renders the whole 256-metre heightfield wherever the camera points.
+  Budget it separately, and never report a cost with it omitted.
+- **Goldens live in `tests/golden/` at 480 × 270** behind a `.gdignore`, so the
+  importer leaves them alone and they are read through
+  `ProjectSettings.globalize_path`. They are committed; they are the assertion.
 
 When checking camera framing or anything scale-dependent, add temporary 1.8 m
 boxes **in the harness only** — an empty landscape gives the eye nothing to
 judge against, and a frame of featureless green looks identical whether the
 framing is right or badly wrong.
+
+### Resolution is a policy, not a default
+
+The 3D scene is rendered at a capped resolution and the interface at native.
+`RenderBudget` picks the scale from the display; `GameSettings.render_scale_auto`
+is on by default and is a bug fix, not a preference. Before it, fullscreen on a
+6144×3456 display rendered 21 megapixels — ten times 1080p — with nothing
+anywhere objecting. Anything that changes how much the renderer is asked to draw
+goes through `RenderBudget`, and the ladder is coarse on purpose so two machines
+can quote comparable numbers.
 
 ## Scope discipline
 

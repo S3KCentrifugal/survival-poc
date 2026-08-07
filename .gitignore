@@ -9,6 +9,12 @@
 export_credentials.cfg
 export.cfg
 
+# Screenshot output. `shots.sh capture` writes full-size PNGs here and
+# `shots.sh check` writes the actual/expected/diff trio next to a failure. The
+# expected frames themselves live in tests/golden/ and ARE committed -- they are
+# the assertion.
+/.shots/
+
 # Builds live in ~/games/exports/<name>, never in the repo.
 /exports/
 /builds/

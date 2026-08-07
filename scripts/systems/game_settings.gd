@@ -44,7 +44,23 @@ var msaa: int = 0
 
 ## Fraction of the output resolution the 3D scene is rendered at. Below 1 it is
 ## upscaled -- the cheapest large performance win there is.
+##
+## Ignored entirely while [member render_scale_auto] is on, which it is by
+## default.
 var render_scale: float = 1.0
+
+## Let [RenderBudget] choose [member render_scale] from the display size.
+##
+## On by default, and it is the setting that fixes a real bug rather than
+## offering a preference: the game rendered the 3D scene at whatever the monitor
+## was, which on the 6144x3456 display this was written on meant 21 megapixels
+## the moment anyone went fullscreen. Nothing warned, nothing capped it, and the
+## only reason it was never noticed on the Steam Deck is that the Deck is
+## 1280x800.
+##
+## Off is for somebody who wants to supersample, or who has measured their own
+## machine and disagrees. See GRAPHICS.md.
+var render_scale_auto: bool = true
 
 ## Linear, 0 silent to 1 full. Converted to decibels only when applied, because
 ## a slider that moves in decibels feels wrong for most of its travel.
@@ -105,6 +121,7 @@ func to_dictionary() -> Dictionary:
 		"max_fps": max_fps,
 		"msaa": msaa,
 		"render_scale": render_scale,
+		"render_scale_auto": render_scale_auto,
 		"master_volume": master_volume,
 		"look_sensitivity": look_sensitivity,
 		"invert_pitch": invert_pitch,
@@ -127,6 +144,9 @@ static func from_dictionary(values: Dictionary) -> GameSettings:
 	settings.max_fps = _int_from(values, "max_fps", settings.max_fps)
 	settings.msaa = _int_from(values, "msaa", settings.msaa)
 	settings.render_scale = _float_from(values, "render_scale", settings.render_scale)
+	settings.render_scale_auto = _bool_from(
+		values, "render_scale_auto", settings.render_scale_auto
+	)
 	settings.master_volume = _float_from(values, "master_volume", settings.master_volume)
 	settings.look_sensitivity = _float_from(values, "look_sensitivity", settings.look_sensitivity)
 	settings.invert_pitch = _bool_from(values, "invert_pitch", settings.invert_pitch)

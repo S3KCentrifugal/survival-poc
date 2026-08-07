@@ -51,6 +51,7 @@ rather than an edit to the old one.
 | 039 | [Three components that were one](039-three-components-that-were-one.md) | Splitting reachable from pickable, reach as a property of the thing, and a test runner that was lying |
 | 040 | [An interface with rules](040-an-interface-with-rules.md) | Naming the guidelines, one theme instead of 84 overrides, and contrast tests that failed on the palette I had just shipped |
 | 041 | [Getting it to testers](041-getting-it-to-testers.md) | Why Steam Playtest, the executable bit that fails silently, and a session file that expires without telling anyone |
+| 042 | [A harness that measures itself](042-a-harness-that-measures-itself.md) | Repeatable screenshots, golden images, a 6K rendering bug, and a frame budget built on a premise that turned out to be false |
 
 Numbers follow the **feature** order, not the order posts get written — 012 is
 the twelfth feature, and 002–011 and 025–027 below are still owed. The three

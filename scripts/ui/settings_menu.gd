@@ -48,6 +48,7 @@ func show_settings(settings: GameSettings) -> void:
 	_option(&"msaa").selected = maxi(GameSettings.MSAA_LEVELS.find(settings.msaa), 0)
 	_check(&"vsync").button_pressed = settings.vsync
 	_check(&"invert_pitch").button_pressed = settings.invert_pitch
+	_check(&"render_scale_auto").button_pressed = settings.render_scale_auto
 	_slider(&"render_scale").value = settings.render_scale
 	_slider(&"master_volume").value = settings.master_volume
 	_slider(&"look_sensitivity").value = settings.look_sensitivity
@@ -70,6 +71,7 @@ func collect() -> GameSettings:
 	]
 	settings.vsync = _check(&"vsync").button_pressed
 	settings.invert_pitch = _check(&"invert_pitch").button_pressed
+	settings.render_scale_auto = _check(&"render_scale_auto").button_pressed
 	settings.render_scale = _slider(&"render_scale").value
 	settings.master_volume = _slider(&"master_volume").value
 	settings.look_sensitivity = _slider(&"look_sensitivity").value
@@ -121,6 +123,7 @@ func _build() -> void:
 	for level: int in GameSettings.MSAA_LEVELS:
 		levels.append("Off" if level == 0 else "%dx" % level)
 	_options(&"msaa", "Anti-aliasing", levels)
+	_checkbox(&"render_scale_auto", "Auto render scale")
 	_slider_row(&"render_scale", "Render scale", 0.5, 2.0, 0.05)
 
 	_section("Audio")
@@ -141,6 +144,20 @@ func _refresh_availability() -> void:
 	)
 	_option(&"resolution").disabled = not windowed
 	_option(&"monitor").disabled = _screen_count <= 1
+
+	# Say why, next to the thing -- UI.md rule 8. A greyed-out slider with no
+	# explanation is indistinguishable from a broken one, and this particular
+	# control is greyed out by a *default*, so most players will never have
+	# touched the checkbox that did it.
+	var automatic := _check(&"render_scale_auto").button_pressed
+	var slider := _slider(&"render_scale")
+	slider.editable = not automatic
+	slider.tooltip_text = (
+		"Chosen for this display: %s. Turn off Auto render scale to set it yourself."
+		% RenderBudget.describe(_output_size())
+		if automatic
+		else "Fraction of the display the 3D scene is drawn at, then upscaled."
+	)
 
 
 func _section(title: String) -> void:
@@ -171,7 +188,18 @@ func _options(key: StringName, text: String, items: Array[String]) -> void:
 
 
 func _checkbox(key: StringName, text: String) -> void:
-	_controls[key] = _row(text, CheckButton.new())
+	var box := CheckButton.new()
+	box.toggled.connect(func(_on: bool) -> void: _refresh_availability())
+	_controls[key] = _row(text, box)
+
+
+## What the budget is being computed against, for the tooltip.
+##
+## Built from what the panel is currently showing rather than from what is in
+## force, so switching the mode picker to Fullscreen updates the number before
+## Apply is pressed -- which is when somebody is deciding whether to press it.
+func _output_size() -> Vector2i:
+	return SettingsApplier.output_size(get_window(), collect())
 
 
 func _slider_row(key: StringName, text: String, low: float, high: float, step: float) -> void:

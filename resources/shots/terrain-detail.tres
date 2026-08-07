@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ShotConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/graphics/shot_config.gd" id="1_shot"]
+
+[resource]
+script = ExtResource("1_shot")
+shot_name = &"terrain-detail"
+description = "The ground, close and flat-on. Where a terrain material change shows up."
+resolution = Vector2i(1280, 720)
+camera_position = Vector3(14, 2.4, 14)
+camera_target = Vector3(25, -1.4, 25)
+fov = 55.0
+anchor_to_player = true
+must_show_player = false
+player_position = Vector2(-3, 0)
+time_of_day = 0.42
+show_interface = false
+draw_call_budget = 24
+primitive_budget = 210000
+shadow_draw_call_budget = 40
+shadow_primitive_budget = 800000

@@ -127,4 +127,5 @@ is CI.
 
 ---
 
-Next: nothing scheduled. Posts 002–011 and 025–027 are still owed.
+Next: [042 — A harness that measures itself](042-a-harness-that-measures-itself.md).
+Posts 002–011 and 025–027 are still owed.

@@ -3,7 +3,7 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 41 — Build and Steam playtest pipeline**. The planned
+Last updated after **Feature 42 — Repeatable screenshots, golden images and a render budget**. The planned
 vertical slice (features 1–11) was completed long ago; everything since is
 built on top of it.
 
@@ -138,7 +138,8 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 38 | Fix: panels that could not be closed | done | `21554d0` |
 | 39 | Refactoring pass: interaction, panels, test framework | done | `50c690f` |
 | 40 | A design system for the interface | done | `134d64e` |
-| 41 | Build and Steam playtest pipeline | done | — |
+| 41 | Build and Steam playtest pipeline | done | `e8affc9` |
+| 42 | Repeatable screenshots, golden images and a render budget | done | — |
 
 **The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
@@ -1395,6 +1396,33 @@ The gotcha worth knowing: **Steam preserves the executable bit it is given, and
 `upload-artifact` preserves none**, so a Linux build can install perfectly and
 do nothing when launched. Set in `build.sh` and re-set in the Steam job.
 
+### 42. A harness that measures itself
+
+`GRAPHICS.md` Phase 0: the thing every later visual phase is checked against.
+Devblog 042 has the reasoning.
+
+`./shots.sh` renders named views defined as `ShotConfig` resources -- camera,
+time of day, RNG seed, where the player stands, whether the interface is drawn.
+Each renders into its own `SubViewport` at its own resolution, settles in
+physics frames, and runs under `--fixed-fps 60`. Seven shots, rendered twice in
+two different orders: **mean difference 0.00%, zero pixels moved.**
+`shots.sh check` fails on a frame that changed and writes actual, expected and
+an amplified difference image side by side. Goldens are committed at 480x270.
+
+**The frame budget is counts, not milliseconds**, and that was not the plan. No
+timing available here survives being checked -- the renderer's own per-viewport
+GPU timer reported 4K as *cheaper* than 720p across a 36-fold change in pixels.
+Draw calls and primitives are exact, identical on every machine, and are what
+moves when geometry is added. They immediately showed that **the sun draws
+three to four times the primitives the camera does**, in every shot, because it
+renders the whole heightfield wherever the camera points -- which nothing in the
+project knew.
+
+`RenderBudget` caps the 3D scene near 1440p and leaves the interface native,
+fixing a real bug: fullscreen on a 6144x3456 display was rendering 21
+megapixels. 1080p, 1440p and the Deck are untouched; this display now renders
+5.3 MP instead of 21.2. Off is a setting, on is the default.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -1439,14 +1467,16 @@ needs and this repo does not have:
   `ExperienceComponent` listens rather than reaching.
 - **A sword that does anything.** It can be bought, carried, dropped and picked
   up. It is not equippable and does not change the punch.
-- **A resolution and render-scale policy.** The game renders at native
-  resolution on any display: this machine's 6144x3456 screen means 21
-  megapixels, ten times 1080p, with no cap. A tester on a 4K or 5K monitor gets
-  the same. `GRAPHICS.md` Phase 0.
-- **Any way to measure rendering performance.** Frame cost here tracks window
-  size, survives deleting the entire scene, and is unaffected by 3D render
-  scale or vsync -- so it is measuring the desktop, not the game. A graphics
-  regression cannot currently be told from noise.
+- **An art direction.** `GRAPHICS.md` Phase 0.5, and the blocking item for
+  every visual phase after it. The palette, the light direction and how
+  stylised the shading is are decisions, not code.
+- **Any timing measurement.** Counts are budgeted and reliable; milliseconds
+  are not available on this machine at all -- neither frames per second, nor
+  wall-clock frame time, nor the renderer's own per-viewport GPU timer, which
+  reports 4K as cheaper than 720p. See `GRAPHICS.md` Part 0.
+- **Anything about the shadow pass**, which costs three times what the visible
+  pass does and renders the whole heightfield regardless of the camera. Now
+  measured and budgeted; not yet improved. `GRAPHICS.md` Phase 7.
 - **Controller support of any kind.** The blocker for Steam Deck Verified and
   the biggest gap in the playtest. `InputSource` is the seam.
 - **Code signing, macOS, and a dedicated server build.** All three are in

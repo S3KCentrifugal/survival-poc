@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ShotConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/graphics/shot_config.gd" id="1_shot"]
+
+[resource]
+script = ExtResource("1_shot")
+shot_name = &"base-exterior"
+description = "The building and the merchant outside its door, from the approach."
+resolution = Vector2i(1280, 720)
+camera_position = Vector3(21, 9, 15)
+camera_target = Vector3(6, 0.6, 4)
+fov = 52.0
+anchor_to_player = true
+must_show_player = false
+player_position = Vector2(-3, 0)
+time_of_day = 0.40
+show_interface = false
+draw_call_budget = 140
+primitive_budget = 320000
+shadow_draw_call_budget = 300
+shadow_primitive_budget = 1050000

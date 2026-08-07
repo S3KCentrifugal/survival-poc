@@ -23,7 +23,7 @@ Steam Deck's 1280×800 is the only target that is safe by accident. **A
 resolution and render-scale policy has to land before any graphics feature**,
 because every feature added before it makes the cliff steeper.
 
-### Performance cannot currently be measured here
+### Performance cannot be measured here in time at all
 
 | Condition | Result |
 |---|---|
@@ -34,19 +34,49 @@ because every feature added before it makes the cliff steeper.
 | **every actor, the terrain and all UI removed** | **30 fps** |
 
 Cost tracks *window* size, not 3D resolution, and survives deleting the entire
-scene. Whatever this is measuring — X11 compositing on a 6K desktop, the
-present path, the harness itself — **it is not the game**, and I cannot tell a
-graphics regression from noise with it.
+scene. Whatever this is measuring — X11 compositing on a 6K desktop, the present
+path — **it is not the game**.
 
-Every number a graphics plan depends on comes from this measurement. Fixing it
-is Phase 0 and nothing meaningful can be judged before it.
+The plan was to fix this by measuring the viewport instead of the process, and
+Phase 0 tried exactly that. It did not work either. Rendering one shot at three
+resolutions through `viewport_get_measured_render_time_gpu()`:
 
-### The scene is nowhere near any real budget
+| Resolution | Pixels | Reported GPU time |
+|---|---|---|
+| 640 × 360 | 0.23 MP | 0.30 ms |
+| 1280 × 720 | 0.92 MP | 6.43 ms |
+| 3840 × 2160 | 8.29 MP | 2.75 ms |
 
-109 draw calls, 728k primitives, 291 objects, 452 MB of textures. There is an
-enormous amount of headroom for geometry and materials. The constraint on this
-project is not the GPU; it is that there is no artist and no way to verify a
-look automatically.
+A thirty-six-fold change in pixels, and 4K reads *cheaper* than 720p. Reversing
+the order changed every figure and preserved none of the ordering. Wall-clock
+frame time sat at 19–29 ms regardless of resolution, and disabling vsync changed
+nothing for a second time.
+
+**There is no millisecond figure available on this machine that means anything.**
+The budget is counts instead — see Phase 0 below. That is not a workaround; it is
+better, because a count is identical on every machine and in CI, while a
+millisecond budget would fail on a different GPU.
+
+### The scene is nowhere near any real budget, and the sun is most of it
+
+Measured per shot, visible pass and shadow pass separately:
+
+| Shot | Visible draws | Shadow draws | Visible prims | Shadow prims |
+|---|---|---|---|---|
+| `world-noon` | 88 | 155 | 207k | 665k |
+| `base-exterior` | 76 | 186 | 194k | 689k |
+| `terrain-detail` | 6 | 9 | 131k | 525k |
+
+**The shadow pass draws three to four times the primitives the camera does, in
+every shot.** The directional light renders the whole 256-metre heightfield
+regardless of where the camera is pointing — which is why a shot of bare ground
+with six visible draw calls still costs half a million primitives. Nothing in
+the project knew this before there was a harness to ask, and it is the first
+real optimisation target, ahead of anything to do with what is visible.
+
+Even so there is enormous headroom for geometry and materials. The constraint on
+this project is not the GPU; it is that there is no artist and no way to verify
+a look automatically.
 
 ---
 
@@ -142,7 +172,9 @@ Not a substitute for judgement, but they catch the failures that are objective:
   most of the target and it is measurable.
 - **Silhouette coverage** — the fraction of the character's outline that
   survives against the background.
-- **A frame budget**, once 2.1 makes it measurable.
+- **A frame budget in draw calls and primitives**, visible and shadow pass
+  separately. Landed in Phase 0. Not milliseconds — see Part 0 for the three
+  ways timing was found to measure nothing here.
 
 ### 2.4 An art direction document
 
@@ -169,11 +201,39 @@ is out of scope until there is one.
 Ordered so that each is independently shippable, verifiable, and does not block
 on the next. Every phase ends with goldens updated and the suite green.
 
-### Phase 0 — Make it measurable *(prerequisite)*
+### Phase 0 — Make it measurable — **done**
 
-Render harness, golden images, frame-budget measurement, and the
-resolution/render-scale policy that the 6K finding demands. Adds no visible
-polish and everything else depends on it.
+Devblog 042. What landed:
+
+- **`shots.sh` and `ShotRunner`.** Seven named shots as `ShotConfig` resources;
+  fixed camera, time of day, RNG seed and player position; its own `SubViewport`
+  at the shot's resolution, so a capture is the size it says it is on any
+  desktop; settled in physics frames; run under `--fixed-fps 60` so animation
+  cannot land on a different frame on a busy machine. Rendered twice in two
+  orders: mean difference 0.00%, zero pixels moved.
+- **Golden-image regression.** `shots.sh check` fails on a frame that changed,
+  and writes actual, expected and an amplified difference image side by side.
+  Goldens are committed at 480 × 270. Not in `run_tests.sh` — `--headless` has
+  no rendering device — but every piece of logic under it is.
+- **A frame budget in counts, not milliseconds**, for the reason in Part 0.
+  Draw calls and primitives, visible and shadow, budgeted separately per shot
+  from measured figures with headroom.
+- **`RenderBudget`.** The 3D scene is capped near 1440p and the interface stays
+  native. 1080p, 1440p and the Deck are untouched; 4K renders at 70%, the 6K
+  display at 50% — 5.3 megapixels instead of 21.2. On by default, because it
+  fixes a bug rather than offering a preference.
+
+Two things were found by building it that no amount of reading would have given:
+the GPU timer that measures nothing, and `Window.size` reporting the old size in
+the frame a window goes fullscreen — which had the cap computing against a
+resolution the game had already left.
+
+### Phase 0.5 — `ART.md` *(next, and it needs a person)*
+
+The palette, the light direction, how stylised the shading is, whether there are
+outlines. Section 2.4 argues for it; Phase 0 shipping without it is the reason
+it is now the blocking item. An agent cannot pick these alone, and every phase
+below is unfalsifiable until they are written down.
 
 ### Phase 1 — Light and atmosphere *(largest win, no assets)*
 
@@ -217,8 +277,13 @@ Small, individually verifiable, and what makes actions feel like they landed.
 
 ### Phase 7 — Performance and the Deck
 
-LOD, occlusion culling, a graphics preset that targets 1280×800 at 60 fps, and
-the render-scale ladder for high-DPI displays.
+Shadow cost first — it is the larger half of every frame measured, and the
+directional light is drawing the whole heightfield. Then LOD, occlusion culling,
+a graphics preset for 1280×800, and FSR for displays that still cost too much at
+the ladder's floor.
+
+The render-scale ladder itself landed in Phase 0; it did not survive being left
+until last, because every feature added before it makes the cliff steeper.
 
 ---
 

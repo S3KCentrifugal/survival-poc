@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ShotConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/graphics/shot_config.gd" id="1_shot"]
+
+[resource]
+script = ExtResource("1_shot")
+shot_name = &"world-dusk"
+description = "The same vista at sunset -- where the sky gradient and the low sun are visible."
+resolution = Vector2i(1280, 720)
+camera_position = Vector3(26, 14, 26)
+camera_target = Vector3(0, 2, 0)
+fov = 55.0
+player_position = Vector2(-3, 0)
+time_of_day = 0.76
+show_interface = false
+draw_call_budget = 140
+primitive_budget = 320000
+shadow_draw_call_budget = 260
+shadow_primitive_budget = 1020000

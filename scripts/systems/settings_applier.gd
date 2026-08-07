@@ -55,8 +55,61 @@ static func apply_frame_pacing(settings: GameSettings, _window: Window) -> void:
 
 
 static func apply_rendering(settings: GameSettings, window: Window) -> void:
-	window.scaling_3d_scale = settings.render_scale
+	window.scaling_3d_scale = render_scale_for(settings, output_size(window, settings))
 	window.msaa_3d = _msaa_mode(settings.msaa)
+
+
+## The 3D render scale to actually use.
+##
+## Split out and given the output size as an argument rather than reading the
+## window, so the policy -- the part with a decision in it -- is testable without
+## a display. The window is only consulted by [method output_size].
+static func render_scale_for(settings: GameSettings, output: Vector2i) -> float:
+	if settings == null:
+		return RenderBudget.MAX_SCALE
+	return RenderBudget.scale_for(output) if settings.render_scale_auto else settings.render_scale
+
+
+## How many pixels the game is actually drawing into.
+##
+## Asks the *settings* which surface is about to be filled, and only falls back
+## to the window when there is nothing to ask -- because the window is not
+## trustworthy here, which was found by checking rather than by reasoning.
+## Setting [member Window.mode] to a fullscreen mode does not update
+## [member Window.size] in the same frame: applying borderless fullscreen on a
+## 6144x3456 display and immediately reading the window still reported the old
+## 3840x2160, so the cap was computed for a resolution the game was no longer at.
+##
+## That failure is invisible. Fullscreen still works, the game still runs, and
+## the render scale is simply the wrong one -- which reads as the cap not doing
+## very much rather than as a bug.
+static func output_size(window: Window, settings: GameSettings = null) -> Vector2i:
+	var screen := Vector2i.ZERO
+	var windowed := Vector2i.ZERO
+	if window != null:
+		screen = DisplayServer.screen_get_size(window.current_screen)
+		windowed = window.size
+	return output_size_for(settings, windowed, screen)
+
+
+## Which of the two sizes the game will actually be drawing into.
+##
+## The decision, separated from the two lookups that feed it, so the part with a
+## judgement in it can be tested without a display. [method output_size] is then
+## only "ask the window, ask the screen, call this".
+static func output_size_for(
+	settings: GameSettings, window_size: Vector2i, screen_size: Vector2i
+) -> Vector2i:
+	if settings != null:
+		# Both fullscreen modes fill the monitor, whatever the window currently
+		# says and whatever resolution is remembered for windowed mode.
+		if settings.uses_monitor_size():
+			return screen_size if screen_size.x > 0 and screen_size.y > 0 else window_size
+		if settings.resolution.x > 0 and settings.resolution.y > 0:
+			return settings.resolution
+	if window_size.x > 0 and window_size.y > 0:
+		return window_size
+	return screen_size
 
 
 ## Master volume, converted from a linear slider to decibels.

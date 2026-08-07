@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ShotConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/graphics/shot_config.gd" id="1_shot"]
+
+[resource]
+script = ExtResource("1_shot")
+shot_name = &"hud-gameplay"
+description = "The playing view with the whole interface on, at the resolution it is designed for."
+resolution = Vector2i(1280, 720)
+camera_position = Vector3(0, 7.0, 9.5)
+camera_target = Vector3(0, 1.1, 0)
+fov = 50.0
+anchor_to_player = true
+must_show_player = true
+player_position = Vector2(-3, 0)
+time_of_day = 0.36
+show_interface = true
+draw_call_budget = 64
+primitive_budget = 260000
+shadow_draw_call_budget = 160
+shadow_primitive_budget = 900000
