@@ -43,6 +43,8 @@ grow. Do not over-engineer.
 - Static typing everywhere, including typed collections
 
 `CLAUDE.md` holds the enforceable version of this plus the engine traps.
+**`GRAPHICS.md`** holds the plan for raising the visuals, and what an
+autonomous agent can and cannot verify about a look.
 **`DEPLOY.md`** holds the shipping pipeline and the manual Steam steps.
 **`UI.md`** holds the interface guidelines: which ones, from where, and what is
 deliberately not done yet. **`MULTIPLAYER.md`** holds the networking architecture: the authority model, the
@@ -1437,6 +1439,14 @@ needs and this repo does not have:
   `ExperienceComponent` listens rather than reaching.
 - **A sword that does anything.** It can be bought, carried, dropped and picked
   up. It is not equippable and does not change the punch.
+- **A resolution and render-scale policy.** The game renders at native
+  resolution on any display: this machine's 6144x3456 screen means 21
+  megapixels, ten times 1080p, with no cap. A tester on a 4K or 5K monitor gets
+  the same. `GRAPHICS.md` Phase 0.
+- **Any way to measure rendering performance.** Frame cost here tracks window
+  size, survives deleting the entire scene, and is unaffected by 3D render
+  scale or vsync -- so it is measuring the desktop, not the game. A graphics
+  regression cannot currently be told from noise.
 - **Controller support of any kind.** The blocker for Steam Deck Verified and
   the biggest gap in the playtest. `InputSource` is the seam.
 - **Code signing, macOS, and a dedicated server build.** All three are in

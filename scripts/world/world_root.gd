@@ -15,11 +15,10 @@ extends Node3D
 
 @export var player_attack: AttackComponent
 
-## The same source again. Reaching for a mushroom is intent like any other, so
-## it arrives the same way -- which is what lets a remote player pick things up
-## without a second path through the code.
 ## Owns the interact key. One component reads it and dispatches to whichever
-## interactable is nearest, so there is one place to hand intent to.
+## interactable is nearest, so there is one place to hand intent to -- and the
+## same input source movement uses, which is what lets a remote player pick
+## things up without a second path through the code.
 @export var player_router: InteractionRouter
 
 ## Given the terrain and somewhere to parent dropped items. Both are the
