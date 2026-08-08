@@ -1,0 +1,43 @@
+[gd_scene load_steps=6 format=3]
+
+; The sword's geometry, with nothing else on it.
+;
+; Split out of items/sword.tscn so the same blade can be lying in a field with a
+; pickup on it, or held in a hand where a pickup would mean you could interact
+; with your own weapon. One mesh, two contexts, no second copy of the shape.
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_blade"]
+albedo_color = Color(0.78, 0.82, 0.87, 1)
+metallic = 0.9
+roughness = 0.2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_grip"]
+albedo_color = Color(0.36, 0.25, 0.15, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="BoxMesh_blade"]
+material = SubResource("StandardMaterial3D_blade")
+size = Vector3(0.06, 0.02, 0.62)
+
+[sub_resource type="BoxMesh" id="BoxMesh_guard"]
+material = SubResource("StandardMaterial3D_grip")
+size = Vector3(0.2, 0.03, 0.05)
+
+[sub_resource type="BoxMesh" id="BoxMesh_grip"]
+material = SubResource("StandardMaterial3D_grip")
+size = Vector3(0.05, 0.03, 0.18)
+
+; The grip sits at the origin, so a hand holding this holds it by the handle.
+[node name="SwordMesh" type="Node3D"]
+
+[node name="Blade" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.44)
+mesh = SubResource("BoxMesh_blade")
+
+[node name="Guard" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.11)
+mesh = SubResource("BoxMesh_guard")
+
+[node name="Grip" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("BoxMesh_grip")

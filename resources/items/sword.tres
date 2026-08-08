@@ -11,4 +11,4 @@ max_stack = 1
 icon = ExtResource("2_icon")
 colour = Color(0.75, 0.79, 0.84, 1)
 world_scene_path = "res://items/sword.tscn"
-description = "Sharper than a fist. Does nothing yet, which is a promise rather than a feature."
+description = "Sharper than a fist, and longer. Carry one and you are holding it."

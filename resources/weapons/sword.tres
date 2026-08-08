@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="WeaponDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/weapon_definition.gd" id="1_weapon"]
+[ext_resource type="PackedScene" path="res://items/sword_held.tscn" id="2_mesh"]
+
+[resource]
+script = ExtResource("1_weapon")
+item_id = &"sword"
+held_scene = ExtResource("2_mesh")
+grip_position = Vector3(0, 0.02, 0)
+grip_rotation = Vector3(-90, 0, 0)
+grip_scale = 1.35
+damage_bonus = 14.0
+heavy_damage_bonus = 26.0
+reach_bonus = 0.5

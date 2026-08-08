@@ -15,6 +15,10 @@ group_uniforms surface;
 uniform vec4 albedo : source_color = vec4(1.0);
 uniform sampler2D albedo_texture : source_color, filter_linear_mipmap, repeat_enable;
 uniform bool has_albedo_texture = false;
+// Multiply the mesh's own vertex colours in. For geometry that carries its
+// palette in the vertices rather than in a texture -- the procedural humanoid,
+// which has no UVs to put a texture on and no artist to draw one.
+uniform bool use_vertex_color = false;
 uniform float roughness : hint_range(0.0, 1.0) = 0.85;
 uniform float specular_amount : hint_range(0.0, 1.0) = 0.1;
 
@@ -33,10 +37,16 @@ uniform float rim_strength : hint_range(0.0, 4.0) = 0.55;
 uniform float rim_power : hint_range(0.5, 12.0) = 3.2;
 
 varying vec3 view_normal;
+// COLOR is carried across explicitly rather than read as a fragment built-in.
+// Godot only interpolates it when the vertex stage touches it, so a shader that
+// reads COLOR in fragment() alone gets whatever was there -- which rendered a
+// fully vertex-coloured character in flat white.
+varying vec4 vertex_color;
 
 
 void vertex() {
 	view_normal = NORMAL;
+	vertex_color = COLOR;
 }
 
 
@@ -44,6 +54,9 @@ void fragment() {
 	vec4 surface = albedo;
 	if (has_albedo_texture) {
 		surface *= texture(albedo_texture, UV);
+	}
+	if (use_vertex_color) {
+		surface *= vertex_color;
 	}
 
 	ALBEDO = stylised_to_band(surface.rgb, band_value, band_strength);

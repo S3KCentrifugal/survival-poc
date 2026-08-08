@@ -220,12 +220,22 @@ After Phase 2. Every figure is enforced by `shots.sh check`.
 | `base-exterior` | 0% | 7 | — |
 | `terrain-detail` | 0% | 4 | — |
 | `hud-gameplay` | 0% | 6 | — |
-| `player-close` | 0% | 6 | **3.5:1** *(was 1.0:1)* |
+| `player-close` | 0% | 6 | **3.0:1** *(was 1.0:1)* |
 | `world-dusk` | 0% | 5 | — |
 | `world-night` | 15% | 1 | — |
 
-**Rule 3 is met.** `player-close` measures 3.5:1 against the 3:1 target, and the
-target is enforced. It took two phases and the second one was not the one that
+**Rule 3 is met, and it got harder.** `player-close` measures 3.0:1 against the
+3:1 target, down from 3.5:1 — because the player is now a slim humanoid rather
+than a barrel-shaped robot, and rule 3 is a rule about **mass**. A person has
+less of it than a toy robot does, so the same lighting and the same value band
+buy less separation. Paid back with a deliberately pale torso over dark legs,
+which is a legibility decision before it is a costume one: `FrameLook` samples a
+disc at chest height, and so does a player's eye.
+
+The measuring disc was recalibrated with the model. It was 0.15 of the
+character's height, which fitted a robot very nearly as wide as it was tall; a
+person is about a fifth as wide as they are tall, so that disc reached past the
+torso and sampled the grass behind. 0.08 is the figure that measures a person. It took two phases and the second one was not the one that
 finished it: Phase 2's value structure got from 1.0:1 to 2.5:1, and Phase 3's
 grass took it past 3:1 by darkening the ground a character is actually read
 against. A value band moves the palette; foliage moves what is *behind* the

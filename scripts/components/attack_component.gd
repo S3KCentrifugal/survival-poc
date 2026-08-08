@@ -41,6 +41,16 @@ signal killed(target: Node3D)
 
 ## Where intent comes from. Shared with movement -- one source, so the key
 ## state cannot disagree with itself.
+## What is being held, if anything. Set by [WeaponComponent] and nothing else.
+##
+## Plain variables rather than an exported reference to a weapon: this component
+## must work on an actor that has no concept of equipment -- every wanderer in
+## the world -- and it must not go looking for one. A weapon pushes; the attack
+## does not pull.
+var bonus_damage: float = 0.0
+var bonus_heavy_damage: float = 0.0
+var bonus_reach: float = 0.0
+
 var input_source: InputSource
 
 var _cooldown: Cooldown
@@ -114,7 +124,7 @@ func punch() -> bool:
 	# MULTIPLAYER.md: the client will eventually ask rather than decide.
 	if not NetworkAuthority.may_simulate(self):
 		return true
-	_land(reachable_targets(), config.damage)
+	_land(reachable_targets(), config.damage + bonus_damage)
 	return true
 
 
@@ -140,13 +150,13 @@ func heavy_punch() -> bool:
 
 	if not NetworkAuthority.may_simulate(self):
 		return true
-	_land(heavy_targets(), config.heavy_damage)
+	_land(heavy_targets(), config.heavy_damage + bonus_heavy_damage)
 	return true
 
 
 ## Everything a heavy attack would land on: further out and in a narrower arc.
 func heavy_targets() -> Array[Node3D]:
-	return _targets(config.heavy_reach, config.heavy_arc_radians())
+	return _targets(config.heavy_reach + bonus_reach, config.heavy_arc_radians())
 
 
 ## Whether a heavy attack could be thrown right now.
@@ -191,7 +201,7 @@ func _spend_heavy_stamina() -> void:
 ## server already knows what is near, and asking it scales with the crowd rather
 ## than with the map.
 func reachable_targets() -> Array[Node3D]:
-	return _targets(config.reach, config.arc_radians())
+	return _targets(config.reach + bonus_reach, config.arc_radians())
 
 
 func _targets(reach: float, arc: float) -> Array[Node3D]:

@@ -382,6 +382,16 @@ techniques that produce it are nearly free, and what they cost is decisions.
   scattered placement by reading the MultiMesh back reported every instance at
   the world origin, which read as a scatter bug rather than a harness one. Assert
   on whatever produced the transforms instead.
+- **`MeshInstance3D.skeleton` is empty on a node built in code.** The editor
+  fills in `..` for you; `MeshInstance3D.new()` does not, and a skinned mesh
+  attached to no skeleton renders in its **bind pose** with no error at all. The
+  player stood in a perfect T-pose in the middle of a field while the bones
+  underneath it animated correctly. Set it explicitly whenever the node is not
+  authored in a scene.
+- **`COLOR` is only interpolated into `fragment()` if `vertex()` touches it.**
+  Reading it in the fragment stage alone gives whatever happened to be there —
+  a fully vertex-coloured character rendered flat white. Copy it into a
+  `varying` in `vertex()`.
 - **Writing `NORMAL` in a fragment shader defeats Godot's back-face flip.** With
   `cull_disabled`, Godot negates the normal for back faces before `fragment()`;
   overwriting it with a world-space normal of your own puts every second face of

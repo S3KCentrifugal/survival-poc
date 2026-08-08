@@ -22,6 +22,9 @@
 [ext_resource type="Resource" path="res://resources/progression/player_experience.tres" id="23_experience_config"]
 [ext_resource type="Script" path="res://scripts/components/network_entity.gd" id="90_netent"]
 [ext_resource type="Script" path="res://scripts/graphics/stylised_surface.gd" id="91_stylised"]
+[ext_resource type="Script" path="res://scripts/characters/humanoid_body.gd" id="95_humanoid"]
+[ext_resource type="Script" path="res://scripts/components/weapon_component.gd" id="96_weapon"]
+[ext_resource type="Resource" path="res://resources/weapons/sword.tres" id="97_sword"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -43,10 +46,32 @@ transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
 ; Draws the imported model through the shared stylised shader, in the character
 ; value band. Rule 3: the gap between this band and the ground's is what makes a
 ; silhouette read, and it is the only thing that does -- there are no outlines.
+; The player alone is re-proportioned and re-skinned into a person. Everything
+; else in the world keeps the robot, which is the point: the thing you control
+; should not look like the things you meet.
+; The hand the sword goes in. A BoneAttachment3D follows the bone, so the
+; existing Attack1 clip swings the weapon without a frame of new animation.
+[node name="Grip" type="BoneAttachment3D" parent="Model/RobotArmature/Skeleton3D"]
+bone_name = "hand.R"
+bone_idx = 16
+
+[node name="Humanoid" type="Node" parent="Model" node_paths=PackedStringArray("model")]
+script = ExtResource("95_humanoid")
+model = NodePath("..")
+
 [node name="Surface" type="Node" parent="Model" node_paths=PackedStringArray("model")]
 script = ExtResource("91_stylised")
 model = NodePath("..")
 band = 3
+
+; Carry a sword and you are holding it. There is no equip screen because there
+; is one weapon, and a screen for it would be a screen with one button.
+[node name="Weapon" type="Node" parent="." node_paths=PackedStringArray("grip", "inventory", "attack")]
+script = ExtResource("96_weapon")
+grip = NodePath("../Model/RobotArmature/Skeleton3D/Grip")
+inventory = NodePath("../Inventory")
+attack = NodePath("../Attack")
+weapons = Array[Resource]([ExtResource("97_sword")])
 
 [node name="Movement" type="Node" parent="." node_paths=PackedStringArray("body", "stamina")]
 script = ExtResource("1_movement")

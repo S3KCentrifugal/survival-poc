@@ -145,6 +145,23 @@ func _look_at(result: ShotResult, shot: ShotConfig) -> void:
 	result.look = FrameLook.measure(reduced, subject, subject_height)
 
 
+## Hands the player whatever the shot asked for.
+##
+## After the world is built, because the inventory does not exist before its
+## `_ready` -- and before the settle, so whatever reacts to carrying something
+## has frames to do it in.
+func _equip(shot: ShotConfig) -> void:
+	if shot.give_player.is_empty():
+		return
+	var inventory := _world.get_node_or_null("Player/Inventory") as InventoryComponent
+	if inventory == null:
+		return
+	for path: String in shot.give_player:
+		var item := ResourceLoader.load(path) as ItemDefinition
+		if item != null:
+			inventory.collect(item, 1)
+
+
 ## Everything a shot needs the world not to do.
 ##
 ## Public and separate so a test can assert the neutering happened without
@@ -222,6 +239,7 @@ func _build_world(shot: ShotConfig) -> String:
 		world_root.capture_mouse_on_load = false
 
 	_viewport.add_child(_world)
+	_equip(shot)
 	freeze(_world, shot)
 	_take_over_camera(shot)
 

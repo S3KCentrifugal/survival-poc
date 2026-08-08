@@ -3,7 +3,7 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 46 — Foliage, and music that stays off**. The planned
+Last updated after **Feature 47 — A humanoid player, holding a sword**. The planned
 vertical slice (features 1–11) was completed long ago; everything since is
 built on top of it.
 
@@ -144,7 +144,8 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 43 | An art direction, with numbers under it | done | `93b09b5` |
 | 44 | Light and atmosphere | done | `1009bf1` |
 | 45 | A stylised material system | done | `1408967` |
-| 46 | Foliage, and music that stays off | done | — |
+| 46 | Foliage, and music that stays off | done | `e5a5f06` |
+| 47 | A humanoid player, holding a sword | done | — |
 
 **The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
@@ -1539,6 +1540,31 @@ master one. A game that starts playing at somebody unasked is a game muted at
 the operating system, after which nothing else it does with sound can reach
 them. It still plays into the muted bus, so turning it up is immediate.
 
+### 47. A humanoid player, holding a sword
+
+The player is a person now; the wanderers, the companion and the merchants stay
+robots, which was asked for and is also better -- the thing you control being
+shaped differently from the things you meet is information. Devblog 047.
+
+**Retargeted rather than replaced.** The imported robot is rigged as a proper
+humanoid with twenty animation clips; what it is not is proportioned like one --
+head 26% of the figure, legs 29%, standing 1.41 m inside an 1.8 m capsule.
+`HumanoidRig` scales the bone rests into human proportions and animation carries
+on working, because clips are rotations relative to rest. `HumanoidMesh` builds a
+body over whatever proportions result, skinned one bone per vertex, coloured in
+the vertices because there is no texture and no artist.
+
+**Carry a sword and you are holding it.** `WeaponDefinition` points at an item by
+id rather than living on it; `WeaponComponent` reads the inventory and pushes
+damage, heavy damage and reach onto the attack as plain variables -- never into
+`AttackConfig`, which is shared and would arm every wanderer in the world. The
+blade hangs off a `BoneAttachment3D` on `hand.R`, so the existing `Attack1` clip
+swings it with no new animation.
+
+Rule 3 went from 3.5:1 to **3.0:1** and that is the honest headline: the rule is
+about mass and a slim humanoid has less of it than a barrel-shaped robot. Bought
+back to the line with a pale torso over dark legs and a less spindly figure.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -1591,6 +1617,9 @@ needs and this repo does not have:
   primitives the visible pass does and renders the whole heightfield regardless
   of the camera. Measured and budgeted; not yet improved. `GRAPHICS.md` Phase 7.
 - **Water.** `GRAPHICS.md` Phase 4, and the next one.
+- **A character rather than a placeholder.** The player is a generated figure
+  of tapered tubes with a rounded head and no face. `ART.md` has said since
+  post 043 that silhouette design needs a person.
 - **Foliage that reads as blades rather than as tufts.** The clumps are three
   crossed opaque quads; real stylised grass uses alpha-tested cards, and alpha
   is what silently stops a material casting shadows. Honest placeholders.

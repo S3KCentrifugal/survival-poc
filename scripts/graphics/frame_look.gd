@@ -201,14 +201,21 @@ func _measure_subject(
 	subject_height: int,
 	to_linear: PackedFloat64Array
 ) -> void:
-	# Fractions of the subject's own height. 0.15 sits well inside the torso;
-	# a humanoid is roughly a quarter as wide as it is tall, so 0.45 clears the
-	# silhouette with room and 0.95 stays close enough to be the background
-	# immediately behind them rather than the whole frame.
+	# Fractions of the subject's own height.
+	#
+	# 0.08 for the disc, recalibrated. It was 0.15, which fitted the barrel-
+	# shaped robot the measurement was first written against -- that character
+	# was very nearly as wide as it was tall. A person is about a fifth as wide
+	# as they are tall, so a disc of 0.15 of their height reaches past the torso
+	# and samples whatever is behind them, which drags the reading toward 1:1
+	# exactly when the character is best drawn.
+	#
+	# 0.40 clears a human silhouette with room, and 0.90 stays close enough to be
+	# the background immediately behind them rather than the whole frame.
 	var scale := float(subject_height) if subject_height > 0 else height * 0.18
-	var inner := maxi(int(scale * 0.15), 2)
-	var near := maxi(int(scale * 0.45), inner + 2)
-	var outer := maxi(int(scale * 0.95), near + 2)
+	var inner := maxi(int(scale * 0.08), 2)
+	var near := maxi(int(scale * 0.40), inner + 2)
+	var outer := maxi(int(scale * 0.90), near + 2)
 	var subject_total: float = 0.0
 	var subject_count := 0
 	var around_total: float = 0.0

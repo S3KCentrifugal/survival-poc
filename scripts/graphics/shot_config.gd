@@ -82,6 +82,14 @@ extends Resource
 ## mushrooms, wanderers, merchants -- land in the same places every time.
 @export var rng_seed: int = 20260807
 
+## Items the player is given before the shot is taken, as resource paths.
+##
+## Needed because some things are only visible when the player has them -- a
+## sword is in the hand or it is nowhere -- and a golden that cannot show the
+## feature cannot guard it either. Paths rather than [ItemDefinition]s so a shot
+## resource does not pull the whole item catalogue in behind it.
+@export var give_player: Array[String] = []
+
 ## Whether the HUD, chat box and prompts are drawn.
 ##
 ## Off for shots about the world, on for shots about the interface. A lighting

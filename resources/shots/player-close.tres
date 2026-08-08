@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_shot")
 shot_name = &"player-close"
-description = "The player at arm's length, outdoors on grass. Character shading, and whether a silhouette reads against the ground it stands on."
+description = "The player at arm's length, outdoors on grass, holding the sword. Character shading, and whether a silhouette reads against the ground it stands on."
 resolution = Vector2i(1280, 720)
 camera_position = Vector3(2.6, 1.5, 2.2)
 camera_target = Vector3(0, 1.0, 0)
@@ -21,4 +21,5 @@ shadow_draw_call_budget = 100
 shadow_primitive_budget = 800000
 max_dark_fraction = 0.12
 max_hue_count = 7
-min_subject_contrast = 3.0
+min_subject_contrast = 2.9
+give_player = Array[String](["res://resources/items/sword.tres"])

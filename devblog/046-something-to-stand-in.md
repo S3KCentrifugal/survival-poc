@@ -124,5 +124,4 @@ turning it up is immediate rather than needing a reload.
 
 ---
 
-Next: Phase 4 — water, which is cheap and high impact, and gives the terrain
-somewhere to drain to.
+Next: [047 — A person, with a sword](047-a-person-with-a-sword.md).
