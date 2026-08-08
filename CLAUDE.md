@@ -375,6 +375,19 @@ techniques that produce it are nearly free, and what they cost is decisions.
   in again squares it: the surface darkens, its contrast against the background
   drops, and it still looks broadly plausible. Check a custom `light()` against a
   rendered frame before believing it.
+- **A `MultiMesh` keeps nothing in a headless run.** Every
+  `set_instance_transform` is accepted, every `get_instance_transform` returns
+  identity, `buffer` is empty, and *nothing errors* — the transforms live in the
+  rendering server and the headless server discards them. A test that verified
+  scattered placement by reading the MultiMesh back reported every instance at
+  the world origin, which read as a scatter bug rather than a harness one. Assert
+  on whatever produced the transforms instead.
+- **Writing `NORMAL` in a fragment shader defeats Godot's back-face flip.** With
+  `cull_disabled`, Godot negates the normal for back faces before `fragment()`;
+  overwriting it with a world-space normal of your own puts every second face of
+  every crossed quad in permanent shadow. It shows up as solid black blobs and
+  reads as a shadow bug. Leave `NORMAL` alone unless you also handle
+  `FRONT_FACING`.
 - **`StringName` comparison sorts by interned pointer, not by text.** `<`, `>`
   and therefore `Array.sort()` return allocation order, which is stable within a
   run and changes the moment an unrelated system interns a new name — so a test
@@ -412,10 +425,17 @@ for the bill.
   36× resolution change made the renderer's own GPU timer report 4K as *cheaper*
   than 720p, and wall-clock frame time is pinned at ~20 ms by the desktop
   whatever is on screen. Do not reintroduce one.
-- **The shadow pass is the larger half** — every shot measured draws three to
-  four times as many primitives into the shadow map as into the frame, because
+- **The shadow pass is the larger half in *primitives*** — every shot measured
+  draws two to four times as many into the shadow map as into the frame, because
   the sun renders the whole 256-metre heightfield wherever the camera points.
-  Budget it separately, and never report a cost with it omitted.
+  Budget it separately, and never report a cost with it omitted. Draw calls no
+  longer keep that order: foliage adds seventy visible calls to a vista and casts
+  nothing.
+- **Dense things are chunked, and do not cast shadows.** A `MultiMesh` has one
+  bounding box, so a single instance of it is either wholly drawn or wholly
+  culled — grass is split into 16 m chunks so the renderer has something to cull
+  with. And grass casting into the shadow map would be the most expensive
+  decision in the project in exchange for shadows too small to see.
 - **Goldens live in `tests/golden/` at 480 × 270** behind a `.gdignore`, so the
   importer leaves them alone and they are read through
   `ProjectSettings.globalize_path`. They are committed; they are the assertion.

@@ -3,7 +3,7 @@
 Living record of what this project is, what has been built, and what comes
 next. Read this first when picking the work back up.
 
-Last updated after **Feature 45 — A stylised material system**. The planned
+Last updated after **Feature 46 — Foliage, and music that stays off**. The planned
 vertical slice (features 1–11) was completed long ago; everything since is
 built on top of it.
 
@@ -143,7 +143,8 @@ the save registry — live in `scripts/systems/`. The UI's own logic lives in
 | 42 | Repeatable screenshots, golden images and a render budget | done | `d99fec4` |
 | 43 | An art direction, with numbers under it | done | `93b09b5` |
 | 44 | Light and atmosphere | done | `1009bf1` |
-| 45 | A stylised material system | done | — |
+| 45 | A stylised material system | done | `1408967` |
+| 46 | Foliage, and music that stays off | done | — |
 
 **The planned slice is complete.** 659 tests passing across 48 suites.
 `./run_tests.sh` exits non-zero on failure.
@@ -1511,6 +1512,33 @@ casting; a custom `light()` multiplying `ALBEDO` squared it, because Godot
 already applies it; and the palette maths scaled sRGB channels by a ratio derived
 from linear luminance, returning 0.41 when asked for 0.25.
 
+### 46. Foliage, and music that stays off
+
+`GRAPHICS.md` Phase 3. `FoliageLayer` holds the numbers, `FoliageScatter`
+decides where things grow from the heightfield's own slope, `FoliageMesh` builds
+grass, shrubs and trees because there is no artist, and `FoliageComponent` turns
+the result into one `MultiMeshInstance3D` per chunk per layer. Wind lives in the
+vertex shader. Devblog 046.
+
+**It closed `ART.md` rule 3.** `player-close` went from 2.5:1 to **3.5:1**, past
+the 3:1 target, and the target is enforced. Phase 2's value structure changed
+what the character is; grass changed what is *behind* the character, which the
+palette route could not do without breaking night readability.
+
+First phase with a real cost: a vista went from 88 draw calls to 158 and from
+207k primitives to 348k. Bounded by three decisions -- 16 m chunks so the
+renderer can cull, a 78 m visibility range, and **grass casting no shadow at
+all**, which would otherwise be the most expensive decision in the project.
+
+One invariant broke honestly: the shadow pass is no longer the larger half in
+*draw calls*, because foliage adds seventy visible calls and casts nothing. In
+primitives it still is, and that was always the number that mattered.
+
+**Music is silent by default**, on its own bus, with its own slider beside the
+master one. A game that starts playing at somebody unasked is a game muted at
+the operating system, after which nothing else it does with sound can reach
+them. It still plays into the muted bus, so turning it up is immediate.
+
 ## What is not built
 
 The slice is done, so this is the honest list of what a survival game still
@@ -1562,13 +1590,13 @@ needs and this repo does not have:
 - **Anything about the shadow pass**, which draws three to four times the
   primitives the visible pass does and renders the whole heightfield regardless
   of the camera. Measured and budgeted; not yet improved. `GRAPHICS.md` Phase 7.
-- **The last of rule 3.** 2.5:1 against a 3:1 target. Closing it needs either a
-  character model that is not inherently pale or a ground darker than night
-  readability allows -- `GRAPHICS.md` Phase 5, and a person.
-- **Foliage of any kind.** No grass, no shrubs, no trees; the world is a
-  textured heightfield with buildings on it. `GRAPHICS.md` Phase 3, and the
-  biggest perceived jump still available.
-- **Water.** `GRAPHICS.md` Phase 4.
+- **Water.** `GRAPHICS.md` Phase 4, and the next one.
+- **Foliage that reads as blades rather than as tufts.** The clumps are three
+  crossed opaque quads; real stylised grass uses alpha-tested cards, and alpha
+  is what silently stops a material casting shadows. Honest placeholders.
+- **Rule 3 against a wall.** 3.5:1 holds against grass, which is what a
+  character is usually seen against; against a building it is shape, shadow and
+  rim rather than value. No palette gives every pairing 3:1 at once.
 - **Controller support of any kind.** The blocker for Steam Deck Verified and
   the biggest gap in the playtest. `InputSource` is the seam.
 - **Code signing, macOS, and a dedicated server build.** All three are in

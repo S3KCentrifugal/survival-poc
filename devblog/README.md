@@ -55,6 +55,7 @@ rather than an edit to the old one.
 | 043 | [Rules for a look](043-rules-for-a-look.md) | An art direction with numbers under it, three attempts at one measurement, and a character nobody can pick out of the grass |
 | 044 | [A night you can see in](044-a-night-you-can-see-in.md) | The ambient term that was nearly black by design, a dusk that ended at the horizon, and a measurement that could not tell the fix from the bug |
 | 045 | [One shader for everything](045-one-shader-for-everything.md) | Value bands, a ramp that invented light, and three bugs that each produced a picture looking fine |
+| 046 | [Something to stand in](046-something-to-stand-in.md) | Grass, trees and wind; the phase that closed a rule two other phases could not; and a MultiMesh that keeps nothing headless |
 
 Numbers follow the **feature** order, not the order posts get written — 012 is
 the twelfth feature, and 002–011 and 025–027 below are still owed. The three

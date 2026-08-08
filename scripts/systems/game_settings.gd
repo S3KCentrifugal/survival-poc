@@ -66,6 +66,14 @@ var render_scale_auto: bool = true
 ## a slider that moves in decibels feels wrong for most of its travel.
 var master_volume: float = 1.0
 
+## Music, on its own bus and its own slider.
+##
+## **Silent by default.** The generated loop is background texture rather than a
+## score, and a game that starts playing music at somebody without being asked
+## is a game they mute at the operating system -- after which nothing else it
+## does with sound can reach them either. Off by default and one slider away.
+var music_volume: float = 0.0
+
 var look_sensitivity: float = 0.22
 
 var invert_pitch: bool = false
@@ -104,6 +112,7 @@ func sanitise(screen_count: int = 1) -> void:
 	msaa = _nearest_at_or_below(msaa, MSAA_LEVELS)
 	render_scale = clampf(render_scale, 0.5, 2.0)
 	master_volume = clampf(master_volume, 0.0, 1.0)
+	music_volume = clampf(music_volume, 0.0, 1.0)
 	look_sensitivity = clampf(look_sensitivity, 0.01, 2.0)
 
 
@@ -123,6 +132,7 @@ func to_dictionary() -> Dictionary:
 		"render_scale": render_scale,
 		"render_scale_auto": render_scale_auto,
 		"master_volume": master_volume,
+		"music_volume": music_volume,
 		"look_sensitivity": look_sensitivity,
 		"invert_pitch": invert_pitch,
 	}
@@ -148,6 +158,7 @@ static func from_dictionary(values: Dictionary) -> GameSettings:
 		values, "render_scale_auto", settings.render_scale_auto
 	)
 	settings.master_volume = _float_from(values, "master_volume", settings.master_volume)
+	settings.music_volume = _float_from(values, "music_volume", settings.music_volume)
 	settings.look_sensitivity = _float_from(values, "look_sensitivity", settings.look_sensitivity)
 	settings.invert_pitch = _bool_from(values, "invert_pitch", settings.invert_pitch)
 	return settings

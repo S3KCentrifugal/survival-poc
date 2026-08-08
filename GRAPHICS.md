@@ -301,14 +301,25 @@ value structure instead.
 
 Cost: unchanged. Same draw calls and primitives as before, in both passes.
 
-### Phase 3 — Foliage and world density *(next)*
+### Phase 3 — Foliage and world density — **done**
 
-The biggest perceived jump for an outdoor game, and the biggest performance
-risk. Grass, shrubs and trees as `MultiMeshInstance3D` scattered from the same
-heightfield the terrain uses, with vertex-shader wind and distance fade. Needs
-Phase 0's budget to be trustworthy before it starts.
+Devblog 046. `FoliageLayer` is the numbers, `FoliageScatter` decides where
+things grow, `FoliageMesh` builds them because there is no artist, and
+`FoliageComponent` turns the result into one `MultiMeshInstance3D` per chunk per
+layer. Grass, shrubs and trees, with vertex-shader wind and distance fade.
 
-### Phase 4 — Water
+**It closed rule 3.** `player-close` went from 2.5:1 to **3.5:1**, past the 3:1
+target, because grass darkened the ground a character is read against. Phase 2
+got most of the way with a value structure; the thing that finished it was
+putting something on the ground.
+
+Cost, and it is the first phase to have one: a vista went from 88 visible draw
+calls to 158 and from 207k primitives to 348k. That is affordable and it is
+bounded on purpose — grass is chunked at 16 m so the renderer can cull it, stops
+being drawn at 78 m, and **casts no shadow at all**, which is the single most
+expensive decision available here in exchange for shadows too small to see.
+
+### Phase 4 — Water *(next)*
 
 A stylised shader: depth-based colour, foam at intersections, a moving normal.
 Cheap, high impact, and it gives the terrain somewhere to drain to.

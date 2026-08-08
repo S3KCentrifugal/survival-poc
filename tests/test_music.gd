@@ -168,3 +168,79 @@ func test_it_does_not_play_with_no_display() -> void:
 	assert_false(music.is_playing(), "it started playing into a headless server")
 	assert_true(music.stream() == null, "it built a stream with nowhere to play it")
 	music.free()
+
+
+## Music is silent until somebody asks for it.
+##
+## A game that starts playing at you unasked is a game muted at the operating
+## system, after which nothing else it does with sound can reach you either.
+func test_music_is_off_by_default() -> void:
+	assert_eq(GameSettings.new().music_volume, 0.0, "the game starts playing music at you")
+
+
+func test_the_rest_of_the_game_is_not_muted_with_it() -> void:
+	assert_eq(GameSettings.new().master_volume, 1.0)
+
+
+## On its own bus, so the slider turns the music down rather than the game.
+func test_there_is_a_music_bus_to_turn_down() -> void:
+	assert_true(
+		AudioServer.get_bus_index(MusicPlayer.BUS) > 0,
+		"there is no %s bus, so the music slider would do nothing" % MusicPlayer.BUS
+	)
+
+
+func test_the_music_bus_feeds_the_master_one() -> void:
+	# Or the master slider would stop controlling the music, and "mute
+	# everything" would leave the music playing.
+	var bus := AudioServer.get_bus_index(MusicPlayer.BUS)
+	assert_eq(AudioServer.get_bus_send(bus), &"Master")
+
+
+func test_turning_the_slider_up_unmutes_the_bus() -> void:
+	var bus := AudioServer.get_bus_index(MusicPlayer.BUS)
+	var settings := GameSettings.new()
+
+	SettingsApplier.apply_audio(settings)
+	assert_true(AudioServer.is_bus_mute(bus), "silent settings left the bus playing")
+
+	settings.music_volume = 0.6
+	SettingsApplier.apply_audio(settings)
+	assert_false(AudioServer.is_bus_mute(bus), "the slider did not reach the bus")
+	assert_true(AudioServer.get_bus_volume_db(bus) < 0.0)
+
+	# Left as the defaults found it, or every later suite runs with the music on.
+	SettingsApplier.apply_audio(GameSettings.new())
+
+
+func test_the_choice_survives_being_saved_and_read_back() -> void:
+	var settings := GameSettings.new()
+	settings.music_volume = 0.35
+	assert_eq(settings.duplicate_settings().music_volume, 0.35)
+
+
+## A settings file written before this existed must not start playing music at
+## somebody who never asked for it.
+func test_a_settings_file_from_before_this_existed_stays_silent() -> void:
+	var old := GameSettings.new().to_dictionary()
+	old.erase("music_volume")
+	assert_eq(GameSettings.from_dictionary(old).music_volume, 0.0)
+
+
+func test_a_volume_outside_the_slider_is_brought_back() -> void:
+	var settings := GameSettings.new()
+	settings.music_volume = 4.0
+	settings.sanitise()
+	assert_eq(settings.music_volume, 1.0)
+
+
+## The menu has to actually offer it, or "off by default" is just "off".
+func test_the_settings_menu_offers_a_music_slider() -> void:
+	var menu: SettingsMenu = mount(load("res://ui/settings_menu.tscn").instantiate())
+	var slider := menu.control(&"music_volume")
+	assert_not_null(slider, "there is no music slider in the settings menu")
+
+	var settings := GameSettings.new()
+	settings.music_volume = 0.5
+	menu.show_settings(settings)
+	assert_eq(menu.collect().music_volume, 0.5, "the slider does not round-trip")

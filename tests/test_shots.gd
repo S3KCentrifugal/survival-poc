@@ -220,15 +220,27 @@ func test_every_committed_shot_carries_a_budget() -> void:
 		assert_true(shot.shadow_primitive_budget > 0, "%s does not budget the sun" % shot.shot_name)
 
 
-## The measurement that made the shadow budget non-optional: `terrain-detail`
-## draws 6 things and the sun draws 91 of them. A shot whose shadow budget was
-## a rounding of its visible one would be off by a factor of fifteen.
+## The sun still draws more *geometry* than the camera does, in every shot,
+## because it renders the whole heightfield wherever the camera is pointing.
+##
+## Draw calls used to hold the same order and no longer do: foliage added
+## seventy visible draw calls to a vista and casts no shadow at all, so on the
+## close and night shots the camera now issues more calls than the sun. The
+## primitive count is the invariant that survived, and it is the one that was
+## always the point.
 func test_the_shadow_budget_is_not_a_copy_of_the_visible_one() -> void:
 	for shot: ShotConfig in ShotConfig.all():
 		assert_true(
-			shot.shadow_draw_call_budget > shot.draw_call_budget,
-			"%s budgets the sun at or below the camera, which no shot measured" % shot.shot_name
+			shot.shadow_primitive_budget > shot.primitive_budget,
+			"%s budgets the sun below the camera, which no shot has measured" % shot.shot_name
 		)
+
+
+## And every shot still budgets the shadow pass at all, whichever way round the
+## draw calls happen to fall.
+func test_every_shot_budgets_the_sun() -> void:
+	for shot: ShotConfig in ShotConfig.all():
+		assert_true(shot.shadow_draw_call_budget > 0, "%s does not budget the sun" % shot.shot_name)
 
 
 func test_a_frame_inside_its_budget_passes() -> void:

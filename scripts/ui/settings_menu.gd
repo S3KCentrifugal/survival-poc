@@ -51,6 +51,7 @@ func show_settings(settings: GameSettings) -> void:
 	_check(&"render_scale_auto").button_pressed = settings.render_scale_auto
 	_slider(&"render_scale").value = settings.render_scale
 	_slider(&"master_volume").value = settings.master_volume
+	_slider(&"music_volume").value = settings.music_volume
 	_slider(&"look_sensitivity").value = settings.look_sensitivity
 	_refresh_availability()
 
@@ -74,6 +75,7 @@ func collect() -> GameSettings:
 	settings.render_scale_auto = _check(&"render_scale_auto").button_pressed
 	settings.render_scale = _slider(&"render_scale").value
 	settings.master_volume = _slider(&"master_volume").value
+	settings.music_volume = _slider(&"music_volume").value
 	settings.look_sensitivity = _slider(&"look_sensitivity").value
 	settings.sanitise(_screen_count)
 	return settings
@@ -128,6 +130,7 @@ func _build() -> void:
 
 	_section("Audio")
 	_slider_row(&"master_volume", "Master volume", 0.0, 1.0, 0.01)
+	_slider_row(&"music_volume", "Music volume", 0.0, 1.0, 0.01)
 
 	_section("Controls")
 	_slider_row(&"look_sensitivity", "Look sensitivity", 0.02, 1.0, 0.01)

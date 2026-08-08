@@ -140,6 +140,29 @@ func height_at_local(local_x: float, local_z: float) -> float:
 	return lerpf(top, bottom, tz)
 
 
+## Surface normal at a local position, from the slope of the field around it.
+##
+## Central differences over one metre either side rather than the triangle the
+## point falls in: a per-triangle normal is faceted, and anything scattered by
+## slope -- foliage, which refuses to grow on a cliff -- would then come and go
+## across a triangle edge for no reason a player could see.
+##
+## Sampled through [method height_at_local], so it is smooth, clamped at the
+## tile edge, and agrees with the height anything else is placed at.
+func normal_at_local(local_x: float, local_z: float) -> Vector3:
+	var step := VERTEX_SPACING
+	var dx := height_at_local(local_x + step, local_z) - height_at_local(local_x - step, local_z)
+	var dz := height_at_local(local_x, local_z + step) - height_at_local(local_x, local_z - step)
+	# The cross product of the two tangents, written out. 2 * step is the span
+	# the differences were taken over.
+	return Vector3(-dx, 2.0 * step, -dz).normalized()
+
+
+## How steep the ground is at a local position, in degrees from flat.
+func slope_at_local(local_x: float, local_z: float) -> float:
+	return rad_to_deg(acos(clampf(normal_at_local(local_x, local_z).y, -1.0, 1.0)))
+
+
 ## Local-space position of a grid point, with the tile centred on its origin.
 func vertex_position(x: int, z: int) -> Vector3:
 	var half := size_meters * 0.5

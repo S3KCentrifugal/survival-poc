@@ -3,9 +3,10 @@ extends Node
 ## Plays the generated background music, on a loop, forever.
 ##
 ## Thin: [MusicComposer] writes the samples, this wraps them in a stream and
-## starts it. Routed through the Master bus so the existing volume setting
-## already controls it -- music with no way to turn it down is worse than no
-## music.
+## starts it. Routed through its own **Music** bus rather than straight into
+## Master, so it can be turned down without turning the game down -- and so it
+## can default to silent, which it does. Music with no way to turn it down is
+## worse than no music; music you cannot turn *off* is worse still.
 
 signal started
 
@@ -29,6 +30,11 @@ signal started
 ## could exist, and it should be able to say so.
 @export var play_without_display: bool = false
 
+## The bus the settings menu controls. Falls back to Master if the layout is
+## missing, because a missing bus plays at full volume with no way to stop it --
+## which is the one failure mode this whole arrangement exists to prevent.
+const BUS: StringName = &"Music"
+
 var _player: AudioStreamPlayer
 
 
@@ -51,7 +57,7 @@ func play() -> void:
 	_player = AudioStreamPlayer.new()
 	_player.stream = build_stream(config)
 	_player.volume_db = volume_db
-	_player.bus = &"Master"
+	_player.bus = BUS
 	# Music is not part of the simulation. It should keep going while the pause
 	# menu is open, which is exactly when silence is most noticeable.
 	_player.process_mode = Node.PROCESS_MODE_ALWAYS

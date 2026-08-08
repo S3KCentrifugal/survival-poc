@@ -121,5 +121,4 @@ what that costs, stated as a number rather than as a caveat.
 
 ---
 
-Next: Phase 3 — foliage and world density, which is the biggest perceived jump
-for an outdoor game and the first phase with a real performance risk attached.
+Next: [046 — Something to stand in](046-something-to-stand-in.md).

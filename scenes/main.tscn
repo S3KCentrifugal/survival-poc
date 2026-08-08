@@ -34,6 +34,10 @@
 [ext_resource type="Script" path="res://scripts/world/merchant_post.gd" id="32_post"]
 [ext_resource type="PackedScene" path="res://characters/merchant.tscn" id="33_merchant"]
 [ext_resource type="Script" path="res://scripts/graphics/atmosphere_component.gd" id="34_atmosphere"]
+[ext_resource type="Script" path="res://scripts/world/foliage_component.gd" id="35_foliage"]
+[ext_resource type="Resource" path="res://resources/foliage/grass.tres" id="36_grass"]
+[ext_resource type="Resource" path="res://resources/foliage/shrub.tres" id="37_shrub"]
+[ext_resource type="Resource" path="res://resources/foliage/tree.tres" id="38_tree"]
 
 ; local_to_scene on all three, and it is load-bearing. Sub-resources are
 ; SHARED between instantiations of a scene by default, so without it two
@@ -149,6 +153,16 @@ day_night = NodePath("../DayNight")
 environment = NodePath("../WorldEnvironment")
 
 [node name="Terrain" parent="." instance=ExtResource("1_terrain")]
+
+; After the terrain, because it reads the heightfield the terrain builds in its
+; own _ready. Grass casts no shadow: the shadow pass already draws three to four
+; times the primitives the camera does, and this is the densest thing in the
+; world.
+[node name="Foliage" type="Node3D" parent="." node_paths=PackedStringArray("terrain")]
+script = ExtResource("35_foliage")
+terrain = NodePath("../Terrain")
+layers = Array[Resource]([ExtResource("36_grass"), ExtResource("37_shrub"), ExtResource("38_tree")])
+avoid = Array[Rect2]([Rect2(-11, -9, 22, 18)])
 
 [node name="Navigation" type="NavigationRegion3D" parent="."]
 navigation_mesh = SubResource("NavigationMesh_world")

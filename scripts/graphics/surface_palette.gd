@@ -93,6 +93,28 @@ static func to_band(colour: Color, target: float, amount: float) -> Color:
 	return result
 
 
+## The multiplier that moves a whole gradient into a band together.
+##
+## [param reference_luminance] is linear, and is normally the middle of the
+## gradient. Needed because banding each colour *separately* lands them all on
+## the same brightness and destroys the gradient: the first field of grass had a
+## dark root and a light tip in the mesh and rendered as flat green shards,
+## because the per-pixel band pulled both ends onto the identical value.
+##
+## So a gradient is scaled by one number rather than banded pixel by pixel. The
+## clump sits in its band; the blade still gets darker toward the root.
+static func band_scale(reference_luminance: float, target: float, amount: float) -> float:
+	return lerpf(1.0, target / maxf(reference_luminance, 0.0001), amount)
+
+
+## The linear-space relative luminance of a linear colour.
+##
+## [method UiTokens.luminance] takes sRGB and converts; this is for callers that
+## are already working in linear, which everything touching ALBEDO is.
+static func linear_luminance(linear: Color) -> float:
+	return 0.2126 * linear.r + 0.7152 * linear.g + 0.0722 * linear.b
+
+
 ## The colour a surface of [param band] ends up as.
 static func in_band(colour: Color, band: Band) -> Color:
 	return to_band(colour, value_of(band), strength_of(band))

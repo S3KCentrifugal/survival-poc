@@ -112,18 +112,29 @@ static func output_size_for(
 	return screen_size
 
 
-## Master volume, converted from a linear slider to decibels.
+## Volumes, converted from linear sliders to decibels.
 ##
 ## Silence is not "0 dB", it is negative infinity -- so a slider at zero has to
 ## mute the bus rather than set a very small number, or the quietest setting is
-## still audible.
+## still audible. Music defaults to zero, so this is the path that actually runs.
 static func apply_audio(settings: GameSettings) -> void:
-	var bus := AudioServer.get_bus_index(&"Master")
+	apply_bus(&"Master", settings.master_volume)
+	apply_bus(MusicPlayer.BUS, settings.music_volume)
+
+
+## Sets one bus from a linear 0-to-1 volume.
+##
+## A bus that does not exist is skipped rather than defaulted, because the
+## alternative -- falling back to Master -- would make a missing Music bus mean
+## "the music slider turns the whole game down", which is worse than it not
+## working at all.
+static func apply_bus(name: StringName, volume: float) -> void:
+	var bus := AudioServer.get_bus_index(name)
 	if bus < 0:
 		return
-	AudioServer.set_bus_mute(bus, settings.master_volume <= 0.0)
-	if settings.master_volume > 0.0:
-		AudioServer.set_bus_volume_db(bus, linear_to_db(settings.master_volume))
+	AudioServer.set_bus_mute(bus, volume <= 0.0)
+	if volume > 0.0:
+		AudioServer.set_bus_volume_db(bus, linear_to_db(volume))
 
 
 ## Pushes the two settings that belong to the camera onto its config.

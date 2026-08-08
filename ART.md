@@ -220,17 +220,21 @@ After Phase 2. Every figure is enforced by `shots.sh check`.
 | `base-exterior` | 0% | 7 | — |
 | `terrain-detail` | 0% | 4 | — |
 | `hud-gameplay` | 0% | 6 | — |
-| `player-close` | 0% | 5 | **2.5:1** *(was 1.0:1)* |
+| `player-close` | 0% | 6 | **3.5:1** *(was 1.0:1)* |
 | `world-dusk` | 0% | 5 | — |
 | `world-night` | 15% | 1 | — |
 
-**Rule 3 is most of the way there.** `player-close` went from 1.0:1 to 2.5:1
-against a 3:1 target, and it is now the first shot in the project that enforces
-anything about silhouette. The remaining gap is not a missing technique: the
-palette separates 6.8:1 and the screen gives back 2.5:1, because lighting and
-tonemapping compress it. Closing it further means either a character model that
-is not inherently pale — this one's albedo is mostly white and light blue — or a
-ground darker than night readability allows.
+**Rule 3 is met.** `player-close` measures 3.5:1 against the 3:1 target, and the
+target is enforced. It took two phases and the second one was not the one that
+finished it: Phase 2's value structure got from 1.0:1 to 2.5:1, and Phase 3's
+grass took it past 3:1 by darkening the ground a character is actually read
+against. A value band moves the palette; foliage moves what is *behind* the
+character, and that turned out to be worth as much.
+
+It holds against grass, which is what a character is usually seen against. It
+does not hold against a building wall — there the separation is shape, shadow
+and rim rather than value, and no palette can give all three pairings 3:1 at
+once.
 
 **Night and dusk stay fixed** through a ground that is now materially darker,
 which cost a higher night ambient to pay for.
